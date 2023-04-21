@@ -1,344 +1,53 @@
+# --------------------------------
+# Core configuration
+# --------------------------------
+
 # Loads default set of integrations. Do not remove.
 default_config:
-
-# configures MariaDB
-recorder:
-  db_url: !secret maria_db_recorder_db_url
-  # purge every night at ca. 4am. Keep data for 7 days.
-  auto_purge: true
-  purge_keep_days: 7
-
-influxdb:
-  host: 127.0.0.1
-  port: 8086
-  database: homeassistant
-  username: homeassistant
-  password: !secret influxdb_pass
-  max_retries: 3
-  default_measurement: state
-  include:
-    # Syntax ist glob, sprich wie bei linux ls
-    # hier ist ein matcher: https://www.digitalocean.com/community/tools/glob
-    entity_globs:
-      # plantsensor_bambus_moisture sprich sensor. ist das nicht
-      # get everything from the temperaturesensors (naming convention: location_temperaturesensor_...
-      - sensor.temperatursensor_*
-      # get everything from the plants (naming convention: location_plantsensor_...)
-      - sensor.plantsensor_*
-      # power from shelly plugs
-      - sensor.shellyplug*[energy|power|uptime]
-      # Viessmann
-      - sensor.vicare_*
-      # Staubsauger
-      # Nachtlichter
-      - sensor.nachtlicht_*
-      # Helios
-      - sensor.helios_*
-      # Grunbeck
-      - sensor.grunbeck_weichwassermenge*
-      - sensor.grunbeck_salz_verbrauch*
-      # Stromverbrauch und Einspeisung
-      - sensor.tasmota_mt681*
-      - sensor.tasmota_mt691*
-      # Balkonkraftwerk
-      - sensor.balkon*
-
 # Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes
+homeassistant: !include includes/homeassistant.yaml
 
-# Text to speech
-tts:
-  - platform: google_translate
+# --------------------------------
+# Storage
+# --------------------------------
 
+# short-term storage via MariaDB (7 days)
+recorder: !include includes/recorder.yaml
+# selected long term storage via influxDB
+influxdb: !include includes/influxdb.yaml
+
+# --------------------------------
+# Managed via UI (kept in root dir)
+# --------------------------------
+scene: !include scenes.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
-scene: !include scenes.yaml
-alert: !include alerts.yaml
-template: !include templates.yaml
 
-# Example configuration.yaml entry to enable the cloud component
+# --------------------------------
+# Default entities
+# --------------------------------
+
+alert: !include includes/alerts.yaml
+template: !include includes/templates.yaml
+tts: !include includes/tts.yaml
+sensor: !include_dir_merge_list includes/sensors
+mqtt: !include includes/mqtt.yaml
+utility_meter: !include includes/utility_meter.yaml
+shell_command: !include includes/shell_command.yaml
+
+# --------------------------------
+# Communication
+# --------------------------------
+
 cloud:
-
-# Bluetooth
 bluetooth:
-
 mobile_app:
 discovery:
+
+# --------------------------------
+# Extensions
+# --------------------------------
+waste_collection_schedule: !include includes/waste_collection_schedule.yaml
 powercalc:
-
-# Kalender auf https://awido.cubefour.de/Customer/aic-fdb/v2/Calendar2.aspx abrufen
-# Dann per ics oder csv speichern, darin befinden sich dann die korrekten Namen
-# https://github.com/mampfes/hacs_waste_collection_schedule/blob/master/doc/source/awido_de.md
-waste_collection_schedule:
-  sources:
-    - name: awido_de
-      args:
-        customer: !secret waste_collection_customer
-        city: !secret waste_collection_city
-        street: !secret waste_collection_street
-      customize:
-        - type: Restmülltonne
-          alias: rest
-          show: true
-          icon: mdi:trash-can
-        - type: Gelbe Tonne
-          alias: gelb
-          show: true
-          icon: mdi:recycle
-        - type: Biotonne
-          alias: bio
-          show: true
-          icon: mdi:trash-can
-        - type: Papiertonne
-          alias: papier
-          show: true
-          icon: mdi:trash-can
-  # wann wird der Datensatz aktualisiert
-  fetch_time: "04:00"
-  # wann wird auf den nächsten Tag umgestellt, sprich wann am Abholtag wird der
-  # Müll geholt
-  day_switch_time: "08:00"
-
-homeassistant:
-  # customize Tasmota energy
-  customize_glob:
-    sensor.tasmota_mt691_total_in:
-      unit_of_measurement: "kWh"
-      device_class: energy
-      state_class: total_increasing
-      last_reset: 1970-01-01T00:00:00+00:00
-    sensor.tasmota_mt691_total_out:
-      unit_of_measurement: "kWh"
-      device_class: energy
-      state_class: total_increasing
-      last_reset: 1970-01-01T00:00:00+00:00
-
-  customize:
-    sensor.waste_rest:
-      unit_of_measurement: Tage
-      entity_picture: /local/images/waste/waste-schwarz.png
-    sensor.waste_gelb:
-      unit_of_measurement: Tage
-      entity_picture: /local/images/waste/waste-gelb.png
-    sensor.waste_papiertonne:
-      unit_of_measurement: Tage
-      entity_picture: /local/images/waste/waste-blau.png
-    sensor.waste_bio:
-      unit_of_measurement: Tage
-      entity_picture: /local/images/waste/waste-gruen.png
-    sensor.waste_next:
-      unit_of_measurement: Tage
-
-utility_meter:
-  stromverbrauch_aktuell_daily:
-    source: sensor.tasmota_mt691_total_in
-    cycle: daily
-  stromverbrauch_aktuell_weekly:
-    source: sensor.tasmota_mt691_total_in
-    cycle: weekly
-  stromverbrauch_aktuell_monthly:
-    source: sensor.tasmota_mt691_total_in
-    cycle: monthly
-  stromverbrauch_aktuell_yearly:
-    source: sensor.tasmota_mt691_total_in
-    cycle: yearly
-  stromeinspeisung_aktuell_daily:
-    source: sensor.tasmota_mt691_total_out
-    cycle: daily
-  stromeinspeisung_aktuell_weekly:
-    source: sensor.tasmota_mt691_total_out
-    cycle: weekly
-  stromeinspeisung_aktuell_monthly:
-    source: sensor.tasmota_mt691_total_out
-    cycle: monthly
-  stromeinspeisung_aktuell_yearly:
-    source: sensor.tasmota_mt691_total_out
-    cycle: yearly
-
-sensor:
-  # Stromkalkulation für Geräte ohne eigene Verbrauchsmessung
-  # https://www.simon42.com/home-assistant-powercalc/
-  # die entity_id ist die entity auf dessen Basis der Verbrauch berechnet wird
-  - platform: powercalc
-    name: "Xiaomi Vacuum"
-    entity_id: vacuum.roboter_staubsauger
-    unique_id: "VacuumXiaomiSkippy"
-    standby_power: 1
-    fixed:
-      states_power:
-        cleaning: 33
-        docked: 1
-  - platform: powercalc
-    name: "Roborock Vacuum"
-    entity_id: vacuum.roborock_s7_maxv
-    unique_id: "VacuumRoboRock"
-    standby_power: 3
-    fixed:
-      states_power:
-        cleaning: 68
-        docked: 3
-  - platform: powercalc
-    name: "Helios Lüftung"
-    entity_id: "sensor.helios_airflow_rate"
-    standby_power: 0.5
-    # https://www.farko.com/files/helios_kwl_katalog_6.0_0220_d.pdf
-    linear:
-      calibrate:
-        - 0 -> 0.5
-        - 140 -> 14
-        - 200 -> 25
-        - 350 -> 111
-
-  # Define a sensor that tracks the number of active alerts
-  - platform: template
-    sensors:
-      active_alerts:
-        friendly_name: "Active Alerts"
-        value_template: "{{ states('alert') | count }}"
-        icon_template: mdi:alert-circle
-        entity_picture_template: "/local/alert.png"
-
-  - platform: waste_collection_schedule
-    name: waste-rest
-    details_format: "upcoming"
-    value_template: "{{ value.daysTo }}"
-    # Filter auf den alias des Types
-    types:
-      - rest
-
-  - platform: waste_collection_schedule
-    name: waste_gelb
-    details_format: "upcoming"
-    value_template: "{{ value.daysTo }}"
-    # Filter auf den alias des Types
-    types:
-      - gelb
-
-  - platform: waste_collection_schedule
-    name: waste_bio
-    details_format: "upcoming"
-    value_template: "{{ value.daysTo }}"
-    # Filter auf den alias des Types
-    types:
-      - bio
-
-  - platform: waste_collection_schedule
-    name: waste_papiertonne
-    details_format: "upcoming"
-    value_template: "{{ value.daysTo }}"
-    # Filter auf den alias des Types
-    types:
-      - papier
-
-  - platform: waste_collection_schedule
-    name: waste_next
-    details_format: "upcoming"
-    value_template: "{{ value.daysTo }}"
-
-# Grünbeck water softener via iOBroker and MQTT
-# EDIT 11th November 2022: changed to MQTT platform
-# Sensors
-mqtt:
-  sensor:
-    # Vorsicht: Der entity_id name im Homeassistant wird anhand des name
-    # attribute aus configuration.yaml gezogen (umlaute werden hier einfach entfernt)
-    # unique_id wird *nicht* verwendet, sondern nur genutzt um sicherzustellen
-    # dass eine eindeutige Zuweisung möglich ist. Ich nutze deswegen als
-    # Namen direkt ohne Umlaute
-
-    - name: Grunbeck Weichwassermenge
-      unique_id: grunbeck_weichwassermenge
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mcountwater1"
-      unit_of_measurement: "l"
-      state_class: total_increasing
-
-    - name: Grunbeck Regenerations Zahler
-      unique_id: grunbeck_regenerations_zahler
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mcountreg"
-      state_class: total_increasing
-
-    - name: Grunbeck aktueller Durchfluss
-      unique_id: grunbeck_aktueller_durchfluss
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mflow1"
-      unit_of_measurement: "m³/h"
-      state_class: measurement
-
-    - name: Grunbeck Restkapazitat m³
-      unique_id: grunbeck_restkapazitat_m3
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mrescapa1"
-      unit_of_measurement: "m³"
-      value_template: "{{value | round(1) }}"
-
-    - name: Grunbeck Restkapazitat %
-      unique_id: grunbeck_restkapazitat_percent
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mresidcap1"
-      unit_of_measurement: "%"
-
-    - name: Grunbeck Salz Reichweite
-      unique_id: grunbeck_salz_reichweite
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/msaltrange"
-      unit_of_measurement: "Tage"
-
-    - name: Grunbeck Salz Verbrauch
-      unique_id: grunbeck_salz_verbrauch
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/msaltusage"
-      value_template: "{{ value|round(4)|float(0) }}"
-      unit_of_measurement: "kg"
-      state_class: total_increasing
-
-    - name: Grunbeck nachste Regeneration
-      unique_id: grunbeck_nachste_regeneration
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/nextRegeneration"
-      value_template: "{{ as_timestamp(value)|timestamp_local(default) }}"
-      device_class: timestamp
-
-    - name: Grunbeck Rohwasser Harte
-      unique_id: grunbeck_rohwasser_harte
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/rawWater"
-      unit_of_measurement: "°dH"
-
-    - name: Grunbeck Weichwasser Harte
-      unique_id: grunbeck_weichwasser_harte
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/softWater"
-      unit_of_measurement: "°dH"
-
-    - name: Grunbeck Modus
-      unique_id: grunbeck_modus
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/mode"
-      value_template: >-
-        {% if value == '1' %}
-            {% set modus = 'Eco' %}
-        {% endif %}
-        {% if value == '2' %}
-            {% set modus = 'Comfort' %}
-        {% endif %}
-        {% if value == '3' %}
-            {% set modus = 'Power' %}
-        {% endif %}
-        {{ modus }}
-
-    - name: Grunbeck letzter Neustart
-      unique_id: grunbeck_letzter_neustart
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/startup"
-
-    - name: Grunbeck Wartung in
-      unique_id: grunbeck_wartung_in
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mmaint"
-      unit_of_measurement: "Tagen"
-
-    - name: Grunbeck Fehler
-      unique_id: grunbeck_fehler
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/errors"
-      value_template: "{{ value_json.0.message }}"
-
-  binary_sensor:
-    - name: Grunbeck Anlagen Status
-      unique_id: grunbeck_anlagen_status
-      payload_on: "true"
-      payload_off: "false"
-      state_topic: "gruenbeck/0/softliQ/D/BS40021134/hasError"
-      device_class: problem
-
-shell_command:
-  pushupdates_to_github: /bin/bash pushupdates.sh

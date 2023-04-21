@@ -1,0 +1,102 @@
+# Grünbeck water softener via iOBroker and MQTT
+# EDIT 11th November 2022: changed to MQTT platform
+# Sensors
+sensor:
+  # Vorsicht: Der entity_id name im Homeassistant wird anhand des name
+  # attribute aus configuration.yaml gezogen (umlaute werden hier einfach entfernt)
+  # unique_id wird *nicht* verwendet, sondern nur genutzt um sicherzustellen
+  # dass eine eindeutige Zuweisung möglich ist. Ich nutze deswegen als
+  # Namen direkt ohne Umlaute
+
+  - name: Grunbeck Weichwassermenge
+    unique_id: grunbeck_weichwassermenge
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mcountwater1"
+    unit_of_measurement: "l"
+    state_class: total_increasing
+
+  - name: Grunbeck Regenerations Zahler
+    unique_id: grunbeck_regenerations_zahler
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mcountreg"
+    state_class: total_increasing
+
+  - name: Grunbeck aktueller Durchfluss
+    unique_id: grunbeck_aktueller_durchfluss
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mflow1"
+    unit_of_measurement: "m³/h"
+    state_class: measurement
+
+  - name: Grunbeck Restkapazitat m³
+    unique_id: grunbeck_restkapazitat_m3
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mrescapa1"
+    unit_of_measurement: "m³"
+    value_template: "{{value | round(1) }}"
+
+  - name: Grunbeck Restkapazitat %
+    unique_id: grunbeck_restkapazitat_percent
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mresidcap1"
+    unit_of_measurement: "%"
+
+  - name: Grunbeck Salz Reichweite
+    unique_id: grunbeck_salz_reichweite
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/msaltrange"
+    unit_of_measurement: "Tage"
+
+  - name: Grunbeck Salz Verbrauch
+    unique_id: grunbeck_salz_verbrauch
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/msaltusage"
+    value_template: "{{ value|round(4)|float(0) }}"
+    unit_of_measurement: "kg"
+    state_class: total_increasing
+
+  - name: Grunbeck nachste Regeneration
+    unique_id: grunbeck_nachste_regeneration
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/nextRegeneration"
+    value_template: "{{ as_timestamp(value)|timestamp_local(default) }}"
+    device_class: timestamp
+
+  - name: Grunbeck Rohwasser Harte
+    unique_id: grunbeck_rohwasser_harte
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/rawWater"
+    unit_of_measurement: "°dH"
+
+  - name: Grunbeck Weichwasser Harte
+    unique_id: grunbeck_weichwasser_harte
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/softWater"
+    unit_of_measurement: "°dH"
+
+  - name: Grunbeck Modus
+    unique_id: grunbeck_modus
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/mode"
+    value_template: >-
+      {% if value == '1' %}
+          {% set modus = 'Eco' %}
+      {% endif %}
+      {% if value == '2' %}
+          {% set modus = 'Comfort' %}
+      {% endif %}
+      {% if value == '3' %}
+          {% set modus = 'Power' %}
+      {% endif %}
+      {{ modus }}
+
+  - name: Grunbeck letzter Neustart
+    unique_id: grunbeck_letzter_neustart
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/startup"
+
+  - name: Grunbeck Wartung in
+    unique_id: grunbeck_wartung_in
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/Stream/mmaint"
+    unit_of_measurement: "Tagen"
+
+  - name: Grunbeck Fehler
+    unique_id: grunbeck_fehler
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/errors"
+    value_template: "{{ value_json.0.message }}"
+
+binary_sensor:
+  - name: Grunbeck Anlagen Status
+    unique_id: grunbeck_anlagen_status
+    payload_on: "true"
+    payload_off: "false"
+    state_topic: "gruenbeck/0/softliQ/D/BS40021134/hasError"
+    device_class: problem

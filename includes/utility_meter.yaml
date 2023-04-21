@@ -1,0 +1,24 @@
+stromverbrauch_aktuell_daily:
+  source: sensor.tasmota_mt691_total_in
+  cycle: daily
+stromverbrauch_aktuell_weekly:
+  source: sensor.tasmota_mt691_total_in
+  cycle: weekly
+stromverbrauch_aktuell_monthly:
+  source: sensor.tasmota_mt691_total_in
+  cycle: monthly
+stromverbrauch_aktuell_yearly:
+  source: sensor.tasmota_mt691_total_in
+  cycle: yearly
+stromeinspeisung_aktuell_daily:
+  source: sensor.tasmota_mt691_total_out
+  cycle: daily
+stromeinspeisung_aktuell_weekly:
+  source: sensor.tasmota_mt691_total_out
+  cycle: weekly
+stromeinspeisung_aktuell_monthly:
+  source: sensor.tasmota_mt691_total_out
+  cycle: monthly
+stromeinspeisung_aktuell_yearly:
+  source: sensor.tasmota_mt691_total_out
+  cycle: yearly

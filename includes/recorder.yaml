@@ -1,0 +1,6 @@
+# Uses MariaDB database for shortterm storage (7 days)
+
+db_url: !secret maria_db_recorder_db_url
+# purge every night at ca. 4am. Keep data for 7 days.
+auto_purge: true
+purge_keep_days: 7

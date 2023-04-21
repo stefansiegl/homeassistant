@@ -1,0 +1,29 @@
+customize_glob:
+  # customize Tasmota energy
+  sensor.tasmota_mt691_total_in:
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+    last_reset: 1970-01-01T00:00:00+00:00
+  sensor.tasmota_mt691_total_out:
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+    last_reset: 1970-01-01T00:00:00+00:00
+
+customize:
+  # customise waste collection schedule
+  sensor.waste_rest:
+    unit_of_measurement: Tage
+    entity_picture: /local/images/waste/waste-schwarz.png
+  sensor.waste_gelb:
+    unit_of_measurement: Tage
+    entity_picture: /local/images/waste/waste-gelb.png
+  sensor.waste_papiertonne:
+    unit_of_measurement: Tage
+    entity_picture: /local/images/waste/waste-blau.png
+  sensor.waste_bio:
+    unit_of_measurement: Tage
+    entity_picture: /local/images/waste/waste-gruen.png
+  sensor.waste_next:
+    unit_of_measurement: Tage

@@ -1,0 +1,36 @@
+- platform: waste_collection_schedule
+  name: waste-rest
+  details_format: "upcoming"
+  value_template: "{{ value.daysTo }}"
+  # Filter auf den alias des Types
+  types:
+    - rest
+
+- platform: waste_collection_schedule
+  name: waste_gelb
+  details_format: "upcoming"
+  value_template: "{{ value.daysTo }}"
+  # Filter auf den alias des Types
+  types:
+    - gelb
+
+- platform: waste_collection_schedule
+  name: waste_bio
+  details_format: "upcoming"
+  value_template: "{{ value.daysTo }}"
+  # Filter auf den alias des Types
+  types:
+    - bio
+
+- platform: waste_collection_schedule
+  name: waste_papiertonne
+  details_format: "upcoming"
+  value_template: "{{ value.daysTo }}"
+  # Filter auf den alias des Types
+  types:
+    - papier
+
+- platform: waste_collection_schedule
+  name: waste_next
+  details_format: "upcoming"
+  value_template: "{{ value.daysTo }}"

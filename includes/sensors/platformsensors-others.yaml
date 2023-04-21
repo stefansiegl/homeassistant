@@ -1,0 +1,8 @@
+# Define a sensor that tracks the number of active alerts
+- platform: template
+  sensors:
+    active_alerts:
+      friendly_name: "Active Alerts"
+      value_template: "{{ states('alert') | count }}"
+      icon_template: mdi:alert-circle
+      entity_picture_template: "/local/alert.png"

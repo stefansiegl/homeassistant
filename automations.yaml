@@ -290,3 +290,14 @@
   condition: []
   action: []
   mode: single
+- id: '1682107400787'
+  alias: Automated GitHub sync
+  description: 'see also: https://www.youtube.com/watch?v=hhv-WqGUy_o'
+  trigger:
+  - platform: time
+    at: 02:00:00
+  condition: []
+  action:
+  - service: shell_command.pushupdates_to_github
+    data: {}
+  mode: single
