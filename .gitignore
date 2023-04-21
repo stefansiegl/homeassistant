@@ -18,3 +18,5 @@ custom_components
 www/community
 themes
 .HA_VERSION
+*.log
+*.log.txt
