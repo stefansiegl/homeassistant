@@ -1,0 +1,43 @@
+start_vacuum_eg:
+  alias: Start Vacuum EG
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{# Türe ist auch auf #}
+
+        {{ states("binary_sensor.klo_door_eg_door_left_open") == "on" }}'
+      alias: Klo Türe ist offen
+    then:
+    - service: vacuum.start
+      data: {}
+      target:
+        device_id: 28c0fcbef53460722d9646f5a186c492
+    else:
+    - service: notify.mobile_app_pixel_6_pro
+      data:
+        message: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+        title: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+    alias: Reinige nur wenn die Klo Türe auch offen ist
+  mode: single
+  icon: mdi:vacuum
+start_vacuum_og:
+  alias: Start Vacuum OG
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{# Türe ist auch auf #}
+
+        {{ states("binary_sensor.door_klo_2og_5173_door_left_open") == "on" }}'
+      alias: Bad Türe ist offen
+    then:
+    - service: vacuum.start
+      data: {}
+      target:
+        device_id: 44854ec1ad8d965056ea614e1f580680
+    else:
+    - service: notify.notify
+      data:
+        message: 2OG Reinigung gestoppt, da Türe zu
+        title: 2OG Reinigung gestoppt, da Türe zu
+  mode: single
+  icon: mdi:vacuum

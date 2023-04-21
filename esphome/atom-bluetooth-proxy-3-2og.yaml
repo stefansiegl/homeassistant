@@ -1,0 +1,28 @@
+substitutions:
+  name: "atom-bluetooth-proxy-3-2og"
+packages:
+  esphome.bluetooth-proxy: github://esphome/bluetooth-proxies/m5stack-atom-lite.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+#api:
+#ota:
+
+# Bluetooth standard sending mode. Scan only once per minute (to reduce Bluetooth chatter). 
+# Remove for scan mode (basis config is available in linked package) and set logger to 
+#logger:
+#  level: VERY_VERBOSE
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: False
+#    continuous: False
+
+# Proxy is active even if "active" is set to False, this only means whether this forwards active requests (battery)
+bluetooth_proxy:
+  active: False

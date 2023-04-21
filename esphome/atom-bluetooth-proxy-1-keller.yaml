@@ -1,0 +1,41 @@
+substitutions:
+  name: "atom-bluetooth-proxy-1-keller"
+packages:
+  esphome.bluetooth-proxy: github://esphome/bluetooth-proxies/m5stack-atom-lite.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+
+# Bluetooth standard sending mode. Scan only once per minute (to reduce Bluetooth chatter). 
+# Remove for scan mode (basis config is available in linked package) and set logger to 
+#  logger:
+#    level: VERY_VERBOSE
+esp32_ble_tracker:
+  scan_parameters:
+    active: False
+#    continuous: False
+
+bluetooth_proxy:
+  active: False
+
+#sensor:
+#  #ATC_C28D15
+#  - platform: atc_mithermometer
+#    mac_address: "A4:C1:38:C2:8D:15"
+#    temperature:
+#      name: "ATC Temperature"
+#    humidity:
+#      name: "ATC Humidity"
+#    battery_level:
+#      name: "ATC Battery-Level"
+#    battery_voltage:
+#      name: "ATC Battery-Voltage"
+#    signal_strength:
+#      name: "ATC Signal"
