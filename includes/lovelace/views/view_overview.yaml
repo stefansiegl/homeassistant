@@ -1,0 +1,177 @@
+theme: Backend-selected
+title: Home
+path: home
+type: custom:grid-layout
+layout:
+  grid-template-columns: 33% auto 33%
+  grid-template-rows: auto
+  grid-template-areas: |
+    "header header header"
+    ". messages ."
+    "left middle right"
+    ". footer ."
+mediaquery:
+  "(max-width: 412px)":
+    grid-template-columns: 100%
+    grid-template-areas: |
+      "header"
+      "messages"
+      "left"
+      "middle"
+      "right"
+      "footermobile"
+  "(max-width: 800px)":
+    grid-template-columns: 50% 50%
+    grid-template-areas: |
+      "header header"
+      "messages messages"
+      "left right"
+      "middle middle"
+      "footer footer"
+badges: []
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: action
+            icon: mdi:home
+            tap_action:
+              action: navigate
+              navigation_path: /dashboard-kiosk
+          - type: action
+            icon: mdi:sofa
+          - type: action
+            icon: mdi:chair-rolling
+          - type: weather
+            entity: weather.openweathermap
+            show_conditions: true
+            show_temperature: true
+            tap_action:
+              action: navigate
+              navigation_path: /dashboard-kiosk/wetter-details
+          - type: light
+            entity: light.erdgeschoss
+            name: Licht
+            content_info: name
+            tap_action:
+              action: toggle
+          - type: entity
+            entity: person.stefan_siegl
+            content_info: state
+            use_entity_picture: true
+          - type: entity
+            entity: person.adrian
+            use_entity_picture: true
+          - type: entity
+            entity: person.david
+            use_entity_picture: true
+    view_layout:
+      grid-area: header
+  - type: markdown
+    content: This is a message
+    view_layout:
+      grid-area: messages
+  - type: light
+    entity: light.schrank
+    name: Middle
+    view_layout:
+      grid-area: middle
+  - type: vertical-stack
+    cards:
+      - type: light
+        entity: light.hue_centris_ess_spot_3
+      - type: light
+        entity: light.hue_centris_ess_spot_3
+    view_layout:
+      grid-area: left
+  - type: markdown
+    content: This is the footer message
+    view_layout:
+      grid-area: footer
+  - type: custom:stack-in-card
+    mode: vertical
+    card_mod:
+      style: |
+        ha-card {
+          background: none;
+          box-shadow: none;
+        }
+    cards:
+      - type: custom:mushroom-template-card
+        entity: person.stefan_siegl
+        layout: vertical
+        primary: Stefan
+        badge_icon: |
+          {% if is_state(config.entity, 'home') %}
+              mdi:home
+            {% elif is_state(config.entity, 'away') or
+            is_state(config.entity, 'unavailable') %}
+              mdi:home-export-outline
+            {% endif %}
+        badge_color: |
+          {% if is_state(config.entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        picture: |
+          {{ state_attr('person.stefan_siegl', 'entity_picture') }}
+        multiline_secondary: true
+        secondary: >
+          {% if is_state('person.stefan_siegl', 'home') %}
+            Zu Hause
+          {% elif is_state('person.stefan_siegl', 'away') or
+          is_state('person.stefan_siegl', 'unavailable') %}
+            Nicht verfügbar
+          {% else %}
+            Weg {{ states('person.stefan_siegl') }}
+          {% endif %}
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            icon: >
+              {% if is_state('sensor.pixel_6_pro_battery_state',
+              'not_charging') %}
+                mdi:battery-clock-outline
+              {% elif is_state('sensor.pixel_6_pro_battery_state',
+              'charging') %}
+                mdi:battery-charging-100
+              {% else %}
+                mdi:battery-arrow-down
+              {% endif %}
+            icon_color: light-green
+          - type: entity
+            entity: sensor.pixel_6_pro_battery_level
+            content_info: state
+            icon_color: light-green
+        alignment: center
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-spacing: 0;
+            }
+  - type: entity
+    entity: counter.briefkasten_open_counter
+    name: Post
+    icon: mdi:email-box
+    state_color: true
+    theme: Mushroom
+  - type: custom:mushroom-vacuum-card
+    entity: vacuum.roborock_s7_maxv
+    name: Staubi
+    icon_animation: true
+    primary_info: name
+    commands:
+      - start_pause
+      - stop
+      - return_home
+      - clean_spot
+  - type: vertical-stack
+    cards:
+      - !include ../cards/waste-collection-chip-cards.yaml
+      - !include ../cards/waste-collection-entity-cards.yaml
+    view_layout:
+      grid-area: right

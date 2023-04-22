@@ -1,0 +1,9 @@
+title: Home
+kiosk_mode:
+  non_admin_settings:
+    kiosk: true
+    ignore_entity_settings: true
+views:
+  - !include views/view_overview.yaml
+  - !include views/view_weather_details.yaml
+  - !include views/view_robot_details.yaml

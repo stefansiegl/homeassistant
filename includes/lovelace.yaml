@@ -1,0 +1,10 @@
+# keep default mode as storage
+mode: storage
+# add YAML mode dashboard
+dashboards:
+  lovelace-yaml:
+    mode: yaml
+    title: YAML
+    icon: mdi:script
+    show_in_sidebar: true
+    filename: includes/lovelace/kiosk-dashboard.yaml
