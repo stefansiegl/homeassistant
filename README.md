@@ -5,10 +5,11 @@ in the database of homeassistant and are thus not shown here.
 
 ## What might be interesting
 - Waste Collection: [config](includes/waste_collection_schedule.yaml) and [sensors](includes/sensors/platformsensors-wastecollection.yaml)
-- Vacuum automation ensuring cleaning after some time passed and ensures that it actually can (checks whether the door it open)
-- Nifty use of door sensors (ensuring door is completely open, checking for mail, checking for garbage)
-- manual override for testing purposes of warning sesnsors that are normally
-  hidden.
+- Roborock Control: [script](includes/scripts/roborock_s7.yaml)
+- Automated vacuuming: [script](includes/scripts/vacuum_automated.yaml), [automation](includes/automations/vacuum-eg.yaml)
+- Only vacuum if the door is actually open: [input](includes/input_boolean.yaml) [automation-klo](includes/automations/door-klo-eg.yaml) [automation](includes/automations/vacuum-eg.yaml)
+- manual overrides - [input](includes/input_boolean.yaml)
+- Warning integrations in the UI [warning-chips](includes/lovelace/cards/warning-chips.yaml)
 
 
 ## What is still open:
