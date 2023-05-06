@@ -1,0 +1,205 @@
+type: horizontal-stack
+cards:
+  # --------------------------------------------------------
+  # Stefan
+  # --------------------------------------------------------
+  - type: custom:stack-in-card
+    mode: vertical
+    card_mod:
+      style: |
+        ha-card {
+          background: none;
+          box-shadow: none;
+        }
+    cards:
+      - type: custom:mushroom-template-card
+        entity: person.stefan_siegl
+        layout: vertical
+        primary: Stefan
+        badge_icon: |
+          {% if is_state(config.entity, 'home') %}
+              mdi:home
+            {% elif is_state(config.entity, 'away') or
+            is_state(config.entity, 'unavailable') %}
+              mdi:home-export-outline
+            {% endif %}
+        badge_color: |
+          {% if is_state(config.entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        picture: |
+          {{ state_attr('person.stefan_siegl', 'entity_picture') }}
+        multiline_secondary: true
+        secondary: >
+          {% if is_state('person.stefan_siegl', 'home') %}
+            Zu Hause
+          {% elif is_state('person.stefan_siegl', 'away') or
+          is_state('person.stefan_siegl', 'unavailable') %}
+            Nicht verfügbar
+          {% else %}
+            Weg {{ states('person.stefan_siegl') }}
+          {% endif %}
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            icon: >
+              {% if is_state('sensor.pixel_6_pro_battery_state',
+              'not_charging') %}
+                mdi:battery-clock-outline
+              {% elif is_state('sensor.pixel_6_pro_battery_state',
+              'charging') %}
+                mdi:battery-charging-100
+              {% else %}
+                mdi:battery-arrow-down
+              {% endif %}
+            icon_color: light-green
+          - type: entity
+            entity: sensor.pixel_6_pro_battery_level
+            content_info: state
+            icon_color: light-green
+        alignment: center
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-spacing: 0;
+            }
+
+  # --------------------------------------------------------
+  # David
+  # --------------------------------------------------------
+  - type: custom:stack-in-card
+    mode: vertical
+    card_mod:
+      style: |
+        ha-card {
+          background: none;
+          box-shadow: none;
+        }
+    cards:
+      - type: custom:mushroom-template-card
+        entity: person.david
+        layout: vertical
+        primary: David
+        badge_icon: |
+          {% if is_state(config.entity, 'home') %}
+              mdi:home
+            {% elif is_state(config.entity, 'away') or
+            is_state(config.entity, 'unavailable') %}
+              mdi:home-export-outline
+            {% endif %}
+        badge_color: |
+          {% if is_state(config.entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        picture: |
+          {{ state_attr('person.david', 'entity_picture') }}
+        multiline_secondary: true
+        secondary: >
+          {% if is_state('person.david', 'home') %}
+            Zu Hause
+          {% elif is_state('person.david', 'away') or
+          is_state('person.david', 'unavailable') %}
+            Nicht verfügbar
+          {% else %}
+            Weg {{ states('person.david') }}
+          {% endif %}
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            icon: >
+              {% if is_state('sensor.tablett_david_battery_state',
+              'not_charging') %}
+                mdi:battery-clock-outline
+              {% elif is_state('sensor.tablett_david_battery_state',
+              'charging') %}
+                mdi:battery-charging-100
+              {% else %}
+                mdi:battery-arrow-down
+              {% endif %}
+            icon_color: light-green
+          - type: entity
+            entity: sensor.tablett_david_battery_level
+            content_info: state
+            icon_color: light-green
+        alignment: center
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-spacing: 0;
+            }
+
+  # --------------------------------------------------------
+  # Adrian
+  # --------------------------------------------------------
+  - type: custom:stack-in-card
+    mode: vertical
+    card_mod:
+      style: |
+        ha-card {
+          background: none;
+          box-shadow: none;
+        }
+    cards:
+      - type: custom:mushroom-template-card
+        entity: person.adrian
+        layout: vertical
+        primary: Adrian
+        badge_icon: |
+          {% if is_state(config.entity, 'home') %}
+              mdi:home
+            {% elif is_state(config.entity, 'away') or
+            is_state(config.entity, 'unavailable') %}
+              mdi:home-export-outline
+            {% endif %}
+        badge_color: |
+          {% if is_state(config.entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        picture: |
+          {{ state_attr('person.adrian', 'entity_picture') }}
+        multiline_secondary: true
+        secondary: >
+          {% if is_state('person.adrian', 'home') %}
+            Zu Hause
+          {% elif is_state('person.adrian', 'away') or
+          is_state('person.adrian', 'unavailable') %}
+            Nicht verfügbar
+          {% else %}
+            Weg {{ states('person.adrian') }}
+          {% endif %}
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            icon: >
+              {% if is_state('sensor.tablett_adrian_battery_state',
+              'not_charging') %}
+                mdi:battery-clock-outline
+              {% elif is_state('sensor.tablett_adrian_battery_state',
+              'charging') %}
+                mdi:battery-charging-100
+              {% else %}
+                mdi:battery-arrow-down
+              {% endif %}
+            icon_color: light-green
+          - type: entity
+            entity: sensor.tablett_adrian_battery_level
+            content_info: state
+            icon_color: light-green
+        alignment: center
+        card_mod:
+          style: |
+            ha-card {
+              --chip-box-shadow: none;
+              --chip-background: none;
+              --chip-spacing: 0;
+            }

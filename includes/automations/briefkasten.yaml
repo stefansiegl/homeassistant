@@ -1,0 +1,26 @@
+- id: "1681727125696"
+  alias: Briefkasten - increase open counter
+  description:
+    Erhöhe den Counter für den Briefkasten wenn er geöffnet wurde (-->
+    etwas wurde hineingelegt)
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.briefkasten_sensor_opening
+      to: "on"
+  condition: []
+  action:
+    - service: counter.increment
+      data: {}
+      target:
+        entity_id: counter.briefkasten_open_counter
+  mode: single
+- id: "1682083301051"
+  alias: Reminder Mülltonnen
+  description: ""
+  trigger:
+    - platform: template
+      value_template: " {{ if states(sensor.waste_bio) > 1 }}"
+  condition: []
+  action: []
+  mode: single

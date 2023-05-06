@@ -1,0 +1,30 @@
+template_show_all_conditionals:
+  name: Zeige alle Warnungen (unabhängig von der Prüfung)
+  icon: mdi:checkbox-marked
+  initial: off
+
+deactivate_vacuum_2og:
+  name: Deaktiviere automatisierte Reinigung 2.OG
+  icon: mdi:robot-vacuum-off
+  initial: off
+
+deactivate_vacuum_eg:
+  name: Deaktiviere automatisierte Reinigung EG
+  icon: mdi:robot-vacuum-off
+  initial: off
+
+# -----------------
+# use input_boolean.door_klo_eg_open
+# -----------------
+door_klo_eg_open:
+  name: Ist die Klotüre im EG offen
+  icon: mdi:door-open
+  initial: true
+
+# -----------------
+# use input_boolean.door_klo_2og_open
+# -----------------
+door_klo_2og_open:
+  name: Ist die Klotüre im 2OG offen
+  icon: mdi:door-open
+  initial: true

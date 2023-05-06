@@ -1,0 +1,77 @@
+- id: "1676504222717"
+  alias: Low battery level detection & notification for all battery sensors
+  description: ""
+  use_blueprint:
+    path: sbyx/low-battery-level-detection-notification-for-all-battery-sensors.yaml
+    input:
+      actions:
+        - service: notify.mobile_app_pixel_6_pro
+          data:
+            message: Check batteries of sensor
+            title: Check batteries of sensor
+      threshold: 20
+      time: 07:00:00
+- id: automation_plant_moisture
+  alias: Plant moisture
+  description:
+    Liesst die Pflanzen aus, die aktuell zu wenig Feuchtigkeit haben und
+    schickt eine Notifizierung ans Handy.
+  trigger:
+    - platform: time
+      at: 08:00:00
+  condition:
+    - "{{ sensors != '' and (day | int == 0 or day | int == now().isoweekday()) }}"
+  action:
+    - choose: []
+      default:
+        - service: notify.mobile_app_pixel_6_pro
+          data:
+            title: "Giessen {{ sensors }}
+
+              "
+            message: "Giessen {{ sensors }}
+
+              "
+            data:
+              clickAction: dashboard-pflanzen/0
+  variables:
+    day: 0
+    exclude:
+      entity_id: []
+    sensors:
+      "{% set result = namespace(sensors=[]) %}  {% for state in states.plant
+      if state.attributes.moisture_status == \"Low\" %}\n    {% set result.sensors
+      = result.sensors + [state.attributes.friendly_name] %}\n{% endfor %}  {{result.sensors|join(',
+      ')}}"
+  mode: single
+- id: "1677342314965"
+  alias: Plant conductivity
+  description: ""
+  trigger:
+    - platform: time
+      at: 08:00:00
+  condition:
+    - "{{ sensors != '' and (day | int == 0 or day | int == now().isoweekday()) }}"
+  action:
+    - choose: []
+      default:
+        - service: notify.mobile_app_pixel_6_pro
+          data:
+            title: "Dünger {{ sensors }}
+
+              "
+            message: "Dünger {{ sensors }}
+
+              "
+            data:
+              clickAction: dashboard-pflanzen/0
+  variables:
+    day: 0
+    exclude:
+      entity_id: []
+    sensors:
+      "{% set result = namespace(sensors=[]) %}  {% for state in states.plant
+      if state.attributes.conductivity_status == \"Low\" %}\n    {% set result.sensors
+      = result.sensors + [state.attributes.friendly_name] %}\n{% endfor %}  {{result.sensors|join(',
+      ')}}"
+  mode: single

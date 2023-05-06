@@ -1,0 +1,103 @@
+- id: "1680212042339"
+  alias: Automatische Reinigung OG
+  description:
+    Checkt ob die Bedingungen passen (Keiner daheim, Nicht in der Nacht
+    und noch nicht gereinigt) und zwar dann wenn einer von uns das WLAN verlässt.
+    Wenn es so ist, dass lässt er per Skript den Robby losfahren
+  trigger:
+    - platform: state
+      entity_id:
+        - person.stefan_siegl
+      from: home
+      to: not_home
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: person.stefan_siegl
+          state: not_home
+          alias: Stefan ist nicht da
+        - condition: state
+          entity_id: input_boolean.automatische_reinigung_noetig_og
+          state: "on"
+          alias: Falls lange nicht gesaugt wurde
+        - condition: time
+          after: 07:30:00
+          before: "22:00:00"
+          weekday:
+            - mon
+            - tue
+            - wed
+            - thu
+            - sat
+            - sun
+          alias: Nur zwischen 07:30 und 22:00 (nicht Freitags)
+        - condition: template
+          value_template: '{# Türe ist auch auf #}
+
+            {{ states("binary_sensor.door_klo_2og_5173_door_left_open") == "on" }}'
+          alias: Türe ist offen
+        - condition: template
+          value_template: '{{ states("input_boolean.deactivate_vacuum_2og") == "off" }}'
+          alias: Nicht manuell deaktiviert
+  action:
+    - service: script.start_vacuum_og
+      data: {}
+  mode: single
+
+- id: "1680212305674"
+  alias: Automatische Reinigung OG done
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - vacuum.roboter_staubsauger
+      to: returning
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.roboter_staubsauger_last_clean_duration
+      above: 900
+  action:
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.automatische_reinigung_noetig_og
+  mode: single
+- id: "1680212384496"
+  alias: Automatische Reinigung OG reset
+  description: Resets cleaning flag
+  trigger:
+    - platform: time
+      at: 00:00:00
+  condition:
+    - condition: template
+      value_template: "{# only if at least 3 days ago #}
+
+        {{ as_timestamp(now()) - as_timestamp(states('sensor.roboter_staubsauger_last_clean_end'))
+        > 60 * 60 * 24 * 3 }}"
+  action:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.automatische_reinigung_noetig_og
+      data: {}
+  mode: single
+- id: "1680900446685"
+  alias: Stefan geht
+  description: Alles was man ausmachen sollte wenn ich weg gehe
+  trigger:
+    - platform: state
+      entity_id:
+        - person.stefan_siegl
+      from: home
+      to: not_home
+  condition: []
+  action:
+    - service: light.turn_off
+      data: {}
+      target:
+        area_id:
+          - erdgeschoss
+          - garten
+          - wohnzimmer
+          - esszimmer
+  mode: single

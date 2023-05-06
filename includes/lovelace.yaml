@@ -2,9 +2,9 @@
 mode: storage
 # add YAML mode dashboard
 dashboards:
-  lovelace-yaml:
+  tablett-dashboard:
     mode: yaml
-    title: YAML
-    icon: mdi:script
+    title: Tablett
+    icon: mdi:tablet-dashboard
     show_in_sidebar: true
-    filename: includes/lovelace/kiosk-dashboard.yaml
+    filename: includes/lovelace/tablett-dashboard.yaml

@@ -1,0 +1,224 @@
+vacuum_roborock_s7_manual_mode:
+  alias: vacuum_roborock_s7_manual_mode
+  icon: mdi:robot-angry-outline
+  description: >
+
+    further optimizations?
+    - check out https://github.com/marcelrv/XiaomiRobotVacuumProtocol which is trying
+      to gain some insights into how the Xiaomi protocol is used.
+    - https://www.home-assistant.io/integrations/xiaomi_miio#xiaomi-mi-robot-vacuum has further improvements
+      like remote control. 
+
+    how to get to the room numbers?
+      use a simple script to find out your room numbers, like my test script and I encourage using the
+      vacuum only on a single floor, else the room numbers might change. 
+
+    some other resources:
+    - https://community.home-assistant.io/t/s7-mop-control/317393/17
+    - https://community.home-assistant.io/t/roborock-s7maxv-ha-integration/431453/31
+    - https://community.home-assistant.io/t/s7-mop-control/317393/16 -- has customizations for each room
+    - https://community.home-assistant.io/t/smart-roborock-skript-for-cleaning-mopping-selected-rooms/324351/4 -- multiple room selection
+  fields:
+    rooms:
+      name: Rooms
+      description: set the rooms to be cleaned, leave clear to clean everything
+      example: Esszimmer
+      selector:
+        select:
+          options:
+            - label: Klo
+              value: "20"
+            - label: Gang
+              value: "17"
+            - label: Esszimmer
+              value: "19"
+            - label: Kueche
+              value: "18"
+            - label: Wohnzimmer
+              value: "16"
+          multiple: true
+    vacuum_mode:
+      name: Vacuum mode
+      description: "Vacuum mode - can be: silent | balanced | turbo | max"
+      example: max
+      selector:
+        select:
+          options:
+            - label: silent
+              value: "101"
+            - label: balanced
+              value: "102"
+            - label: turbo
+              value: "103"
+            - label: max
+              value: "104"
+    mopping_mode:
+      name: Mopping mode
+      description: "Mopping mode - can be: off | low | medium | high"
+      example: "off"
+      selector:
+        select:
+          options:
+            - label: "off"
+              value: "200"
+            - label: low
+              value: "201"
+            - label: medium
+              value: "202"
+            - label: high
+              value: "203"
+
+  sequence:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: vacuum.roborock_s7_maxv
+          state: returning
+        - condition: state
+          entity_id: vacuum.roborock_s7_maxv
+          state: docked
+        - condition: state
+          entity_id: vacuum.roborock_s7_maxv
+          state: idle
+
+    # --------------------------
+    # set mopping mode
+    # --------------------------
+
+    - if:
+        - condition: template
+          value_template: "{{ mopping_mode is defined }}"
+      then:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              Sending mopping mode {{ mopping_mode }} to vacuum.
+        - service: vacuum.send_command
+          alias: Set mopping mode
+          target:
+            # use developer tools select vacuum --> go to yaml
+            device_id: 28c0fcbef53460722d9646f5a186c492
+          data_template:
+            command: set_water_box_custom_mode
+            params: "[{{ mopping_mode }}]"
+      else:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              Skipping mopping mode since it was not defined
+
+    # --------------------------
+    # set vacuum mode
+    # --------------------------
+
+    - if:
+        - condition: template
+          value_template: "{{ vacuum_mode is defined }}"
+      then:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              Sending vacuum mode {{ vacuum_mode }} to vacuum.
+        - service: vacuum.send_command
+          alias: Set vacuum mode
+          target:
+            device_id: 28c0fcbef53460722d9646f5a186c492
+          data_template:
+            command: set_custom_mode
+            params: "[{{ vacuum_mode }}]"
+      else:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              Skipping vacuum mode since it was not defined
+
+    # --------------------------
+    # set vacuum mode
+    # --------------------------
+    - if:
+        - condition: template
+          value_template: "{{ rooms is defined }}"
+      then:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              Starting cleaning of rooms {{ rooms }}
+        - if:
+            - condition: template
+              value_template: '{{ states("binary_sensor.klo_door_eg_door_left_open") == "on" }}'
+              alias: Klo Türe ist offen
+          then:
+            - service: xiaomi_miio.vacuum_clean_segment
+              target:
+                device_id: 28c0fcbef53460722d9646f5a186c492
+              data:
+                segments: "{{ rooms }}"
+          else:
+            - service: notify.mobile_app_pixel_6_pro
+              data:
+                message: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+                title: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+      else:
+        - service: system_log.write
+          data:
+            level: error
+            message: >
+              No rooms defined, cleaning everything
+        - if:
+            - condition: template
+              value_template: '{{ states("binary_sensor.klo_door_eg_door_left_open") == "on" }}'
+              alias: Klo Türe ist offen
+          then:
+            - service: system_log.write
+              data:
+                level: error
+                message: >
+                  Door was open, starting cleaning everything
+            - service: vacuum.start
+              data: {}
+              target:
+                device_id: 28c0fcbef53460722d9646f5a186c492
+          else:
+            - service: system_log.write
+              data:
+                level: error
+                message: >
+                  Klo Door was blocked. Do not start cleaning.
+            - service: notify.mobile_app_pixel_6_pro
+              data:
+                message: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+                title: Geplante Reinigung im EG gestoppt. Klo Türe war zu
+
+alias: roborock_map_rooms
+description: >
+  Find the room mapping for the Roborock. Simply start with id 15 and check
+  which room the robot cleans (you can also see the room in the xiaomi app). 
+  Change to 16, rinse and repeat.
+sequence:
+  - service: vacuum.send_command
+    data:
+      command: set_custom_mode
+      params:
+        - 101
+    target:
+      device_id: 28c0fcbef53460722d9646f5a186c492
+  - service: vacuum.send_command
+    data:
+      command: set_water_box_custom_mode
+      params:
+        - 200
+    target:
+      device_id: 28c0fcbef53460722d9646f5a186c492
+  - service: vacuum.send_command
+    data:
+      command: app_segment_clean
+      params:
+        - 15
+    target:
+      device_id: 28c0fcbef53460722d9646f5a186c492
+mode: single

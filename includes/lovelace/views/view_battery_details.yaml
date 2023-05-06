@@ -1,0 +1,45 @@
+title: Batterien
+path: batterie
+icon: mdi:battery-outline
+layout: !include ../helpers/basic-layout.yaml
+badges: []
+theme: Backend-selected
+type: custom:grid-layout
+cards:
+  # --------------------------------------------------------
+  # Header
+  # --------------------------------------------------------
+  - type: horizontal-stack
+    cards:
+      - type: vertical-stack
+        cards:
+          - !include ../cards/navigation.yaml
+    view_layout:
+      grid-area: header
+
+  # --------------------------------------------------------
+  # Messages
+  # --------------------------------------------------------
+
+  - type: horizontal-stack
+    cards:
+      - type: custom:battery-state-card
+        title: Batterie Wechsel (<20%)
+        color_gradient:
+          - "#ff0000"
+          - "#ffff00"
+          - "#00ff00"
+        filter:
+          include:
+            - name: entity_id
+              value: "*_battery_level"
+            - name: entity_id
+              value: "*_battery"
+            - name: attributes.device_class
+              value: battery
+          exclude:
+            - name: state
+              value: 20
+              operator: ">"
+    view_layout:
+      grid-area: messages

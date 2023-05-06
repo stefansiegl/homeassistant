@@ -7,6 +7,8 @@ in the database of homeassistant and are thus not shown here.
 - Waste Collection: [config](includes/waste_collection_schedule.yaml) and [sensors](includes/sensors/platformsensors-wastecollection.yaml)
 - Vacuum automation ensuring cleaning after some time passed and ensures that it actually can (checks whether the door it open)
 - Nifty use of door sensors (ensuring door is completely open, checking for mail, checking for garbage)
+- manual override for testing purposes of warning sesnsors that are normally
+  hidden.
 
 
 ## What is still open:

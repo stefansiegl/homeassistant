@@ -1,0 +1,74 @@
+title: Pflanzen
+path: pflanzen
+icon: mdi:flower-outline
+theme: Backend-selected
+type: custom:grid-layout
+layout: !include ../helpers/basic-layout.yaml
+badges: []
+cards:
+  # --------------------------------------------------------
+  # Header
+  # --------------------------------------------------------
+  - type: horizontal-stack
+    cards:
+      - type: vertical-stack
+        cards:
+          - !include ../cards/navigation.yaml
+    view_layout:
+      grid-area: header
+
+  # --------------------------------------------------------
+  # Messages
+  # --------------------------------------------------------
+  - type: vertical-stack
+    cards:
+      - type: custom:flower-card
+        entity: plant.bambus
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_bambus_battery
+      - type: custom:flower-card
+        entity: plant.yucca
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_yucca_battery
+      - type: custom:flower-card
+        entity: plant.elefantenfuss
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_elefantenfuss_battery
+      - type: custom:flower-card
+        entity: plant.glucksfeder
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_glucksfeder_battery
+      - type: custom:flower-card
+        entity: plant.strahlenaralie
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_strahlenaralie_battery
+      - type: custom:flower-card
+        entity: plant.geranie
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_geranie_battery
+      - type: custom:flower-card
+        entity: plant.flamingopflanze
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_flamingoblume_battery
+      - type: custom:flower-card
+        entity: plant.zimmer_alpenveilchen
+        show_bars:
+          - moisture
+          - conductivity
+        battery_sensor: sensor.plantsensor_alpenveilchen_battery
+    view_layout:
+      grid-area: messages

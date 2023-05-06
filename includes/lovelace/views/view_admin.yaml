@@ -1,0 +1,50 @@
+title: Admin
+icon: mdi:security
+theme: Backend-selected
+path: admin
+type: custom:grid-layout
+layout: !include ../helpers/basic-layout.yaml
+badges: []
+cards:
+  # --------------------------------------------------------
+  # Header
+  # --------------------------------------------------------
+  - type: horizontal-stack
+    cards:
+      - type: vertical-stack
+        cards:
+          - !include ../cards/navigation.yaml
+    view_layout:
+      grid-area: header
+
+  # --------------------------------------------------------
+  # Messages
+  # --------------------------------------------------------
+
+  - type: vertical-stack
+    cards:
+      - type: custom:mushroom-entity-card
+        name: Zeige alle Warnungen (unabhängig von der Prüfung)
+        icon_color: green
+        fill_container: false
+        tap_action:
+          action: toggle
+        entity: input_boolean.template_show_all_conditionals
+
+      - type: custom:mushroom-entity-card
+        name: Deaktiviere automatisierte Reinigung 2.OG
+        icon_color: green
+        fill_container: false
+        tap_action:
+          action: toggle
+        entity: input_boolean.deactivate_vacuum_2og
+
+      - type: custom:mushroom-entity-card
+        name: Deaktiviere automatisierte Reinigung EG
+        icon_color: green
+        fill_container: false
+        tap_action:
+          action: toggle
+        entity: input_boolean.deactivate_vacuum_eg
+    view_layout:
+      grid-area: messages

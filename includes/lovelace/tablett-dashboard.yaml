@@ -7,3 +7,6 @@ views:
   - !include views/view_overview.yaml
   - !include views/view_weather_details.yaml
   - !include views/view_robot_details.yaml
+  - !include views/view_plants_details.yaml
+  - !include views/view_battery_details.yaml
+  - !include views/view_admin.yaml

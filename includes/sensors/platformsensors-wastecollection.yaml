@@ -1,5 +1,5 @@
 - platform: waste_collection_schedule
-  name: waste-rest
+  name: waste_rest
   details_format: "upcoming"
   value_template: "{{ value.daysTo }}"
   # Filter auf den alias des Types

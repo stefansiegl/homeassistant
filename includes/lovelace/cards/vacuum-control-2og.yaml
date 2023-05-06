@@ -1,0 +1,133 @@
+type: custom:stack-in-card
+mode: vertical
+cards:
+  - type: custom:mushroom-template-card
+    primary: Skippy (2OG)
+    secondary: >
+      {% if is_state("input_boolean.door_klo_2og_open", "off") %}
+        Türe geschlossen
+      {% else %}
+        {{ states("vacuum.roboter_staubsauger") }}
+      {% endif %}
+    icon: >
+      {% if is_state("input_boolean.door_klo_2og_open", "off") %}
+        mdi:alert
+      {% else %}
+        {% if is_state("vacuum.roboter_staubsauger", "cleaning") %}
+          mdi:vacuum
+        {% elif is_state("vacuum.roboter_staubsauger", "docked") %}
+          mdi:power-plug
+        {% elif is_state("vacuum.roboter_staubsauger", "idle") %}
+          mdi:power-plug
+        {% elif is_state("vacuum.roboter_staubsauger", "paused") %}
+          mdi:pause-box
+        {% elif is_state("vacuum.roboter_staubsauger", "returning") %}
+          mdi:power
+        {% else %}
+          mdi:alert
+        {% endif %}
+      {% endif %}
+    icon_color: >
+      {% if is_state("input_boolean.door_klo_2og_open", "off") %}
+        orange
+      {% else %}
+        {% if is_state("vacuum.roboter_staubsauger", "cleaning") %}
+          green
+        {% elif is_state("vacuum.roboter_staubsauger", "docked") %}
+          green
+        {% elif is_state("vacuum.roboter_staubsauger", "idle") %}
+          green
+        {% elif is_state("vacuum.roboter_staubsauger", "paused") %}
+          green
+        {% elif is_state("vacuum.roboter_staubsauger", "returning") %}
+          green
+        {% else %}
+          orange
+        {% endif %}
+      {% endif %}
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:water
+        secondary: Alles
+        layout: vertical
+        icon_color: >
+          {% if is_state("input_boolean.door_klo_2og_open", "on") 
+            and (  is_state("vacuum.roboter_staubsauger", "docked") 
+                or is_state("vacuum.roboter_staubsauger", "idle")
+                or is_state("vacuum.roboter_staubsauger", "returning")) %}
+            black
+          {% else %}
+            grey
+          {% endif %}
+        hold_action: >
+          # only if possible
+          {% if is_state("input_boolean.door_klo_2og_open", "on") 
+            and (  is_state("vacuum.roboter_staubsauger", "docked") 
+                or is_state("vacuum.roboter_staubsauger", "idle")
+                or is_state("vacuum.roboter_staubsauger", "returning")) %}
+            action: call-service
+            service: script.start_vacuum_og
+          {% endif %}
+      - type: custom:mushroom-template-card
+        secondary: Stop
+        layout: vertical
+        icon: mdi:stop
+        icon_color: >
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")) %}
+            black
+          {% else %}
+            grey
+          {% endif %}
+        tap_action: >
+          # only if possible
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")) %}
+            action: call-service
+            service: vacuum.stop
+            target: {}
+            data:
+              device_id: 44854ec1ad8d965056ea614e1f580680
+          {% endif %}
+
+        hold_action: >
+          # only if possible
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")) %}
+            action: call-service
+            service: vacuum.stop
+            target: {}
+            data:
+              device_id: 44854ec1ad8d965056ea614e1f580680
+          {% endif %}
+
+      - type: custom:mushroom-template-card
+        secondary: Dock
+        layout: vertical
+        icon: mdi:power
+        icon_color: >
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")
+              or is_state("vacuum.roboter_staubsauger", "paused")) %}
+            black
+          {% else %}
+            grey
+          {% endif %}
+        tap_action: >
+          # only if possible
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")
+              or is_state("vacuum.roboter_staubsauger", "paused")) %}
+            action: call-service
+            service: vacuum.return_to_base
+            target: {}
+            data:
+              device_id: 44854ec1ad8d965056ea614e1f580680
+          {% endif %}
+
+        hold_action: >
+          # only if possible
+          {% if is_state("vacuum.roboter_staubsauger", "cleaning")
+              or is_state("vacuum.roboter_staubsauger", "paused")) %}
+            action: call-service
+            service: vacuum.return_to_base
+            target: {}
+            data:
+              device_id: 44854ec1ad8d965056ea614e1f580680
+          {% endif %}

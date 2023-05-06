@@ -1,0 +1,85 @@
+sensor:
+  - name: Grunbeck Gesamtwassermenge
+    unique_id: grunbeck_gesamtwassermenge
+    unit_of_measurement: "L"
+    state_class: total_increasing
+    device_class: water
+    state: >-
+      {% set wwh = states("sensor.grunbeck_weichwasser_harte")|float(0) %}
+      {% set rwh = states("sensor.grunbeck_rohwasser_harte")|float(0) %}
+      {% set wwm = states("sensor.grunbeck_weichwassermenge")|float(0) %}
+      {% if (is_number(wwh) and (wwh > 1)) and (is_number(rwh) and (rwh > 1)) and (is_number(wwm) and (wwm > 1)) %}
+        {% set gwn = ((wwh*wwm)/(rwh-wwh)+wwm)|round(4) |float(unavailable) %}
+      {% endif %}
+      {% if is_number(gwn) %}
+        {{ gwn }}
+      {% endif %}
+
+binary_sensor:
+
+  # --------------------------------------------------------
+  # Waste binary sensors
+  #
+  # Is a waste disposal close?
+  # --------------------------------------------------------
+
+  - name: template_waste_bio_upcoming
+    state: >
+      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_bio") |int < 2 }}
+
+  - name: template_waste_rest_upcoming
+    state: >
+      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_rest") |int < 2 }}
+
+  - name: template_waste_papiertonne_upcoming
+    state: >
+      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_papiertonne") |int < 2 }}
+
+  - name: template_waste_gelb_upcoming
+    state: >
+      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_gelb") |int < 2 }}
+
+  # --------------------------------------------------------
+  # Plant moisture binary sensors
+  # --------------------------------------------------------
+
+  - name: template_plant_moisture_low
+    state: >
+      {% set result = namespace() %}  
+      {% set result.res = false %}
+      {% for state in states.plant if state.attributes.moisture_status == "Low" %}
+        {% set result.res = true %}
+      {% endfor %}  
+      {{result.res or states("input_boolean.template_show_all_conditionals")}}
+
+  - name: template_plant_bambus_moisture_low
+    state: >
+      {{ state_attr("plant.bambus", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on"}}
+
+  - name: template_plant_elefantenfuss_moisture_low
+    state: >
+      {{ state_attr("plant.elefantenfuss", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on"}}
+
+  - name: template_plant_flamingopflanze_moisture_low
+    state: >
+      {{ state_attr("plant.flamingopflanze", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on"}}
+
+  - name: template_plant_geranie_moisture_low
+    state: >
+      {{ state_attr("plant.geranie", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on"}}
+
+  - name: template_plant_glucksfeder_moisture_low
+    state: >
+      {{ state_attr("plant.glucksfeder", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
+
+  - name: template_plant_strahlenaralie_moisture_low
+    state: >
+      {{ state_attr("plant.strahlenaralie", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
+
+  - name: template_plant_zimmer_alpenveilchen_moisture_low
+    state: >
+      {{ state_attr("plant.zimmer_alpenveilchen", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
+
+  - name: template_plant_yucca_moisture_low
+    state: >
+      {{ state_attr("plant.yucca", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}

@@ -1,0 +1,39 @@
+# -----------------------------------------------------------
+# Door status of toilette door in EG for vacuum automation
+# -----------------------------------------------------------
+
+- id: door-klo-eg-closing
+  alias:
+  description: >
+    stores the state of the door (closed) in a sensor since the door sensor
+    is often unavailable
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.klo_door_eg_door_left_open
+      to: "on"
+  condition: []
+  action:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.door_klo_eg_open
+
+- id: door-klo-eg-opening
+  alias:
+  description: >
+    stores the state of the door (open) in a sensor since the door sensor
+    is often unavailable
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.klo_door_eg_door_left_open
+      to: "off"
+  condition: []
+  action:
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.door_klo_eg_open

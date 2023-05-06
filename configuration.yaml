@@ -23,20 +23,29 @@ influxdb: !include includes/influxdb.yaml
 # Managed via UI (kept in root dir)
 # --------------------------------
 scene: !include scenes.yaml
+
+# automations created in the UI
 automation: !include automations.yaml
+# automations created manually in YAML
+automation manual: !include_dir_merge_list includes/automations/
+
+# scripts created in the UI
 script: !include scripts.yaml
+# scripts created in YAML
+script manual: !include_dir_merge_named includes/scripts/
 
 # --------------------------------
 # Default entities
 # --------------------------------
 
 alert: !include includes/alerts.yaml
-template: !include includes/templates.yaml
+template: !include includes/template.yaml
 tts: !include includes/tts.yaml
 sensor: !include_dir_merge_list includes/sensors
 mqtt: !include includes/mqtt.yaml
 utility_meter: !include includes/utility_meter.yaml
 shell_command: !include includes/shell_command.yaml
+input_boolean: !include includes/input_boolean.yaml
 
 # --------------------------------
 # Communication
