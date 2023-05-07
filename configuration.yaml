@@ -32,7 +32,7 @@ automation manual: !include_dir_merge_list includes/automations/
 # scripts created in the UI
 script: !include scripts.yaml
 # scripts created in YAML
-script manual: !include_dir_merge_named includes/scripts/
+script manual: !include_dir_merge_list includes/scripts/
 
 # --------------------------------
 # Default entities
