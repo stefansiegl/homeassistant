@@ -16,7 +16,6 @@ sensor:
       {% endif %}
 
 binary_sensor:
-
   # --------------------------------------------------------
   # Waste binary sensors
   #
@@ -29,7 +28,7 @@ binary_sensor:
 
   - name: template_waste_rest_upcoming
     state: >
-      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_rest") |int < 2 }}
+      {{ states("input_boolean.template_show_all_conditionals") == "on" or states("sensor.waste_rest_2") |int < 2 }}
 
   - name: template_waste_papiertonne_upcoming
     state: >

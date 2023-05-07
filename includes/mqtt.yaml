@@ -91,7 +91,10 @@ sensor:
   - name: Grunbeck Fehler
     unique_id: grunbeck_fehler
     state_topic: "gruenbeck/0/softliQ/D/BS40021134/errors"
-    value_template: "{{ value_json.0.message }}"
+    value_template: >
+      {% if value_json is defined and value_json|length > 0 %}
+        {{ value_json.0.message }}
+      {% endif %}
 
 binary_sensor:
   - name: Grunbeck Anlagen Status
