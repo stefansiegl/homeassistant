@@ -2,8 +2,8 @@
 # Door status of toilette door in EG for vacuum automation
 # -----------------------------------------------------------
 
-- id: door-klo-eg-closing
-  alias:
+- id: "door-klo-eg-closing"
+  alias: "door-klo-eg-closing"
   description: >
     stores the state of the door (closed) in a sensor since the door sensor
     is often unavailable
@@ -20,8 +20,8 @@
       target:
         entity_id: input_boolean.door_klo_eg_open
 
-- id: door-klo-eg-opening
-  alias:
+- id: "door-klo-eg-opening"
+  alias: "door-klo-eg-opening"
   description: >
     stores the state of the door (open) in a sensor since the door sensor
     is often unavailable
