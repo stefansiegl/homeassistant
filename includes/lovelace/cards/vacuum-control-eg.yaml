@@ -60,19 +60,15 @@ cards:
           {% else %}
             grey
           {% endif %}
-        hold_action: >
-          # only if possible
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
-                or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
-            action: call-service
-            service: script.vacuum_roborock_s7_manual_mode
-            target: {}
-            data:
-              vacuum_mode: "turbo"
-              mopping_mode: "medium"
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: script.vacuum_roborock_s7_manual_mode
+          target: {}
+          confirmation:
+            text: Alles saugen und wischen?
+          data:
+            vacuum_mode: "turbo"
+            mopping_mode: "medium"
 
       - type: custom:mushroom-template-card
         icon: mdi:vacuum-outline
@@ -87,19 +83,15 @@ cards:
           {% else %}
             grey
           {% endif %}
-        hold_action: >
-          # only if possible
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
-                or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
-            action: call-service
-            service: script.vacuum_roborock_s7_manual_mode
-            target: {}
-            data:
-              vacuum_mode: "turbo"
-              mopping_mode: "off"
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: script.vacuum_roborock_s7_manual_mode
+          target: {}
+          confirmation:
+            text: Alles saugen?
+          data:
+            vacuum_mode: "turbo"
+            mopping_mode: "off"
 
       - type: custom:mushroom-template-card
         icon: mdi:water
@@ -114,22 +106,18 @@ cards:
           {% else %}
             grey
           {% endif %}
-        hold_action: >
-          # only if possible
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
-                or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
-            action: call-service
-            service: script.vacuum_roborock_s7_manual_mode
-            target: {}
-            data:
-              rooms:
-                - "Esszimmer"
-                - "Kueche"
-              vacuum_mode: "turbo"
-              mopping_mode: "medium"
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: script.vacuum_roborock_s7_manual_mode
+          target: {}
+          confirmation:
+            text: Küche und Esszimmer saugen und wischen?
+          data:
+            rooms:
+              - "Esszimmer"
+              - "Kueche"
+            vacuum_mode: "turbo"
+            mopping_mode: "medium"
 
       - type: custom:mushroom-template-card
         secondary: Essen
@@ -144,22 +132,18 @@ cards:
           {% else %}
             grey
           {% endif %}
-        hold_action: >
-          # only if possible
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
-                or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
-            action: call-service
-            service: script.vacuum_roborock_s7_manual_mode
-            target: {}
-            data:
-              rooms:
-                - "Esszimmer"
-                - "Kueche"
-              vacuum_mode: "turbo"
-              mopping_mode: "off"
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: script.vacuum_roborock_s7_manual_mode
+          target: {}
+          confirmation:
+            text: Küche und Esszimmer saugen?
+          data:
+            rooms:
+              - "Esszimmer"
+              - "Kueche"
+            vacuum_mode: "turbo"
+            mopping_mode: "off"
 
       - type: custom:mushroom-template-card
         secondary: Stop
@@ -171,25 +155,23 @@ cards:
           {% else %}
             grey
           {% endif %}
-        tap_action: >
-          # only if possible
-          {% if is_state("vacuum.roborock_s7_maxv", "cleaning")) %}
-            action: call-service
-            service: vacuum.stop
-            target: {}
-            data:
-              device_id: 28c0fcbef53460722d9646f5a186c492
-          {% endif %}
+        tap_action:
+          action: call-service
+          service: vacuum.stop
+          target: {}
+          confirmation:
+            text: Stoppen?
+          data:
+            device_id: 28c0fcbef53460722d9646f5a186c492
 
-        hold_action: >
-          # only if possible
-          {% if is_state("vacuum.roborock_s7_maxv", "cleaning")) %}
-            action: call-service
-            service: vacuum.stop
-            target: {}
-            data:
-              device_id: 28c0fcbef53460722d9646f5a186c492
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: vacuum.stop
+          target: {}
+          confirmation:
+            text: Stoppen?
+          data:
+            device_id: 28c0fcbef53460722d9646f5a186c492
 
       - type: custom:mushroom-template-card
         secondary: Dock
@@ -202,24 +184,20 @@ cards:
           {% else %}
             grey
           {% endif %}
-        tap_action: >
-          # only if possible
-          {% if is_state("vacuum.roborock_s7_maxv", "cleaning")
-              or is_state("vacuum.roborock_s7_maxv", "paused")) %}
-            action: call-service
-            service: vacuum.return_to_base
-            target: {}
-            data:
-              device_id: 28c0fcbef53460722d9646f5a186c492
-          {% endif %}
+        tap_action:
+          action: call-service
+          service: vacuum.return_to_base
+          target: {}
+          confirmation:
+            text: Zurück zum Dock?
+          data:
+            device_id: 28c0fcbef53460722d9646f5a186c492
 
-        hold_action: >
-          # only if possible
-          {% if is_state("vacuum.roborock_s7_maxv", "cleaning")
-              or is_state("vacuum.roborock_s7_maxv", "paused")) %}
-            action: call-service
-            service: vacuum.return_to_base
-            target: {}
-            data:
-              device_id: 28c0fcbef53460722d9646f5a186c492
-          {% endif %}
+        hold_action:
+          action: call-service
+          service: vacuum.return_to_base
+          target: {}
+          confirmation:
+            text: Zurück zum Dock?
+          data:
+            device_id: 28c0fcbef53460722d9646f5a186c492
