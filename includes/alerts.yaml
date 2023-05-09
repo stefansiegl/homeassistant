@@ -12,7 +12,7 @@ alert_waste_gelb_upcoming:
 
 alert_waste_rest_upcoming:
   name: Restmüll steht an
-  entity_id: binary_sensor.template_waste_gelb_upcoming
+  entity_id: binary_sensor.template_waste_rest_upcoming
   repeat: 4320
   can_acknowledge: true
 
