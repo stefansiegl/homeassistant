@@ -150,7 +150,7 @@
                 Starting cleaning of rooms {{ rooms }}
           - if:
               - condition: template
-                value_template: '{{ states("binary_sensor.klo_door_eg_door_left_open") == "on" }}'
+                value_template: '{{ if is_state("input_boolean.door_klo_eg_open", "on") }}'
                 alias: Klo Türe ist offen
             then:
               - service: xiaomi_miio.vacuum_clean_segment
@@ -171,7 +171,7 @@
                 No rooms defined, cleaning everything
           - if:
               - condition: template
-                value_template: '{{ states("binary_sensor.klo_door_eg_door_left_open") == "on" }}'
+                value_template: '{{ if is_state("input_boolean.door_klo_eg_open", "on") }}'
                 alias: Klo Türe ist offen
             then:
               - service: system_log.write
