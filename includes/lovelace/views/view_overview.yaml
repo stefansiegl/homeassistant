@@ -42,7 +42,7 @@ cards:
   # --------------------------------------------------------
   - type: vertical-stack
     cards:
-
+      - !include ../cards/lights.yaml
     view_layout:
       grid-area: middle
 
