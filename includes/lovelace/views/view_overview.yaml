@@ -62,6 +62,7 @@ cards:
 
   - type: vertical-stack
     cards:
-
+      - !include ../cards/fan-control.yaml
+      - !include ../cards/water-control.yaml
     view_layout:
       grid-area: footer

@@ -1,0 +1,9 @@
+type: custom:mushroom-fan-card
+entity: fan.helios
+icon_animation: true
+secondary_info: state
+show_percentage_control: true
+show_oscillate_control: false
+collapsible_controls: false
+name: Belüftungsanlage
+
