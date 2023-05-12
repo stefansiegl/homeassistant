@@ -214,7 +214,7 @@ cards:
           icon: mdi:water-alert
           icon_color: blue
           content: >-
-            'Alpenveilchen {{ states("sensor.plantsensor_zimmer_alpenveilchen_moisture", rounded=True) }}%'
+            'Alpenveilchen {{ states("sensor.plantsensor_alpenveilchen_moisture", rounded=True) }}%'
 
       - type: conditional
         conditions:
