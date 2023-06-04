@@ -3,7 +3,7 @@
     description: >
       switches to the given output, uses counter.water_current_output
     fields:
-      - output_target:
+      output_target:
         description: the desired output
         example: 3
         selector:
