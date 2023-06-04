@@ -1,0 +1,43 @@
+- watering_manual_mode:
+  alias: watering_manual_mode
+  icon: mdi:water
+  description: >
+    connection 1: Perlregner Hecke
+    connection 2: Perlregner Beet
+    connection 3: Perlregner Rasenmähergarage
+    connection 4: Teilkreisregner Rasen
+    connection 5: Viereckregner Rasen
+    connection 6: - nicht benutzt - it will step over it
+
+    the assumption is that after use, the device selected is no 1
+  fields:
+    output:
+      name: output
+      description: The output of the 6-device to be started
+      example: 1
+      selector:
+        select:
+          options:
+            - label: Perlregner Hecke
+              value: "1"
+            - label: Perlregner Beet
+              value: "2"
+            - label: Perlregner Rasenmähergarage
+              value: "3"
+            - label: Teilkreisregner Rasen
+              value: "4"
+            - label: Viereckregner Rasen
+              value: "5"
+          multiple: false
+    duration:
+      name: Duration [m]
+      example: 30
+  sequence:
+    # set to the specified connection
+    - service: script.watering_set_output
+      data:
+        output_target: "{{output}}"
+
+    - service: script.watering_water_current
+      data:
+        duration: "{{duration}}|int * 60"

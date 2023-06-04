@@ -1,0 +1,25 @@
+watering_set_output:
+  alias: watering_set_output
+  description: >
+    switches to the given output, uses counter.water_current_output
+  fields:
+    - output_target:
+      description: the desired output
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 5
+          mode: box
+  sequence:
+    - repeat:
+        while:
+          - condition: template
+            value_template: "{% if not is_state('counter.water_current_output', '{{output_target}}') %}true{% endif %}"
+          # Don't do it too many times
+          - condition: template
+            value_template: "{{ repeat.index <= 20 }}"
+        sequence:
+          - service: script.watering_water_current
+            data:
+              duration: 10

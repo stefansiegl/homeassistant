@@ -1,0 +1,35 @@
+- watering_water_current:
+    alias: watering_water_current
+    description: >
+      water the current connection for given duration and updates the counter
+    fields:
+      duration:
+        description: duration in seconds
+        required: true
+        example: 60
+        selector:
+          number:
+            min: 0
+            unit_of_measurement: "seconds"
+            mode: box
+    sequence:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.wassersteuerung
+      - delay:
+          seconds: "{{ duration | int }}"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.wassersteuerung
+      - if:
+          - condition: numeric_state
+            entity_id: counter.water_current_output
+            below: 5
+        then:
+          - service: counter.increment
+            target:
+              entity_id: counter.water_current_output
+        else:
+          - service: counter.reset
+            target:
+              entity_id: counter.water_current_output

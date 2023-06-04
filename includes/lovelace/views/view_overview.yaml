@@ -64,5 +64,6 @@ cards:
     cards:
       - !include ../cards/fan-control.yaml
       - !include ../cards/water-control.yaml
+      - !include ../cards/heating-control.yaml
     view_layout:
       grid-area: footer
