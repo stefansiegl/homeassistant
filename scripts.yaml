@@ -32,3 +32,20 @@ new_script:
       device_id: 28c0fcbef53460722d9646f5a186c492
     enabled: false
   mode: single
+test:
+  alias: test
+  sequence:
+  - service: switch.turn_on
+    data: {}
+    target:
+      entity_id: switch.wassersteuerung
+  - delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - service: switch.turn_off
+    data: {}
+    target:
+      entity_id: switch.wassersteuerung
+  mode: single

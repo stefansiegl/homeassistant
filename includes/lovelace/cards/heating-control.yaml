@@ -1,0 +1,19 @@
+type: custom:mushroom-template-card
+primary: >
+  {% if is_state("climate.vicare_heating", "off") %}
+    Fussbodenheizung: Aus
+  {% else %}
+    Fussbodenheizung: An
+  {% endif %}
+secondary: |
+  {% if is_state("climate.vicare_heating", "off") %}
+  {% else %}
+    Vorlauf: {{ state_attr("climate.vicare_heating", "current_temperature") }}
+  {% endif %}
+icon: mdi:home-thermometer-outline
+icon_color: |
+  {% if is_state("climate.vicare_heating", "off") %}
+    grey
+  {% else %}
+    green
+  {% endif %}
