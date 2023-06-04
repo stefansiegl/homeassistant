@@ -2,6 +2,8 @@
     alias: watering_water_current
     description: >
       water the current connection for given duration and updates the counter
+
+      improvements: boolean sensor to check whether water automation is executing. can be used to block uis
     fields:
       duration:
         description: duration in seconds
