@@ -10,22 +10,18 @@ cards:
         {{ states("vacuum.roborock_s7_maxv") }}
       {% endif %}
     icon: >
-      {% if is_state("input_boolean.door_klo_eg_open", "off") %}
-        mdi:alert
+      {% if is_state("vacuum.roborock_s7_maxv", "cleaning") %}
+        mdi:vacuum
+      {% elif is_state("vacuum.roborock_s7_maxv", "docked") %}
+        mdi:power-plug
+      {% elif is_state("vacuum.roborock_s7_maxv", "idle") %}
+        mdi:power-plug
+      {% elif is_state("vacuum.roborock_s7_maxv", "paused") %}
+        mdi:pause-box
+      {% elif is_state("vacuum.roborock_s7_maxv", "returning") %}
+        mdi:power
       {% else %}
-        {% if is_state("vacuum.roborock_s7_maxv", "cleaning") %}
-          mdi:vacuum
-        {% elif is_state("vacuum.roborock_s7_maxv", "docked") %}
-          mdi:power-plug
-        {% elif is_state("vacuum.roborock_s7_maxv", "idle") %}
-          mdi:power-plug
-        {% elif is_state("vacuum.roborock_s7_maxv", "paused") %}
-          mdi:pause-box
-        {% elif is_state("vacuum.roborock_s7_maxv", "returning") %}
-          mdi:power
-        {% else %}
-          mdi:alert
-        {% endif %}
+        mdi:alert
       {% endif %}
     icon_color: >
       {% if is_state("input_boolean.door_klo_eg_open", "off") %}
@@ -52,10 +48,9 @@ cards:
         secondary: Alles
         layout: vertical
         icon_color: >
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
+          {% if is_state("vacuum.roborock_s7_maxv", "docked") 
                 or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
+                or is_state("vacuum.roborock_s7_maxv", "returning") %}
             black
           {% else %}
             grey
@@ -75,10 +70,9 @@ cards:
         layout: vertical
         secondary: Alles
         icon_color: >
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
+          {% if is_state("vacuum.roborock_s7_maxv", "docked") 
                 or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
+                or is_state("vacuum.roborock_s7_maxv", "returning") %}
             black
           {% else %}
             grey
@@ -98,10 +92,9 @@ cards:
         secondary: Essen
         layout: vertical
         icon_color: >
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
+          {% if is_state("vacuum.roborock_s7_maxv", "docked") 
                 or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
+                or is_state("vacuum.roborock_s7_maxv", "returning") %}
             black
           {% else %}
             grey
@@ -124,10 +117,9 @@ cards:
         layout: vertical
         icon: mdi:vacuum-outline
         icon_color: >
-          {% if is_state("input_boolean.door_klo_eg_open", "on") 
-            and (  is_state("vacuum.roborock_s7_maxv", "docked") 
+          {% if is_state("vacuum.roborock_s7_maxv", "docked") 
                 or is_state("vacuum.roborock_s7_maxv", "idle")
-                or is_state("vacuum.roborock_s7_maxv", "returning")) %}
+                or is_state("vacuum.roborock_s7_maxv", "returning") %}
             black
           {% else %}
             grey
