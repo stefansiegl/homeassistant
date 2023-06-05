@@ -56,7 +56,7 @@ cards:
             and (  is_state("vacuum.roboter_staubsauger", "docked") 
                 or is_state("vacuum.roboter_staubsauger", "idle")
                 or is_state("vacuum.roboter_staubsauger", "returning")) %}
-            black
+            white
           {% else %}
             grey
           {% endif %}
@@ -75,7 +75,7 @@ cards:
         icon: mdi:stop
         icon_color: >
           {% if is_state("vacuum.roboter_staubsauger", "cleaning")) %}
-            black
+            white
           {% else %}
             grey
           {% endif %}
@@ -106,7 +106,7 @@ cards:
         icon_color: >
           {% if is_state("vacuum.roboter_staubsauger", "cleaning")
               or is_state("vacuum.roboter_staubsauger", "paused")) %}
-            black
+            white
           {% else %}
             grey
           {% endif %}
