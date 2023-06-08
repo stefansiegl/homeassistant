@@ -40,6 +40,11 @@ cards:
           action: navigate
           navigation_path: /tablett-dashboard/waste
       - type: action
+        icon: mdi:watering-can
+        tap_action:
+          action: navigate
+          navigation_path: /tablett-dashboard/watering-details
+      - type: action
         icon: mdi:security
         tap_action:
           action: navigate

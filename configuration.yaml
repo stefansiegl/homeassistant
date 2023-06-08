@@ -46,7 +46,10 @@ mqtt: !include includes/mqtt.yaml
 utility_meter: !include includes/utility_meter.yaml
 shell_command: !include includes/shell_command.yaml
 input_boolean: !include includes/input_boolean.yaml
+input_number: !include includes/input_number.yaml
 counter: !include includes/counter.yaml
+
+logbook:
 
 # --------------------------------
 # Communication

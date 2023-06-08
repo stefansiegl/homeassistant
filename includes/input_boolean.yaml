@@ -28,3 +28,18 @@ door_klo_2og_open:
   name: Ist die Klotüre im 2OG offen
   icon: mdi:door-open
   initial: true
+
+watering_rasen:
+  name: Soll der Rasen gewässert werden
+  icon: mdi:watering-can
+  initial: true
+
+watering_hecke:
+  name: Soll die Hecke gewässert werden
+  icon: mdi:watering-can
+  initial: true
+
+watering_beete:
+  name: Soll die Hecke gewässert werden
+  icon: mdi:watering-can
+  initial: true

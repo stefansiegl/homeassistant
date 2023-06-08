@@ -23,6 +23,39 @@
       - service: switch.turn_off
         target:
           entity_id: switch.wassersteuerung
+
+      # we need different pauses between switching based on the lengths
+      # of the pipe and the output pressure.
+      # the numbers are based on my experiments with the system
+      # manual switching & measuring time it took to change output
+      - choose:
+          - conditions: >
+              {{ is_state('counter.water_current_output', '1') }}
+            sequence:
+              - delay:
+                  seconds: "10"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '2') }}
+            sequence:
+              - delay:
+                  seconds: "50"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '3') }}
+            sequence:
+              - delay:
+                  seconds: "15"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '4') }}
+            sequence:
+              - delay:
+                  seconds: "15"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '5') }}
+            sequence:
+              - delay:
+                  seconds: "15"
+
+      # we can now set the output to the correct new output.
       - if:
           - condition: numeric_state
             entity_id: counter.water_current_output

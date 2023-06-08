@@ -1,0 +1,11 @@
+watering_rasen_threshold:
+  name: Minimum Bewässerung einer Rasenfläche [l/m3]
+  initial: 12
+  min: 1
+  max: 30
+
+watering_beet_threshold:
+  name: Minimum Bewässerung einer Rasenfläche [l/m3]
+  initial: 8
+  min: 1
+  max: 30

@@ -1,0 +1,146 @@
+- alias: Smart Irrigation
+
+  # -----------------------------------------------------------
+  # After the sun went up
+  # -----------------------------------------------------------
+  trigger:
+    - platform: state
+      entity_id: sun.sun
+      from: "below_horizon"
+      to: "above_horizon"
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 5
+
+  # Only run if battery level is ok and at least one zone needs water
+  condition:
+    - condition: and
+      conditions:
+        - condition: numeric_state
+          entity_id: sensor.wassersteuerung_battery_level
+          above: 20
+        - condition: or
+          conditions:
+            # Zone 1 needs water (above threshold) and is active
+            - condition: and
+              conditions:
+                - condition: numeric_state
+                  entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+                  above: XXX
+                - condition: state
+                  entity_id: input_boolean.watering_XXX
+                  state: "on"
+
+            # Zone 1 needs water (above threshold) and is active
+            - condition: and
+              conditions:
+                - condition: numeric_state
+                  entity_id: XXX
+                  above: XXX
+                - condition: state
+                  entity_id: input_boolean.watering_XXX
+                  state: "on"
+
+            # Zone 1 needs water (above threshold) and is active
+            - condition: and
+              conditions:
+                - condition: numeric_state
+                  entity_id: XXX
+                  above: XXX
+                - condition: state
+                  entity_id: input_boolean.watering_XXX
+                  state: "on"
+
+            # Zone 1 needs water (above threshold) and is active
+            - condition: and
+              conditions:
+                - condition: numeric_state
+                  entity_id: XXX
+                  above: XXX
+                - condition: state
+                  entity_id: input_boolean.watering_XXX
+                  state: "on"
+
+            # Zone 1 needs water (above threshold) and is active
+            - condition: and
+              conditions:
+                - condition: numeric_state
+                  entity_id: XXX
+                  above: XXX
+                - condition: state
+                  entity_id: input_boolean.watering_XXX
+                  state: "on"
+
+  # Start with the first zone and check every instance
+  # (starting with first is important since this optimizes the water switch)
+  action:
+    # Zone 1 needs water (above threshold) and is active
+    - if:
+        - condition: numeric_state
+          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+          above: XXX
+        - condition: state
+          entity_id: input_boolean.watering_XXX
+          state: "on"
+      then:
+        - service: script.watering
+          data:
+            output: "1"
+            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+
+      # Zone 2 needs water (above threshold) and is active
+    - if:
+        - condition: numeric_state
+          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+          above: XXX
+        - condition: state
+          entity_id: input_boolean.watering_XXX
+          state: "on"
+      then:
+        - service: script.watering
+          data:
+            output: "2"
+            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+
+      # Zone 3 needs water (above threshold) and is active
+    - if:
+        - condition: numeric_state
+          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+          above: XXX
+        - condition: state
+          entity_id: input_boolean.watering_XXX
+          state: "on"
+      then:
+        - service: script.watering
+          data:
+            output: "3"
+            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+
+    # Zone 4 needs water (above threshold) and is active
+    - if:
+        - condition: numeric_state
+          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+          above: XXX
+        - condition: state
+          entity_id: input_boolean.watering_XXX
+          state: "on"
+      then:
+        - service: script.watering
+          data:
+            output: "4"
+            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+
+    # Zone 5 needs water (above threshold) and is active
+    - if:
+        - condition: numeric_state
+          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
+          above: XXX
+        - condition: state
+          entity_id: input_boolean.watering_XXX
+          state: "on"
+      then:
+        - service: script.watering
+          data:
+            output: "5"
+            duration: XXX sensor.gemusezone_daily_adjusted_run_time

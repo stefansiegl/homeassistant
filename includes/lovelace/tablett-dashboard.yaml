@@ -11,3 +11,4 @@ views:
   - !include views/view_battery_details.yaml
   - !include views/view_admin.yaml
   - !include views/view_waste.yaml
+  - !include views/view_watering_details.yaml
