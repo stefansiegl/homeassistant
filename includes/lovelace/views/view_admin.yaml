@@ -46,5 +46,36 @@ cards:
         tap_action:
           action: toggle
         entity: input_boolean.deactivate_vacuum_eg
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Running Scripts
+        filter:
+          exclude:
+            - state: "off"
+          include:
+            - domain: script
+        show_empty: true
+        sort:
+          ignore_case: true
+          method: name
+
+      - type: custom:auto-entities
+        card:
+          type: entities
+          title: Running Automations
+        filter:
+          exclude:
+            - state: unavailable
+            - attributes:
+                current: "= 0"
+          include:
+            - domain: automation
+        show_empty: true
+        sort:
+          ignore_case: true
+          method: name
+
     view_layout:
       grid-area: messages
