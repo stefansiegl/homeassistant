@@ -1,11 +1,102 @@
-watering_rasen_threshold:
-  name: Minimum Bewässerung einer Rasenfläche [l/m3]
-  initial: 12
-  min: 1
-  max: 30
+#
+# Input for watering zones for easier changes later on
+#
+watering_zone1_water_amount:
+  name: Wieviel Wasser fliesst in Zone 1 [l/min]
+  initial: 3.4
+  max: 1000
+  min: 0
 
-watering_beet_threshold:
-  name: Minimum Bewässerung einer Rasenfläche [l/m3]
-  initial: 8
-  min: 1
-  max: 30
+watering_zone1_area:
+  name: Wie groß ist die Fläche [m2]
+  initial: 7.6
+  max: 1000
+  min: 0
+
+watering_zone1_threshold:
+  name: Wieviele Sekunden soll mindestens gegossen werden?
+  # internet sagt 8 bei beeten und 12 bei rasen l/m2 als Minimum
+  # Berechnet als 8 * (m2) / (l/min) * 60
+  initial: 1073
+  max: 5000
+  min: 0
+
+watering_zone2_water_amount:
+  name: Wieviel Wasser fliesst in Zone 2 [l/min]
+  initial: 2.2
+  max: 1000
+  min: 0
+
+watering_zone2_area:
+  name: Wie groß ist die Fläche [m2]
+  initial: 5.95
+  max: 1000
+  min: 0
+
+watering_zone2_threshold:
+  name: Wieviele Sekunden soll mindestens gegossen werden?
+  # internet sagt 8 bei beeten und 12 bei rasen l/m2 als Minimum
+  # Berechnet als 8 * (m2) / (l/min) * 60
+  initial: 1298
+  max: 5000
+  min: 0
+
+watering_zone3_water_amount:
+  name: Wieviel Wasser fliesst in Zone 3 [l/min]
+  initial: 0.1
+  max: 1000
+  min: 0
+
+watering_zone3_area:
+  name: Wie groß ist die Fläche [m2]
+  initial: 0.7
+  max: 1000
+  min: 0
+
+watering_zone3_threshold:
+  name: Wieviele Sekunden soll mindestens gegossen werden?
+  # internet sagt 8 bei beeten und 12 bei rasen l/m2 als Minimum
+  # Berechnet als 8 * (m2) / (l/min) * 60
+  initial: 3360
+  max: 5000
+  min: 0
+
+watering_zone4_water_amount:
+  name: Wieviel Wasser fliesst in Zone 4 [l/min]
+  initial: 7.5
+  max: 1000
+  min: 0
+
+watering_zone4_area:
+  name: Wie groß ist die Fläche [m2]
+  initial: 19.7
+  max: 1000
+  min: 0
+
+watering_zone4_threshold:
+  name: Wieviele Sekunden soll mindestens gegossen werden?
+  # internet sagt 8 bei beeten und 12 bei rasen l/m2 als Minimum
+  # Berechnet als 12 * (m2) / (l/min) * 60
+  initial: 1892
+  max: 5000
+  min: 0
+
+watering_zone5_water_amount:
+  name: Wieviel Wasser fliesst in Zone 5 [l/min]
+  initial: 5.4
+  max: 1000
+  min: 0
+
+watering_zone5_area:
+  name: Wie groß ist die Fläche [m2]
+  initial: 34
+  max: 1000
+  min: 0
+
+watering_zone5_threshold:
+  name: Wieviele Sekunden soll mindestens gegossen werden?
+  # internet sagt 8 bei beeten und 12 bei rasen l/m2 als Minimum
+  # Berechnet als 12 * (m2) / (l/min) * 60
+  initial: 4533
+  max: 5000
+  min: 0
