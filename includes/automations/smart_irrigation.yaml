@@ -1,4 +1,4 @@
-- alias: Smart Irrigation
+- alias: Smart Irrigation (automated)
 
   # -----------------------------------------------------------
   # After the sun went up
@@ -144,3 +144,34 @@
           data:
             output: "5"
             duration: XXX sensor.gemusezone_daily_adjusted_run_time
+
+- alias: Smart Irrigation manual mode
+  description: "Straight forward manual mode - use until everything else is working ;)"
+  mode: single
+  trigger:
+    - platform: sun
+      event: sunrise
+      offset: "-02:30:00"
+  condition: []
+  action:
+    - if:
+        - condition: time
+          weekday:
+            - mon
+            - fri
+      then:
+        - service: script.watering_multiple
+          data:
+            water_hecke: 30
+            water_beet: 40
+            water_rasenmaher: 30
+            water_rasen_viereck: 30
+            water_rasen_teilkreis: 30
+      else:
+        - service: script.watering_multiple
+          data:
+            water_hecke: 0
+            water_beet: 40
+            water_rasenmaher: 30
+            water_rasen_viereck: 0
+            water_rasen_teilkreis: 0

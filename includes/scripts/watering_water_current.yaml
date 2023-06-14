@@ -18,6 +18,9 @@
       - service: switch.turn_on
         target:
           entity_id: switch.wassersteuerung
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.watering_in_progress
       - delay:
           seconds: "{{ duration | int }}"
       - service: switch.turn_off
@@ -68,3 +71,7 @@
           - service: counter.reset
             target:
               entity_id: counter.water_current_output
+
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.watering_in_progress

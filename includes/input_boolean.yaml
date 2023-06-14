@@ -29,6 +29,11 @@ door_klo_2og_open:
   icon: mdi:door-open
   initial: true
 
+watering_in_progress:
+  name: Wird gerade bewässert?
+  icon: mdi:watering-can
+  initial: false
+
 watering_rasen:
   name: Soll der Rasen gewässert werden
   icon: mdi:watering-can

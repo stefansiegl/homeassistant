@@ -1,51 +1,37 @@
-new_script:
-  alias: test
+test_watering_output:
+  alias: test - watering output
+  fields:
+    output_target:
+      description: the desired output
+      example: 3
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 5
+          mode: box
   sequence:
-  - service: vacuum.send_command
+  - service: system_log.write
     data:
-      command: set_custom_mode
-      params:
-      - 101
-    target:
-      device_id: 28c0fcbef53460722d9646f5a186c492
-  - service: vacuum.send_command
-    data:
-      command: set_water_box_custom_mode
-      params:
-      - 200
-    target:
-      device_id: 28c0fcbef53460722d9646f5a186c492
-  - service: xiaomi_miio.vacuum_clean_segment
-    data:
-      segments:
-      - 16
-      - 17
-    target:
-      device_id: 28c0fcbef53460722d9646f5a186c492
-    enabled: true
-  - service: vacuum.send_command
-    data:
-      command: app_segment_clean
-      params:
-      - segments: 18
-    target:
-      device_id: 28c0fcbef53460722d9646f5a186c492
-    enabled: false
-  mode: single
-test:
-  alias: test
-  sequence:
-  - service: switch.turn_on
-    data: {}
-    target:
-      entity_id: switch.wassersteuerung
-  - delay:
-      hours: 0
-      minutes: 1
-      seconds: 0
-      milliseconds: 0
-  - service: switch.turn_off
-    data: {}
-    target:
-      entity_id: switch.wassersteuerung
+      level: error
+      message: 'WATER {{output_target}}. CURRENT {{ states("counter.water_current_output")
+        }} COMPARE {{ states("counter.water_current_output")  == output_target }}
+        COMPARE NOT {{ states("counter.water_current_output")  != output_target }} '
+  - repeat:
+      while:
+      - condition: template
+        value_template: '{{ (states(''counter.water_current_output'')|int) != (output_target
+          |int) }}
+
+          '
+      sequence:
+      - service: script.watering_water_current
+        data:
+          duration: 5
+      - service: system_log.write
+        data:
+          level: error
+          message: 'Iteration: target {{output_target|int}}. current {{ states("counter.water_current_output")|int
+            }} continue {{ (states("counter.water_current_output")|int) != (output_target|int)
+            }} '
   mode: single

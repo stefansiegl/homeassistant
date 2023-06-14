@@ -1,12 +1,12 @@
-- watering:
-    alias: watering
+- watering_single:
+    alias: watering_single
     icon: mdi:water
     description: >
       connection 1: Perlregner Hecke
       connection 2: Perlregner Beet
       connection 3: Perlregner Rasenmähergarage
-      connection 4: Teilkreisregner Rasen
-      connection 5: Viereckregner Rasen
+      connection 4: Viereckregner Rasen
+      connection 5: Teilkreisregner Rasen
       connection 6: - nicht benutzt - it will step over it
 
       the assumption is that after use, the device selected is no 1
@@ -49,3 +49,102 @@
       - service: script.watering_water_current
         data:
           duration: "{{duration}}"
+
+- watering_multiple:
+    alias: watering_multiple
+    icon: mdi:water
+    description: >
+      Bewässerung für mehrere Zonen manuell einstellen. Wird direkt ausgeführt.
+      0 bedeutet dass die Zone übersprungen wird.
+    fields:
+      water_hecke:
+        name: Bewässerung Perlregner Hecke
+        description: Wielange [min] soll Hecke bewässert werden (3,4l/h 7,6qm2)
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 60
+      water_beet:
+        name: Bewässerung Perlregner Beet
+        description: Wielange [min] soll das Beet bewässert werden (2,2l/h 5,95qm2)
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 60
+      water_rasenmaher:
+        name: Bewässerung Perlregner Rasenmähergarage
+        description: Wielange [min] soll das Beet auf der Rasenmähergarage bewässert werden (0.1l/h 0.75qm2)
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 60
+      water_rasen_viereck:
+        name: Bewässerung Viereckregner Rasen
+        description: Wielange [min] soll der Viereckregner Rasen bewässert werden (7.5l/h 25qm2)
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 60
+      water_rasen_teilkreis:
+        name: Bewässerung Teilkreisregner Rasen
+        description: Wielange [min] soll der Teilkreisregner Rasen bewässert werden (7.5l/h 25qm2)
+        required: true
+        selector:
+          number:
+            min: 0
+            max: 60
+
+    sequence:
+      - if:
+          - condition: template
+            value_template: >
+              {{ water_hecke|int != 0 }}
+        then:
+          - service: script.watering_single
+            data:
+              output: "1"
+              duration: "{{ water_hecke|int * 60 }}"
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ water_beet|int != 0 }}
+        then:
+          - service: script.watering_single
+            data:
+              output: "2"
+              duration: "{{ water_beet|int * 60 }}"
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ water_rasenmaher|int != 0 }}
+        then:
+          - service: script.watering_single
+            data:
+              output: "3"
+              duration: "{{ water_rasenmaher|int * 60 }}"
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ water_rasen_viereck|int != 0 }}
+        then:
+          - service: script.watering_single
+            data:
+              output: "4"
+              duration: "{{ water_rasen_viereck|int * 60 }}"
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ water_rasen_teilkreis|int != 0 }}
+        then:
+          - service: script.watering_single
+            data:
+              output: "5"
+              duration: "{{ water_rasen_teilkreis|int * 60 }}"

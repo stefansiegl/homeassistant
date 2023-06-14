@@ -13,14 +13,6 @@
             max: 5
             mode: box
     sequence:
-      - service: system_log.write
-        data:
-          level: error
-          message: >-
-            WATER {{output_target}}. CURRENT {{
-            states("counter.water_current_output") }} COMPARE {{
-            states("counter.water_current_output")  == output_target }} COMPARE NOT
-            {{ states("counter.water_current_output")  != output_target }} 
       - repeat:
           while:
             - condition: template
