@@ -64,4 +64,4 @@ discovery:
 # Extensions
 # --------------------------------
 waste_collection_schedule: !include includes/waste_collection_schedule.yaml
-powercalc:
+powercalc: !include includes/powercalc.yaml

@@ -1,0 +1,27 @@
+sensors:
+  - entity_id: vacuum.roboter_staubsauger
+    unique_id: "VacuumXiaomiSkippy"
+    name: "Xiaomi Vacuum"
+    standby_power: 1
+    fixed:
+      states_power:
+        cleaning: 33
+        docked: 1
+  - entity_id: vacuum.roborock_s7_maxv
+    name: "Roborock Vacuum"
+    unique_id: "VacuumRoboRock"
+    standby_power: 3
+    fixed:
+      states_power:
+        cleaning: 68
+        docked: 3
+  - entity_id: "sensor.helios_airflow_rate"
+    name: "Helios Lüftung"
+    standby_power: 0.5
+    # https://www.farko.com/files/helios_kwl_katalog_6.0_0220_d.pdf
+    linear:
+      calibrate:
+        - 0 -> 0.5
+        - 140 -> 14
+        - 200 -> 25
+        - 350 -> 111
