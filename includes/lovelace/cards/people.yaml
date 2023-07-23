@@ -56,7 +56,7 @@ cards:
               {% endif %}
             icon_color: light-green
           - type: entity
-            entity: sensor.pixel_7_pro_battery_state
+            entity: sensor.pixel_7_pro_battery_level
             content_info: state
             icon_color: light-green
         alignment: center
