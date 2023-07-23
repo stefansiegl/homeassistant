@@ -45,10 +45,10 @@ cards:
         chips:
           - type: template
             icon: >
-              {% if is_state('sensor.pixel_6_pro_battery_state',
+              {% if is_state('sensor.pixel_7_pro_battery_state',
               'not_charging') %}
                 mdi:battery-clock-outline
-              {% elif is_state('sensor.pixel_6_pro_battery_state',
+              {% elif is_state('sensor.pixel_7_pro_battery_state',
               'charging') %}
                 mdi:battery-charging-100
               {% else %}
@@ -56,7 +56,7 @@ cards:
               {% endif %}
             icon_color: light-green
           - type: entity
-            entity: sensor.pixel_6_pro_battery_level
+            entity: sensor.pixel_7_pro_battery_state
             content_info: state
             icon_color: light-green
         alignment: center
