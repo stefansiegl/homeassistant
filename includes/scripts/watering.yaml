@@ -50,6 +50,43 @@
         data:
           duration: "{{duration}}"
 
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ output == 1 }}"
+            sequence:
+              - service: input_number.set_value
+                data:
+                  value: '{{ states("input_number.watering_zone1_total")|int + duration|int * states("input_number.watering_zone1_water_amount")|float * 60 }}'
+          - conditions:
+              - condition: template
+                value_template: "{{ output == 2 }}"
+            sequence:
+              - service: input_number.set_value
+                data:
+                  value: '{{ states("input_number.watering_zone2_total")|int + duration|int * states("input_number.watering_zone2_water_amount")|float * 60 }}'
+          - conditions:
+              - condition: template
+                value_template: "{{ output == 3 }}"
+            sequence:
+              - service: input_number.set_value
+                data:
+                  value: '{{ states("input_number.watering_zone3_total")|int + duration|int * states("input_number.watering_zone3_water_amount")|float * 60 }}'
+          - conditions:
+              - condition: template
+                value_template: "{{ output == 4 }}"
+            sequence:
+              - service: input_number.set_value
+                data:
+                  value: '{{ states("input_number.watering_zone4_total")|int + duration|int * states("input_number.watering_zone4_water_amount")|float * 60 }}'
+          - conditions:
+              - condition: template
+                value_template: "{{ output == 5 }}"
+            sequence:
+              - service: input_number.set_value
+                data:
+                  value: '{{ states("input_number.watering_zone5_total")|int + duration|int * states("input_number.watering_zone5_water_amount")|float * 60 }}'
+
 - watering_multiple:
     alias: watering_multiple
     icon: mdi:water

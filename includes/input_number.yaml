@@ -28,6 +28,12 @@ watering_zone1_adjust:
   min: 0.1
   step: 0.1
 
+watering_zone1_total:
+  name: Insgesamt Gegossen
+  min: 0
+  max: 2147483647
+  step: 0.1
+
 watering_zone2_water_amount:
   name: Wieviel Wasser fliesst in Zone 2 [l/min]
   initial: 2.2
@@ -53,6 +59,12 @@ watering_zone2_adjust:
   initial: 1
   max: 3
   min: 0.1
+  step: 0.1
+
+watering_zone2_total:
+  name: Insgesamt Gegossen
+  min: 0
+  max: 2147483647
   step: 0.1
 
 watering_zone3_water_amount:
@@ -82,6 +94,12 @@ watering_zone3_adjust:
   min: 0.1
   step: 0.1
 
+watering_zone3_total:
+  name: Insgesamt Gegossen
+  min: 0
+  max: 2147483647
+  step: 0.1
+
 watering_zone4_water_amount:
   name: Wieviel Wasser fliesst in Zone 4 [l/min]
   initial: 7.5
@@ -109,6 +127,12 @@ watering_zone4_adjust:
   min: 0.1
   step: 0.1
 
+watering_zone4_total:
+  name: Insgesamt Gegossen
+  min: 0
+  max: 2147483647
+  step: 0.1
+
 watering_zone5_water_amount:
   name: Wieviel Wasser fliesst in Zone 5 [l/min]
   initial: 5.4
@@ -134,4 +158,10 @@ watering_zone5_adjust:
   initial: 1
   max: 3
   min: 0.1
+  step: 0.1
+
+watering_zone5_total:
+  name: Insgesamt Gegossen
+  min: 0
+  max: 2147483647
   step: 0.1
