@@ -19,131 +19,141 @@
       conditions:
         - condition: numeric_state
           entity_id: sensor.wassersteuerung_battery_level
-          above: 20
-        - condition: or
-          conditions:
-            # Zone 1 needs water (above threshold) and is active
-            - condition: and
-              conditions:
-                - condition: numeric_state
-                  entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-                  above: XXX
-                - condition: state
-                  entity_id: input_boolean.watering_XXX
-                  state: "on"
-
-            # Zone 1 needs water (above threshold) and is active
-            - condition: and
-              conditions:
-                - condition: numeric_state
-                  entity_id: XXX
-                  above: XXX
-                - condition: state
-                  entity_id: input_boolean.watering_XXX
-                  state: "on"
-
-            # Zone 1 needs water (above threshold) and is active
-            - condition: and
-              conditions:
-                - condition: numeric_state
-                  entity_id: XXX
-                  above: XXX
-                - condition: state
-                  entity_id: input_boolean.watering_XXX
-                  state: "on"
-
-            # Zone 1 needs water (above threshold) and is active
-            - condition: and
-              conditions:
-                - condition: numeric_state
-                  entity_id: XXX
-                  above: XXX
-                - condition: state
-                  entity_id: input_boolean.watering_XXX
-                  state: "on"
-
-            # Zone 1 needs water (above threshold) and is active
-            - condition: and
-              conditions:
-                - condition: numeric_state
-                  entity_id: XXX
-                  above: XXX
-                - condition: state
-                  entity_id: input_boolean.watering_XXX
-                  state: "on"
+          # this prevents this to start now
+          above: 1
 
   # Start with the first zone and check every instance
   # (starting with first is important since this optimizes the water switch)
   action:
-    # Zone 1 needs water (above threshold) and is active
     - if:
-        - condition: numeric_state
-          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-          above: XXX
-        - condition: state
-          entity_id: input_boolean.watering_XXX
-          state: "on"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: '{{ (states("sensor.zone1_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone1_adjust")|float)|int > states("input_number.watering_zone1_threshold")|int }}'
+            - condition: state
+              entity_id: input_boolean.watering_zone1_enabled
+              state: "on"
       then:
-        - service: script.watering
+        - service: script.watering_single
           data:
             output: "1"
-            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+            duration: '{{(states("sensor.zone1_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone1_adjust")|float)|int}}'
+        - service: smart_irrigation.zone1_-_smart_irrigation_reset_bucket
+        - service: logbook.log
+          data:
+            name: Bewässerung Zone 1
+            message: wurde {{ (states("sensor.zone1_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone1_adjust")|float)|int}} Sekunden gegossen.
+            domain: automation
+            entity_id: switch.wassersteuerung
+      else:
+        - service: system_log.write
+          data:
+            level: info
+            message: 'Zone 1 not watered. Adjusted runtime was: {{ (states("sensor.zone1_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone1_adjust")|float)|int}}, Threshold: {{ states("input_number.watering_zone1_threshold")|int }}, active: {{states("input_boolean.watering_zone1_enabled")}}'
 
-      # Zone 2 needs water (above threshold) and is active
     - if:
-        - condition: numeric_state
-          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-          above: XXX
-        - condition: state
-          entity_id: input_boolean.watering_XXX
-          state: "on"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: '{{ (states("sensor.zone2_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone2_adjust")|float)|int > states("input_number.watering_zone2_threshold")|int }}'
+            - condition: state
+              entity_id: input_boolean.watering_zone2_enabled
+              state: "on"
       then:
-        - service: script.watering
+        - service: script.watering_single
           data:
             output: "2"
-            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+            duration: '{{(states("sensor.zone2_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone2_adjust")|float)|int}}'
+        - service: smart_irrigation.zone2_-_smart_irrigation_reset_bucket
+        - service: logbook.log
+          data:
+            name: Bewässerung Zone 2
+            message: wurde {{ (states("sensor.zone2_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone2_adjust")|float)|int}} Sekunden gegossen.
+            domain: automation
+            entity_id: switch.wassersteuerung
+      else:
+        - service: system_log.write
+          data:
+            level: info
+            message: 'Zone 2 not watered. Adjusted runtime was: {{ (states("sensor.zone2_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone2_adjust")|float)|int}}, Threshold: {{ states("input_number.watering_zone2_threshold")|int }}, active: {{states("input_boolean.watering_zone2_enabled")}}'
 
-      # Zone 3 needs water (above threshold) and is active
     - if:
-        - condition: numeric_state
-          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-          above: XXX
-        - condition: state
-          entity_id: input_boolean.watering_XXX
-          state: "on"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: '{{ (states("sensor.zone3_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone3_adjust")|float)|int > states("input_number.watering_zone3_threshold")|int }}'
+            - condition: state
+              entity_id: input_boolean.watering_zone3_enabled
+              state: "on"
       then:
-        - service: script.watering
+        - service: script.watering_single
           data:
             output: "3"
-            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+            duration: '{{(states("sensor.zone3_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone3_adjust")|float)|int}}'
+        - service: smart_irrigation.zone3_-_smart_irrigation_reset_bucket
+        - service: logbook.log
+          data:
+            name: Bewässerung Zone 3
+            message: wurde {{ (states("sensor.zone3_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone3_adjust")|float)|int}} Sekunden gegossen.
+            domain: automation
+            entity_id: switch.wassersteuerung
+      else:
+        - service: system_log.write
+          data:
+            level: info
+            message: 'Zone 3 not watered. Adjusted runtime was: {{ (states("sensor.zone3_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone3_adjust")|float)|int}}, Threshold: {{ states("input_number.watering_zone3_threshold")|int }}, active: {{states("input_boolean.watering_zone3_enabled")}}'
 
-    # Zone 4 needs water (above threshold) and is active
     - if:
-        - condition: numeric_state
-          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-          above: XXX
-        - condition: state
-          entity_id: input_boolean.watering_XXX
-          state: "on"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: '{{ (states("sensor.zone4_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone4_adjust")|float)|int > states("input_number.watering_zone4_threshold")|int }}'
+            - condition: state
+              entity_id: input_boolean.watering_zone4_enabled
+              state: "on"
       then:
-        - service: script.watering
+        - service: script.watering_single
           data:
             output: "4"
-            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+            duration: '{{(states("sensor.zone4_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone4_adjust")|float)|int}}'
+        - service: smart_irrigation.zone4_-_smart_irrigation_reset_bucket
+        - service: logbook.log
+          data:
+            name: Bewässerung Zone 4
+            message: wurde {{ (states("sensor.zone4_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone4_adjust")|float)|int}} Sekunden gegossen.
+            domain: automation
+            entity_id: switch.wassersteuerung
+      else:
+        - service: system_log.write
+          data:
+            level: info
+            message: 'Zone 4 not watered. Adjusted runtime was: {{ (states("sensor.zone4_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone4_adjust")|float)|int}}, Threshold: {{ states("input_number.watering_zone4_threshold")|int }}, active: {{states("input_boolean.watering_zone4_enabled")}}'
 
-    # Zone 5 needs water (above threshold) and is active
     - if:
-        - condition: numeric_state
-          entity_id: XXX sensor.gemusezone_daily_adjusted_run_time
-          above: XXX
-        - condition: state
-          entity_id: input_boolean.watering_XXX
-          state: "on"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: '{{ (states("sensor.zone5_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone5_adjust")|float)|int > states("input_number.watering_zone5_threshold")|int }}'
+            - condition: state
+              entity_id: input_boolean.watering_zone5_enabled
+              state: "on"
       then:
-        - service: script.watering
+        - service: script.watering_single
           data:
             output: "5"
-            duration: XXX sensor.gemusezone_daily_adjusted_run_time
+            duration: '{{(states("sensor.zone5_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone5_adjust")|float)|int}}'
+        - service: smart_irrigation.zone5_-_smart_irrigation_reset_bucket
+        - service: logbook.log
+          data:
+            name: Bewässerung Zone 5
+            message: wurde {{ (states("sensor.zone5_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone5_adjust")|float)|int}} Sekunden gegossen.
+            domain: automation
+            entity_id: switch.wassersteuerung
+      else:
+        - service: system_log.write
+          data:
+            level: info
+            message: 'Zone 5 not watered. Adjusted runtime was: {{ (states("sensor.zone5_smart_irrigation_daily_adjusted_run_time")|int * states("input_number.watering_zone5_adjust")|float)|int}}, Threshold: {{ states("input_number.watering_zone5_threshold")|int }}, active: {{states("input_boolean.watering_zone5_enabled")}}'
 
 - alias: Smart Irrigation manual mode
   description: "Straight forward manual mode - use until everything else is working ;)"
@@ -152,7 +162,14 @@
     - platform: sun
       event: sunrise
       offset: "-02:30:00"
-  condition: []
+  # Only run if battery level is ok and at least one zone needs water
+  condition:
+    - condition: and
+      conditions:
+        - condition: numeric_state
+          entity_id: sensor.wassersteuerung_battery_level
+          # this prevents this to start now
+          above: 200
   action:
     - if:
         - condition: time

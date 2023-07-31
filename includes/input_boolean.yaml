@@ -34,17 +34,27 @@ watering_in_progress:
   icon: mdi:watering-can
   initial: false
 
-watering_rasen:
+watering_zone1_enabled:
   name: Soll der Rasen gewässert werden
   icon: mdi:watering-can
   initial: true
 
-watering_hecke:
+watering_zone2_enabled:
   name: Soll die Hecke gewässert werden
   icon: mdi:watering-can
   initial: true
 
-watering_beete:
+watering_zone3_enabled:
+  name: Soll die Hecke gewässert werden
+  icon: mdi:watering-can
+  initial: true
+
+watering_zone4_enabled:
+  name: Soll die Hecke gewässert werden
+  icon: mdi:watering-can
+  initial: true
+
+watering_zone5_enabled:
   name: Soll die Hecke gewässert werden
   icon: mdi:watering-can
   initial: true
