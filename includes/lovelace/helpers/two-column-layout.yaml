@@ -1,0 +1,25 @@
+margin: 0
+grid-gap: 15px
+grid-template-columns: 33% auto 33%
+grid-template-rows: auto
+grid-template-areas: |
+  "header header"
+  "messages messages"
+  "left right"
+  "footer footer"
+mediaquery:
+  "(max-width: 800px)":
+    grid-template-columns: 100%
+    grid-template-areas: |
+      "header"
+      "messages"
+      "left"
+      "right"
+      "footermobile"
+  "(max-width: 1200px)":
+    grid-template-columns: 50% 50%
+    grid-template-areas: |
+      "header header"
+      "messages messages"
+      "left right"
+      "footer footer"

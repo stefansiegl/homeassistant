@@ -1,0 +1,138 @@
+type: entities
+entities:
+  - type: section
+    label: Zone 1 (Perlregner Hecke)
+  - type: custom:template-entity-row
+    icon: mdi:bucket
+    name: Wasser Buffer
+    state: >-
+      {{state_attr("sensor.zone1_smart_irrigation_daily_adjusted_run_time",
+      "bucket")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:water-plus
+    name: Erwartete Wasserausnahme
+    state: >-
+      {{state_attr("sensor.zone1_smart_irrigation_hourly_adjusted_run_time",
+      "netto_precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:shower-head
+    name: Erwarteter Niederschlag
+    state: >-
+      {{state_attr("sensor.zone1_smart_irrigation_hourly_adjusted_run_time",
+      "precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:export-variant
+    name: Erwartete Verdunstung
+    state: >-
+      {{state_attr("sensor.zone1_smart_irrigation_hourly_adjusted_run_time",
+      "evapotranspiration")}} mm
+
+  - type: section
+    label: Zone 2 (Perlregner Beet)
+  - type: custom:template-entity-row
+    icon: mdi:bucket
+    name: Wasser Buffer
+    state: >-
+      {{state_attr("sensor.zone2_smart_irrigation_daily_adjusted_run_time",
+      "bucket")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:water-plus
+    name: Erwartete Wasserausnahme
+    state: >-
+      {{state_attr("sensor.zone2_smart_irrigation_hourly_adjusted_run_time",
+      "netto_precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:shower-head
+    name: Erwarteter Niederschlag
+    state: >-
+      {{state_attr("sensor.zone2_smart_irrigation_hourly_adjusted_run_time",
+      "precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:export-variant
+    name: Erwartete Verdunstung
+    state: >-
+      {{state_attr("sensor.zone2_smart_irrigation_hourly_adjusted_run_time",
+      "evapotranspiration")}} mm
+
+  - type: section
+    label: Zone 3 (Perlregner Gewächshaus)
+  - type: custom:template-entity-row
+    icon: mdi:bucket
+    name: Wasser Buffer
+    state: >-
+      {{state_attr("sensor.zone3_smart_irrigation_daily_adjusted_run_time",
+      "bucket")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:water-plus
+    name: Erwartete Wasserausnahme
+    state: >-
+      {{state_attr("sensor.zone3_smart_irrigation_hourly_adjusted_run_time",
+      "netto_precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:shower-head
+    name: Erwarteter Niederschlag
+    state: >-
+      {{state_attr("sensor.zone3_smart_irrigation_hourly_adjusted_run_time",
+      "precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:export-variant
+    name: Erwartete Verdunstung
+    state: >-
+      {{state_attr("sensor.zone3_smart_irrigation_hourly_adjusted_run_time",
+      "evapotranspiration")}} mm
+
+  - type: section
+    label: Zone 4 (Viereckregner Rasen)
+  - type: custom:template-entity-row
+    icon: mdi:bucket
+    name: Wasser Buffer
+    state: >-
+      {{state_attr("sensor.zone4_smart_irrigation_daily_adjusted_run_time",
+      "bucket")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:water-plus
+    name: Erwartete Wasserausnahme
+    state: >-
+      {{state_attr("sensor.zone4_smart_irrigation_hourly_adjusted_run_time",
+      "netto_precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:shower-head
+    name: Erwarteter Niederschlag
+    state: >-
+      {{state_attr("sensor.zone4_smart_irrigation_hourly_adjusted_run_time",
+      "precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:export-variant
+    name: Erwartete Verdunstung
+    state: >-
+      {{state_attr("sensor.zone4_smart_irrigation_hourly_adjusted_run_time",
+      "evapotranspiration")}} mm
+
+  - type: section
+    label: Zone 5 (Teilkreisregner Rasen)
+  - type: custom:template-entity-row
+    icon: mdi:bucket
+    name: Wasser Buffer
+    state: >-
+      {{state_attr("sensor.zone5_smart_irrigation_daily_adjusted_run_time",
+      "bucket")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:water-plus
+    name: Erwartete Wasserausnahme
+    state: >-
+      {{state_attr("sensor.zone5_smart_irrigation_hourly_adjusted_run_time",
+      "netto_precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:shower-head
+    name: Erwarteter Niederschlag
+    state: >-
+      {{state_attr("sensor.zone5_smart_irrigation_hourly_adjusted_run_time",
+      "precipitation")}} mm
+  - type: custom:template-entity-row
+    icon: mdi:export-variant
+    name: Erwartete Verdunstung
+    state: >-
+      {{state_attr("sensor.zone5_smart_irrigation_hourly_adjusted_run_time",
+      "evapotranspiration")}} mm
+
+title: Bewässerung Details

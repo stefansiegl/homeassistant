@@ -1,0 +1,46 @@
+type: vertical-stack
+cards:
+  - type: gauge
+    entity: sensor.watering_zone1_buffer_percent
+    needle: false
+    theme: Mushroom
+    name: Zone 1 (Perlregner Hecke)
+    unit: "%"
+    max: 100
+    min: 0
+
+  - type: gauge
+    entity: sensor.watering_zone2_buffer_percent
+    needle: false
+    theme: Mushroom
+    name: Zone 2 (Perlregner Beet)
+    unit: "%"
+    max: 100
+    min: 0
+
+  - type: gauge
+    entity: sensor.watering_zone3_buffer_percent
+    needle: false
+    theme: Mushroom
+    name: Zone 3 (Perlregner Gewächshaus)
+    unit: "%"
+    max: 100
+    min: 0
+
+  - type: gauge
+    entity: sensor.watering_zone4_buffer_percent
+    needle: false
+    theme: Mushroom
+    name: Zone 4 (Vierecksregner Rasen)
+    unit: "%"
+    max: 100
+    min: 0
+
+  - type: gauge
+    entity: sensor.watering_zone5_buffer_percent
+    needle: false
+    theme: Mushroom
+    name: Zone 5 (Teilkreisregner Rasen)
+    unit: "%"
+    max: 100
+    min: 0

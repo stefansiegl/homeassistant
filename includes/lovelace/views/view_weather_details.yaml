@@ -23,6 +23,7 @@ cards:
 
   - type: vertical-stack
     cards:
+      - !include ../cards/fan-temperature-big.yaml
       - type: weather-forecast
         entity: weather.openweathermap
       - type: custom:weather-radar-card

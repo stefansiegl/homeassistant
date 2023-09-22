@@ -22,3 +22,52 @@ stromeinspeisung_aktuell_monthly:
 stromeinspeisung_aktuell_yearly:
   source: sensor.tasmota_mt691_total_out
   cycle: yearly
+
+# water
+watering_zone1_weekly:
+  source: input_number.watering_zone1_total
+  cycle: weekly
+watering_zone2_weekly:
+  source: input_number.watering_zone2_total
+  cycle: weekly
+watering_zone3_weekly:
+  source: input_number.watering_zone3_total
+  cycle: weekly
+watering_zone4_weekly:
+  source: input_number.watering_zone4_total
+  cycle: weekly
+watering_zone5_weekly:
+  source: input_number.watering_zone5_total
+  cycle: weekly
+
+watering_zone1_monthly:
+  source: input_number.watering_zone1_total
+  cycle: monthly
+watering_zone2_monthly:
+  source: input_number.watering_zone2_total
+  cycle: monthly
+watering_zone3_monthly:
+  source: input_number.watering_zone3_total
+  cycle: monthly
+watering_zone4_monthly:
+  source: input_number.watering_zone4_total
+  cycle: monthly
+watering_zone5_monthly:
+  source: input_number.watering_zone5_total
+  cycle: monthly
+
+watering_zone1_yearly:
+  source: input_number.watering_zone1_total
+  cycle: yearly
+watering_zone2_yearly:
+  source: input_number.watering_zone2_total
+  cycle: yearly
+watering_zone3_yearly:
+  source: input_number.watering_zone3_total
+  cycle: yearly
+watering_zone4_yearly:
+  source: input_number.watering_zone4_total
+  cycle: yearly
+watering_zone5_yearly:
+  source: input_number.watering_zone5_total
+  cycle: yearly

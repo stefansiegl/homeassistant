@@ -1,0 +1,32 @@
+entities:
+  - entity: sensor.bambus_soil_moisture
+    name: Bambus
+  - entity: sensor.yucca_soil_moisture
+    name: Yucca
+  - entity: sensor.geranie_soil_moisture
+    name: Geranie
+  - entity: sensor.elefantenfuss_soil_moisture
+    name: Elefantenfuss
+  - entity: sensor.zimmer_alpenveilchen_soil_moisture
+    name: Alpenveilchen
+  - entity: sensor.strahlenaralie_soil_moisture
+    name: Strahlenaralie
+  - entity: sensor.flamingopflanze_soil_moisture
+    name: Flamingo
+  - entity: sensor.glucksfeder_soil_moisture
+    name: Glücksfeder
+positions:
+  icon: "off"
+  title: inside
+  value: inside
+height: 20px
+stack: vertical
+type: custom:bar-card
+title: Restwasser Pflanzen
+limit_value: true
+severity:
+  - from: "0"
+    to: "20"
+    color: red
+    icon: mdi:warning
+    hide: true

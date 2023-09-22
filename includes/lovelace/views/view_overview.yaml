@@ -43,6 +43,7 @@ cards:
   - type: vertical-stack
     cards:
       - !include ../cards/lights.yaml
+      - !include ../cards/watering-plants.yaml
     view_layout:
       grid-area: middle
 
@@ -53,17 +54,18 @@ cards:
   - type: vertical-stack
     cards:
       - !include ../cards/people.yaml
+      - !include ../cards/fan-temperature-small.yaml
+      - !include ../cards/fan-control.yaml
+      - !include ../cards/water-control.yaml
+      - !include ../cards/heating-control.yaml
     view_layout:
       grid-area: right
 
   # --------------------------------------------------------
   # Footer
   # --------------------------------------------------------
-
-  - type: vertical-stack
-    cards:
-      - !include ../cards/fan-control.yaml
-      - !include ../cards/water-control.yaml
-      - !include ../cards/heating-control.yaml
-    view_layout:
-      grid-area: footer
+#  - type: vertical-stack
+#    cards:
+#
+#    view_layout:
+#      grid-area: footer

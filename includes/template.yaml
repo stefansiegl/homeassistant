@@ -15,6 +15,26 @@ sensor:
         {{ gwn }}
       {% endif %}
 
+  - name: watering_zone1_buffer_percent
+    state: "{{ ((states('input_number.watering_zone1_threshold')|float - (states('input_number.watering_zone1_adjust')|float * states('sensor.zone1_smart_irrigation_daily_adjusted_run_time')|float)) / states('input_number.watering_zone1_threshold')|float) |round(4) * 100 }}"
+    unit_of_measurement: "%"
+
+  - name: watering_zone2_buffer_percent
+    state: "{{ ((states('input_number.watering_zone2_threshold')|float - (states('input_number.watering_zone2_adjust')|float * states('sensor.zone2_smart_irrigation_daily_adjusted_run_time')|float)) / states('input_number.watering_zone2_threshold')|float) |round(4) * 100 }}"
+    unit_of_measurement: "%"
+
+  - name: watering_zone3_buffer_percent
+    state: "{{ ((states('input_number.watering_zone3_threshold')|float - (states('input_number.watering_zone3_adjust')|float * states('sensor.zone3_smart_irrigation_daily_adjusted_run_time')|float)) / states('input_number.watering_zone3_threshold')|float) |round(4) * 100 }}"
+    unit_of_measurement: "%"
+
+  - name: watering_zone4_buffer_percent
+    state: "{{ ((states('input_number.watering_zone4_threshold')|float - (states('input_number.watering_zone4_adjust')|float * states('sensor.zone4_smart_irrigation_daily_adjusted_run_time')|float)) / states('input_number.watering_zone4_threshold')|float) |round(4) * 100 }}"
+    unit_of_measurement: "%"
+
+  - name: watering_zone5_buffer_percent
+    state: "{{ ((states('input_number.watering_zone5_threshold')|float - (states('input_number.watering_zone5_adjust')|float * states('sensor.zone5_smart_irrigation_daily_adjusted_run_time')|float)) / states('input_number.watering_zone5_threshold')|float) |round(4) * 100 }}"
+    unit_of_measurement: "%"
+
 binary_sensor:
   # --------------------------------------------------------
   # Waste binary sensors

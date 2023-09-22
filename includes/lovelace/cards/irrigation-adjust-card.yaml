@@ -1,0 +1,15 @@
+type: entities
+entities:
+  - entity: input_number.watering_zone1_adjust
+    name: Zone 1 - Perlregner Hecke
+  - entity: input_number.watering_zone2_adjust
+    name: Zone 2 - Perlregner Beet
+  - entity: input_number.watering_zone3_adjust
+    name: Zone 3 - Perlregner Gewächshaus
+  - entity: input_number.watering_zone4_adjust
+    name: Zone 4 - Viereckregner Rasen
+  - entity: input_number.watering_zone5_adjust
+    name: Zone 5 - Teilkreisregner Rasen
+show_header_toggle: false
+state_color: false
+title: Automatische Bewässerung - Feinjustierung

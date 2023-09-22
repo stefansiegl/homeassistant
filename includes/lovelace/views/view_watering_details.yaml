@@ -1,7 +1,7 @@
 title: Bewässerung
 path: watering-details
 icon: mdi:watering-can
-layout: !include ../helpers/basic-layout.yaml
+layout: !include ../helpers/two-column-layout.yaml
 badges: []
 theme: Backend-selected
 type: custom:grid-layout
@@ -18,29 +18,32 @@ cards:
       grid-area: header
 
   # --------------------------------------------------------
-  # Messages
+  # Left
   # --------------------------------------------------------
 
   - type: vertical-stack
     cards:
-      - type: weather-forecast
-        entity: weather.openweathermap
-      - type: custom:weather-radar-card
-        card_title: Regen Radar
-        map_style: Light
-        zoom_level: 9
-        center_latitude: 48.25898951455688
-        center_longitude: 10.974704469476821
-        marker_latitude: 48.25898951455688
-        marker_longitude: 10.974704469476821
-        static_map: false
-        show_marker: true
-        show_scale: true
-        show_range: true
-        show_playback: true
-        show_zoom: true
-        square_map: false
-        show_recenter: false
-        extra_labels: false
+      - !include ../cards/irrigation-status-card.yaml
     view_layout:
-      grid-area: messages
+      grid-area: left
+
+  # --------------------------------------------------------
+  # Right
+  # --------------------------------------------------------
+
+  - type: vertical-stack
+    cards:
+      - !include ../cards/irrigation-enable-card.yaml
+    view_layout:
+      grid-area: right
+
+  # --------------------------------------------------------
+  # Footer
+  # --------------------------------------------------------
+  - type: vertical-stack
+    cards:
+      - !include ../cards/irrigation-details-zones.yaml
+      - !include ../cards/irrigation-adjust-card.yaml
+      - !include ../cards/irrigation-details-zones-setup.yaml
+    view_layout:
+      grid-area: footer

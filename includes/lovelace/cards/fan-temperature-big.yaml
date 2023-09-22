@@ -1,0 +1,20 @@
+type: entities
+entities:
+  - entity: sensor.helios_outside_air_temperature
+    name: Aussenluft
+    icon: mdi:thermometer-auto
+  - entity: sensor.helios_supply_air_temperature
+    name: Innen Zuluft
+    icon: mdi:air-filter
+  - entity: sensor.helios_extract_air_temperature
+    name: Innen Absaug
+    icon: mdi:export
+  - entity: sensor.helios_outgoing_air_temperature
+    icon: mdi:exit-to-app
+    name: Fortluft
+  - entity: sensor.helios_extract_air_relative_humidity
+    icon: mdi:water-percent
+    name: Luftfeuchtigkeit Ausgang
+  - entity: binary_sensor.helios_bypass
+    icon: mdi:toggle-switch
+title: Temperatur Lüftung

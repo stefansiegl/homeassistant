@@ -58,7 +58,6 @@ logbook:
 cloud:
 bluetooth:
 mobile_app:
-discovery:
 
 # --------------------------------
 # Extensions
