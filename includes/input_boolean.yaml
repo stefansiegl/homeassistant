@@ -29,6 +29,11 @@ door_klo_2og_open:
   icon: mdi:door-open
   initial: true
 
+deactivate_mower:
+  name: Deaktiviert die automatische Mäher-Steuerung
+  icon: mdi:mower
+  initial: off
+
 watering_in_progress:
   name: Wird gerade bewässert?
   icon: mdi:watering-can
