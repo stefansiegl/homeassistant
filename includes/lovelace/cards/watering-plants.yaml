@@ -1,20 +1,20 @@
 entities:
-  - entity: sensor.bambus_soil_moisture
-    name: Bambus
   - entity: sensor.yucca_soil_moisture
-    name: Yucca
-  - entity: sensor.geranie_soil_moisture
-    name: Geranie
+    name: Yucca (Wohnzimmer)
   - entity: sensor.elefantenfuss_soil_moisture
-    name: Elefantenfuss
-  - entity: sensor.zimmer_alpenveilchen_soil_moisture
-    name: Alpenveilchen
+    name: Elefantenfuss (Wohnzimmer)
   - entity: sensor.strahlenaralie_soil_moisture
-    name: Strahlenaralie
+    name: Strahlenaralie (Küche)
+  - entity: sensor.zimmer_alpenveilchen_soil_moisture
+    name: Alpenveilchen (David)
   - entity: sensor.flamingopflanze_soil_moisture
-    name: Flamingo
+    name: Flamingo (David)
+  - entity: sensor.bambus_soil_moisture
+    name: Bambus (David)
+  - entity: sensor.geranie_soil_moisture
+    name: Geranie (Adrian)
   - entity: sensor.glucksfeder_soil_moisture
-    name: Glücksfeder
+    name: Glücksfeder (Adrian)
 positions:
   icon: "off"
   title: inside
