@@ -5,7 +5,7 @@ entities:
     name: Elefantenfuss (Wohnzimmer)
   - entity: sensor.strahlenaralie_soil_moisture
     name: Strahlenaralie (Küche)
-  - entity: sensor.zimmer_alpenveilchen_soil_moisture
+  - entity: sensor.alpenveilchen_soil_moisture
     name: Alpenveilchen (David)
   - entity: sensor.flamingopflanze_soil_moisture
     name: Flamingo (David)

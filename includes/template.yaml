@@ -95,9 +95,9 @@ binary_sensor:
     state: >
       {{ state_attr("plant.strahlenaralie", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
 
-  - name: template_plant_zimmer_alpenveilchen_moisture_low
+  - name: template_plant_alpenveilchen_moisture_low
     state: >
-      {{ state_attr("plant.zimmer_alpenveilchen", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
+      {{ state_attr("plant.alpenveilchen", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
 
   - name: template_plant_yucca_moisture_low
     state: >

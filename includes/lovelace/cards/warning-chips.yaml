@@ -207,7 +207,7 @@ cards:
 
       - type: conditional
         conditions:
-          - entity: binary_sensor.template_plant_zimmer_alpenveilchen_moisture_low
+          - entity: binary_sensor.template_plant_alpenveilchen_moisture_low
             state: "on"
         chip:
           type: template
