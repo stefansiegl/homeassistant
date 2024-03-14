@@ -29,12 +29,6 @@ cards:
           - conductivity
         battery_sensor: sensor.plantsensor_bambus_battery
       - type: custom:flower-card
-        entity: plant.yucca
-        show_bars:
-          - moisture
-          - conductivity
-        battery_sensor: sensor.plantsensor_yucca_battery
-      - type: custom:flower-card
         entity: plant.elefantenfuss
         show_bars:
           - moisture

@@ -1,6 +1,4 @@
 entities:
-  - entity: sensor.yucca_soil_moisture
-    name: Yucca (Wohnzimmer)
   - entity: sensor.elefantenfuss_soil_moisture
     name: Elefantenfuss (Wohnzimmer)
   - entity: sensor.strahlenaralie_soil_moisture

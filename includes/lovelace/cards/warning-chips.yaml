@@ -215,14 +215,3 @@ cards:
           icon_color: blue
           content: >-
             'Alpenveilchen {{ states("sensor.plantsensor_alpenveilchen_moisture", rounded=True) }}%'
-
-      - type: conditional
-        conditions:
-          - entity: binary_sensor.template_plant_yucca_moisture_low
-            state: "on"
-        chip:
-          type: template
-          icon: mdi:water-alert
-          icon_color: blue
-          content: >-
-            'Yucca {{ states("sensor.plantsensor_yucca_moisture", rounded=True) }}%'

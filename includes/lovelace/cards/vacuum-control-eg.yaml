@@ -5,10 +5,10 @@ cards:
     primary: Staubi (EG)
     secondary: >
       {% if is_state("input_boolean.door_klo_eg_open", "off") %}
-        Türe geschlossen
-      {% else %}
-        {{ states("vacuum.roborock_s7_maxv") }}
+        Türe geschlossen - 
       {% endif %}
+        {{ states("vacuum.roborock_s7_maxv") }}
+
     icon: >
       {% if is_state("vacuum.roborock_s7_maxv", "cleaning") %}
         mdi:vacuum

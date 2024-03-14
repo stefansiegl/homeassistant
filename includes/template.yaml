@@ -40,34 +40,34 @@ sensor:
     unit_of_measurement: "mm"
 
   - name: watering_zone2_buffer
-    state: " {{state_attr('sensor.zone1_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
+    state: " {{state_attr('sensor.zone2_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
     unit_of_measurement: "mm"
 
   - name: watering_zone3_buffer
-    state: " {{state_attr('sensor.zone1_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
+    state: " {{state_attr('sensor.zone3_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
     unit_of_measurement: "mm"
 
   - name: watering_zone4_buffer
-    state: " {{state_attr('sensor.zone1_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
+    state: " {{state_attr('sensor.zone4_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
     unit_of_measurement: "mm"
 
   - name: watering_zone5_buffer
-    state: " {{state_attr('sensor.zone1_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
+    state: " {{state_attr('sensor.zone5_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
     unit_of_measurement: "mm"
 
     # Veränderung der Wassermenge berechnet auf den nächsten Tag (Verdunstung - Niederschlag)
   - name: watering_general_netto_precipitation
-    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'netto_precipitation'}}"
+    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'netto_precipitation') }}"
     unit_of_measurement: "mm"
 
     # Erwarteter Niederschlag
   - name: watering_general_precipitation
-    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'precipitation'}}"
+    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'precipitation') }}"
     unit_of_measurement: "mm"
 
     # Erwartete Verdunstung
   - name: watering_general_evapotranspiration
-    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'evapotranspiration'}}"
+    state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'evapotranspiration') }}"
     unit_of_measurement: "mm"
 
 binary_sensor:
@@ -133,7 +133,3 @@ binary_sensor:
   - name: template_plant_alpenveilchen_moisture_low
     state: >
       {{ state_attr("plant.alpenveilchen", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}
-
-  - name: template_plant_yucca_moisture_low
-    state: >
-      {{ state_attr("plant.yucca", "moisture_status") == "Low" or states("input_boolean.template_show_all_conditionals") == "on" }}

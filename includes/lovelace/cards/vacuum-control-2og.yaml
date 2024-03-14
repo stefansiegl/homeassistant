@@ -5,10 +5,10 @@ cards:
     primary: Skippy (2OG)
     secondary: >
       {% if is_state("input_boolean.door_klo_2og_open", "off") %}
-        Türe geschlossen
-      {% else %}
-        {{ states("vacuum.roboter_staubsauger") }}
+        Türe geschlossen - 
       {% endif %}
+      {{ states("vacuum.roboter_staubsauger") }}
+
     icon: >
       {% if is_state("input_boolean.door_klo_2og_open", "off") %}
         mdi:alert
@@ -52,20 +52,18 @@ cards:
         secondary: Alles
         layout: vertical
         icon_color: >
-          {% if is_state("input_boolean.door_klo_2og_open", "on") 
-            and (  is_state("vacuum.roboter_staubsauger", "docked") 
+          {% if is_state("vacuum.roboter_staubsauger", "docked") 
                 or is_state("vacuum.roboter_staubsauger", "idle")
-                or is_state("vacuum.roboter_staubsauger", "returning")) %}
+                or is_state("vacuum.roboter_staubsauger", "returning") %}
             white
           {% else %}
             grey
           {% endif %}
         hold_action: >
           # only if possible
-          {% if is_state("input_boolean.door_klo_2og_open", "on") 
-            and (  is_state("vacuum.roboter_staubsauger", "docked") 
+          {% if is_state("vacuum.roboter_staubsauger", "docked") 
                 or is_state("vacuum.roboter_staubsauger", "idle")
-                or is_state("vacuum.roboter_staubsauger", "returning")) %}
+                or is_state("vacuum.roboter_staubsauger", "returning") %}
             action: call-service
             service: script.start_vacuum_og
           {% endif %}
