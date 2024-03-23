@@ -1,30 +1,36 @@
+type: custom:auto-entities
+card:
+  type: custom:bar-card
+  title: Restwasser
+  show_header_toggle: true
+  state_color: true
+  positions:
+    icon: "off"
+  value: inside
+  height: 25px
+  stack: vertical
+  severity:
+    - from: "0"
+      to: "25"
+      color: red
+      icon: mdi:warning
+sort:
+  method: state
+  numeric: true
+  reverse: true
 entities:
   - entity: sensor.elefantenfuss_soil_moisture
     name: Elefantenfuss (Wohnzimmer)
   - entity: sensor.strahlenaralie_soil_moisture
     name: Strahlenaralie (Küche)
-  - entity: sensor.alpenveilchen_soil_moisture
-    name: Alpenveilchen (David)
   - entity: sensor.flamingopflanze_soil_moisture
     name: Flamingo (David)
+  - entity: sensor.plantsensor_alpenveilchen_moisture
+    name: Alpenveilchen (David)
   - entity: sensor.bambus_soil_moisture
     name: Bambus (David)
   - entity: sensor.geranie_soil_moisture
     name: Geranie (Adrian)
   - entity: sensor.glucksfeder_soil_moisture
     name: Glücksfeder (Adrian)
-positions:
-  icon: "off"
-  title: inside
-  value: inside
-height: 20px
-stack: vertical
-type: custom:bar-card
-title: Restwasser Pflanzen
-limit_value: true
-severity:
-  - from: "0"
-    to: "20"
-    color: red
-    icon: mdi:warning
-    hide: true
+show_empty: true
