@@ -14,18 +14,42 @@
             min: 0
             unit_of_measurement: "seconds"
             mode: box
+    mode: single
     sequence:
-      - service: switch.turn_on
-        target:
-          entity_id: switch.wassersteuerung
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_water_current: Start
+
       - service: input_boolean.turn_on
         target:
           entity_id: input_boolean.watering_in_progress
+      - service: logbook.log
+        data:
+          name: Watering
+          message: watering zone {{states("counter.water_current_output")}} for {{duration}} seconds.
+          entity_id: switch.wassersteuerung
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.water_status
+        data:
+          value: "watering zone {{states('counter.water_current_output')}} for {{duration}} seconds."
+      - service: switch.turn_on
+        target:
+          entity_id: switch.wassersteuerung
       - delay:
           seconds: "{{ duration | int }}"
       - service: switch.turn_off
         target:
           entity_id: switch.wassersteuerung
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_water_current: Watering done, waiting now.
 
       # we need different pauses between switching based on the lengths
       # of the pipe and the output pressure.
@@ -35,28 +59,65 @@
           - conditions: >
               {{ is_state('counter.water_current_output', '1') }}
             sequence:
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.water_status
+                data:
+                  value: "Wait (30s) - Switch to Zone 2"
               - delay:
-                  seconds: "10"
+                  #seconds: "10"
+                  seconds: "30"
           - conditions: >
               {{ is_state('counter.water_current_output', '2') }}
             sequence:
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.water_status
+                data:
+                  value: "Wait (60s) - Switch to Zone 3"
               - delay:
-                  seconds: "50"
+                  #seconds: "50"
+                  seconds: "60"
           - conditions: >
               {{ is_state('counter.water_current_output', '3') }}
             sequence:
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.water_status
+                data:
+                  value: "Wait (30s) - Switch to Zone 4"
               - delay:
-                  seconds: "15"
+                  #seconds: "15"
+                  seconds: "30"
           - conditions: >
               {{ is_state('counter.water_current_output', '4') }}
             sequence:
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.water_status
+                data:
+                  value: "Wait (30s) - Switch to Zone 5"
               - delay:
-                  seconds: "15"
+                  #seconds: "15"
+                  seconds: "30"
           - conditions: >
               {{ is_state('counter.water_current_output', '5') }}
             sequence:
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.water_status
+                data:
+                  value: "Wait (30s) - Switch to Zone 1"
               - delay:
-                  seconds: "15"
+                  #seconds: "15"
+                  seconds: "30"
+
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_water_current: Waiting done.
 
       # we can now set the output to the correct new output.
       - if:
@@ -72,6 +133,18 @@
             target:
               entity_id: counter.water_current_output
 
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_water_current: output is now {{ states ("counter.water_current_output")}}
+
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.water_status
+        data:
+          value: "Idle"
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.watering_in_progress

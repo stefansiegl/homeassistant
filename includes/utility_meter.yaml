@@ -23,6 +23,14 @@ stromeinspeisung_aktuell_yearly:
   source: sensor.tasmota_mt691_total_out
   cycle: yearly
 
+# water-meter
+utility_meter_water_per_day:
+  source: sensor.watermeter_value
+  cycle: daily
+utility_meter_water_per_day_in_l:
+  source: sensor.watermeter_in_l
+  cycle: daily
+
 # water
 watering_zone1_weekly:
   source: input_number.watering_zone1_total

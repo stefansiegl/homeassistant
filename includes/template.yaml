@@ -55,7 +55,15 @@ sensor:
     state: " {{state_attr('sensor.zone5_smart_irrigation_daily_adjusted_run_time', 'bucket') }}"
     unit_of_measurement: "mm"
 
-    # Veränderung der Wassermenge berechnet auf den nächsten Tag (Verdunstung - Niederschlag)
+  # Water sensor
+  - name: "Watermeter in l"
+    unique_id: watermeter_in_l
+    icon: "mdi:gauge"
+    state: "{{ states('sensor.watermeter_value')|float(default=0) * 1000 }}" # Convert 1 m3 => 1000 l
+    unit_of_measurement: l
+    availability: "{{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none'] }}"
+
+  # Veränderung der Wassermenge berechnet auf den nächsten Tag (Verdunstung - Niederschlag)
   - name: watering_general_netto_precipitation
     state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'netto_precipitation') }}"
     unit_of_measurement: "mm"

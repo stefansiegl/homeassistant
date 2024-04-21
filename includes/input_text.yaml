@@ -1,0 +1,3 @@
+water_overview_status:
+  name: Status
+  initial: idle

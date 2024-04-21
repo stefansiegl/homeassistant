@@ -34,21 +34,37 @@
         name: Duration [s]
         example: 30
         required: true
+    mode: single
     sequence:
-      - service: logbook.log
+      - service: system_log.write
         data:
-          name: Watering
-          message: watering zone {{output}} for {{duration}} seconds.
-          entity_id: switch.wassersteuerung
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_single: Calling watering_set_output with {{output}}.
 
       # set to the specified connection
       - service: script.watering_set_output
         data:
           output_target: "{{output}}"
 
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_single: Output should now be set to {{output}}. Testing: {{states("counter.water_current_output")}}. Watering for {{duration}} seconds.
+
       - service: script.watering_water_current
         data:
           duration: "{{duration}}"
+
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_single: Watering is done.
 
       - choose:
           - conditions:

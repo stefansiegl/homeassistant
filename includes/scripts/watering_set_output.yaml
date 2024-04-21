@@ -13,6 +13,12 @@
             max: 5
             mode: box
     sequence:
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: >-
+            watering_set_output: Output should now be set to {{output_target}}. Is at: {{ states('counter.water_current_output') }}
       - repeat:
           while:
             - condition: template
@@ -25,10 +31,11 @@
                 duration: 5
             - service: system_log.write
               data:
-                level: error
+                level: debug
+                logger: garden_water_logger
                 message: >-
-                  Iteration: target {{output_target|int}}. current {{
+                  watering_set_output: Iteration: target {{output_target|int}}. current {{
                   states("counter.water_current_output")|int }} continue {{
                   (states("counter.water_current_output")|int) !=
-                  (output_target|int) }} 
+                  (output_target|int) }}
     mode: single
