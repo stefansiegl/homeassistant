@@ -31,6 +31,14 @@ utility_meter_water_per_day_in_l:
   source: sensor.watermeter_in_l
   cycle: daily
 
+# water-meter
+utility_meter_gas_per_day:
+  source: sensor.gasmeter_value
+  cycle: daily
+utility_meter_gas_per_day_in_l:
+  source: sensor.gasmeter_in_l
+  cycle: daily
+
 # water
 watering_zone1_weekly:
   source: input_number.watering_zone1_total

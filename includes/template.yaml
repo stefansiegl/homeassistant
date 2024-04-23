@@ -63,6 +63,22 @@ sensor:
     unit_of_measurement: l
     availability: "{{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none'] }}"
 
+  # Gas energy
+  # approximately 1m3 == 10,550 kwh
+  - name: "Gasmeter in kwh"
+    unique_id: gasmeter_in_kwh
+    state: "{{ states('sensor.gasmeter_value')|float(default=0) * 10.55 }}"
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+
+  - name: "Gasmeter kwh"
+    unique_id: gasmeter_kwh
+    state: "{{ states('sensor.gasmeter_value')|float(default=0) * 10.55 }}"
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+
   # Veränderung der Wassermenge berechnet auf den nächsten Tag (Verdunstung - Niederschlag)
   - name: watering_general_netto_precipitation
     state: " {{ state_attr('sensor.zone1_smart_irrigation_hourly_adjusted_run_time', 'netto_precipitation') }}"

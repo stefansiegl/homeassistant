@@ -96,16 +96,15 @@ sensor:
         {{ value_json.0.message }}
       {% endif %}
 
-
-# Wasser Sensor
+  # Wasser Sensor
 
   - state_topic: "watermeter/main/value"
     name: "Watermeter Value"
     unique_id: watermeter_value
-    unit_of_measurement: 'm³'
+    unit_of_measurement: "m³"
     state_class: total_increasing
     device_class: water # Needs Home Assistant 2022.11!
-    icon: 'mdi:water-pump'
+    icon: "mdi:water-pump"
     availability_topic: watermeter/connection
     payload_available: connected
     payload_not_available: connection lost
@@ -113,10 +112,10 @@ sensor:
   - state_topic: "watermeter/main/rate"
     name: "Watermeter Rate"
     unique_id: watermeter_rate
-    unit_of_measurement: 'm³/min'
+    unit_of_measurement: "m³/min"
     state_class: measurement
     device_class: water # Needs Home Assistant 2022.11!
-    icon: 'mdi:water-pump'
+    icon: "mdi:water-pump"
     availability_topic: watermeter/connection
     payload_available: connected
     payload_not_available: connection lost
@@ -127,17 +126,61 @@ sensor:
     icon: "mdi:water-alert"
     availability_topic: watermeter/connection
     payload_available: connected
-    payload_not_available: connection lost    
+    payload_not_available: connection lost
 
   - state_topic: "watermeter/uptime"
     name: "Watermeter Uptime"
     unique_id: watermeter_uptime
-    unit_of_measurement: 's'
+    unit_of_measurement: "s"
     state_class: measurement
     device_class: duration
     entity_category: diagnostic
     icon: "mdi:timer-outline"
     availability_topic: watermeter/connection
+    payload_available: connected
+    payload_not_available: connection lost
+
+  # Gas Sensor
+
+  - state_topic: "gasmeter/main/value"
+    name: "Gasmeter Value"
+    unique_id: gasmeter_value
+    unit_of_measurement: "m³"
+    state_class: total_increasing
+    device_class: gas # Needs Home Assistant 2022.11!
+    icon: "mdi:gas-pump"
+    availability_topic: gasmeter/connection
+    payload_available: connected
+    payload_not_available: connection lost
+
+  - state_topic: "gasmeter/main/rate"
+    name: "Gasmeter Rate"
+    unique_id: gasmeter_rate
+    unit_of_measurement: "m³/min"
+    state_class: measurement
+    device_class: gas # Needs Home Assistant 2022.11!
+    icon: "mdi:gas-pump"
+    availability_topic: gasmeter/connection
+    payload_available: connected
+    payload_not_available: connection lost
+
+  - state_topic: "gasmeter/main/error"
+    name: "Gasmeter Error"
+    unique_id: gasmeter_error
+    icon: "mdi:gas-alert"
+    availability_topic: gasmeter/connection
+    payload_available: connected
+    payload_not_available: connection lost
+
+  - state_topic: "gasmeter/uptime"
+    name: "Gasmeter Uptime"
+    unique_id: gasmeter_uptime
+    unit_of_measurement: "s"
+    state_class: measurement
+    device_class: duration
+    entity_category: diagnostic
+    icon: "mdi:timer-outline"
+    availability_topic: gasmeter/connection
     payload_available: connected
     payload_not_available: connection lost
 
