@@ -1,0 +1,175 @@
+type: custom:stack-in-card
+mode: vertical
+cards:
+  - type: custom:mushroom-template-card
+    primary: Garten Bewässerung (auto-mode / manual-mode)
+    secondary: |
+      {% if is_state("input_boolean.watering_in_progress", "on") %}
+        Zone {{ states("counter.water_current_output") }} wird bewässert bis {{ states("input_datetime.water_overview_watering_until") }}
+      {% else %}
+        inaktiv - Output {{ states("counter.water_current_output") }} - automatisch / keine Automatisierung
+      {% endif %}
+    icon: |
+      {% if is_state("input_boolean.watering_in_progress", "on") %}
+        mdi:water-pump
+      {% else %}
+        mdi:water-off
+      {% endif %}
+    icon_color: |
+      {% if is_state("input_boolean.watering_in_progress", "on") %}
+        blue
+      {% else %}
+        grey
+      {% endif %}
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: input_boolean.watering_in_progress
+        state: "on"
+    card:
+      type: custom:mushroom-template-card
+      primary: null
+      secondary: |
+        {{ states("input_text.water_status") }}
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.feuchte_beet_soil_humidity
+        needle: true
+        min: 0
+        max: 100
+        segments:
+          - from: 0
+            color: var(--error-color)
+          - from: 10
+            color: var(--warning-color)
+          - from: 30
+            color: green
+        name: Beet
+      - type: gauge
+        entity: sensor.feuchte_hecke_soil_humidity
+        needle: true
+        min: 0
+        max: 100
+        segments:
+          - from: 0
+            color: var(--error-color)
+          - from: 10
+            color: var(--warning-color)
+          - from: 30
+            color: green
+        name: Hecke
+      - type: gauge
+        entity: sensor.feuchtesensor_garten_soil_humidity
+        needle: true
+        min: 0
+        max: 100
+        segments:
+          - from: 0
+            color: var(--error-color)
+          - from: 10
+            color: var(--warning-color)
+          - from: 30
+            color: green
+        name: Rasen
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        icon_color: |
+          {% if is_state("input_boolean.watering_in_progress", "on") %}
+            grey
+          {% else %}
+            blue
+          {% endif %}
+        icon: mdi:play
+        primary: Beet
+        secondary: (30 min)
+        layout: vertical
+        hold_action:
+          action: call-service
+          service: script.watering_single
+          target: {}
+          confirmation:
+            text: Tropfregner Beet für 30 Minuten?
+          data:
+            output: "2"
+            duration: "1800"
+      - type: custom:mushroom-template-card
+        icon_color: |
+          {% if is_state("input_boolean.watering_in_progress", "on") %}
+            grey
+          {% else %}
+            blue
+          {% endif %}
+        icon: mdi:play
+        primary: Hecke
+        secondary: (30 min)
+        layout: vertical
+        hold_action:
+          action: call-service
+          service: script.watering_single
+          target: {}
+          confirmation:
+            text: Tropfregner Hecke für 30 Minuten?
+          data:
+            output: "1"
+            duration: "1800"
+      - type: custom:mushroom-template-card
+        icon_color: |
+          {% if is_state("input_boolean.watering_in_progress", "on") %}
+            grey
+          {% else %}
+            blue
+          {% endif %}
+        icon: mdi:play
+        primary: Garage
+        secondary: (30 min)
+        layout: vertical
+        hold_action:
+          action: call-service
+          service: script.watering_single
+          target: {}
+          confirmation: text:Tropfregner Garage für 30 Minuten?
+          data:
+            output: "3"
+            duration: "1800"
+      - type: custom:mushroom-template-card
+        icon_color: |
+          {% if is_state("input_boolean.watering_in_progress", "on") %}
+            grey
+          {% else %}
+            blue
+          {% endif %}
+        icon: mdi:play
+        primary: Rasen Viereck
+        secondary: (30 min)
+        layout: vertical
+        hold_action:
+          action: call-service
+          service: script.watering_single
+          target: {}
+          confirmation:
+            text: Rasen Viereckregner für 30 Minuten?
+          data:
+            output: "4"
+            duration: "1800"
+      - type: custom:mushroom-template-card
+        icon_color: |
+          {% if is_state("input_boolean.watering_in_progress", "on") %}
+            grey
+          {% else %}
+            blue
+          {% endif %}
+        icon: mdi:play
+        primary: Rasen Kreis
+        secondary: (30 min)
+        layout: vertical
+        hold_action:
+          action: call-service
+          service: script.watering_single
+          target: {}
+          confirmation:
+            text: Rasen Kreisregner für 30 Minuten?
+          data:
+            output: "5"
+            duration: "1800"

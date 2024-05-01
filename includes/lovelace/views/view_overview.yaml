@@ -34,6 +34,7 @@ cards:
     cards:
       - !include ../cards/vacuum-control-eg.yaml
       - !include ../cards/vacuum-control-2og.yaml
+      - !include ../cards/water-garden-control.yaml
     view_layout:
       grid-area: left
 
