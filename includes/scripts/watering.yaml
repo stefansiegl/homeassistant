@@ -8,8 +8,6 @@
       connection 4: Viereckregner Rasen
       connection 5: Teilkreisregner Rasen
       connection 6: - nicht benutzt - it will step over it
-
-      the assumption is that after use, the device selected is no 1
     fields:
       output:
         name: output
@@ -31,33 +29,200 @@
                 value: "5"
             multiple: false
       duration:
-        name: Duration [s]
+        name: duration
+        description: Time in seconds.
         example: 30
         required: true
+        selector:
+          number:
+            min: 60
+            max: 3600
+    variables:
+      wait_1_to_2: 30
+      wait_2_to_3: 60
+      wait_3_to_4: 30
+      wait_4_to_5: 30
+      wait_5_to_1: 30
     mode: single
     sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.watering_in_progress
       - service: system_log.write
         data:
           level: debug
           logger: garden_water_logger
           message: >-
-            watering_single: Calling watering_set_output with {{output}}.
+            watering_single start. Target: {{output|int}} Current: {{(states("counter.water_current_output")|int)}} Time: {{duration}}
 
-      # set to the specified connection
-      - service: script.watering_set_output
-        data:
-          output_target: "{{output}}"
+      # -----------------------------
+      # Switch to the correct output
+      # -----------------------------
+      - repeat:
+          while:
+            - condition: template
+              value_template: >
+                {{ (states('counter.water_current_output')|int) != (output
+                |int) }}
+          sequence:
+            - service: input_text.set_value
+              target:
+                entity_id: input_text.water_status
+              data:
+                value: "target: {{output|int}} for {{duration}} seconds. Status: changing output - currently: {{(states('counter.water_current_output')|int)}}"
+            - service: switch.turn_on
+              target:
+                entity_id: switch.wassersteuerung
+            - delay:
+                seconds: 5
+            - service: switch.turn_off
+              target:
+                entity_id: switch.wassersteuerung
+
+            # we need different pauses between switching based on the lengths
+            # of the pipe and the output pressure.
+            # the numbers are based on my experiments with the system
+            # manual switching & measuring time it took to change output
+            - choose:
+                - conditions: >
+                    {{ is_state('counter.water_current_output', '1') }}
+                  sequence:
+                    - delay:
+                        seconds: "{{ wait_1_to_2 | int }}"
+                - conditions: >
+                    {{ is_state('counter.water_current_output', '2') }}
+                  sequence:
+                    - delay:
+                        seconds: "{{ wait_2_to_3 | int }}"
+                - conditions: >
+                    {{ is_state('counter.water_current_output', '3') }}
+                  sequence:
+                    - delay:
+                        seconds: "{{ wait_3_to_4 | int }}"
+                - conditions: >
+                    {{ is_state('counter.water_current_output', '4') }}
+                  sequence:
+                    - delay:
+                        seconds: "{{ wait_4_to_5 | int }}"
+                - conditions: >
+                    {{ is_state('counter.water_current_output', '5') }}
+                  sequence:
+                    - delay:
+                        seconds: "{{ wait_5_to_1 | int }}"
+
+            # we can now set the output to the correct new output.
+            - if:
+                - condition: numeric_state
+                  entity_id: counter.water_current_output
+                  below: 5
+              then:
+                - service: counter.increment
+                  target:
+                    entity_id: counter.water_current_output
+              else:
+                - service: counter.reset
+                  target:
+                    entity_id: counter.water_current_output
+            - delay:
+                seconds: 5
+
+            - service: input_text.set_value
+              target:
+                entity_id: input_text.water_status
+              data:
+                value: "target: {{output|int}} for {{duration}} seconds. Status: changing output - currently: {{(states('counter.water_current_output')|int)}} - waiting for physical switch"
+
+            - service: system_log.write
+              data:
+                level: debug
+                logger: garden_water_logger
+                message: >-
+                  watering_set_output: Iteration: target {{output|int}}. current {{
+                  states("counter.water_current_output")|int }} continue {{
+                  (states("counter.water_current_output")|int) !=
+                  (output|int) }}
+
+      # --------------------------------
+      # Switch to the correct output done
+      # ---------------------------------
 
       - service: system_log.write
         data:
           level: debug
           logger: garden_water_logger
           message: >-
-            watering_single: Output should now be set to {{output}}. Testing: {{states("counter.water_current_output")}}. Watering for {{duration}} seconds.
+            watering_single output set. Target: {{output|int}} Current: {{(states("counter.water_current_output")|int)}} Time: {{duration}}
 
-      - service: script.watering_water_current
+      # --------------------------------
+      # Real watering can start
+      # ---------------------------------
+
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.water_status
         data:
-          duration: "{{duration}}"
+          value: "target: {{output|int}} for {{duration}} seconds. Watering until: {{ (now() | as_timestamp + (duration))|timestamp_custom('%H:%M', True) }} "
+      - service: switch.turn_on
+        target:
+          entity_id: switch.wassersteuerung
+      - delay:
+          seconds: "{{ duration | int }}"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.wassersteuerung
+
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.water_status
+        data:
+          value: "Watering done, waiting for physical switch of output"
+
+      # we need different pauses between switching based on the lengths
+      # of the pipe and the output pressure.
+      # the numbers are based on my experiments with the system
+      # manual switching & measuring time it took to change output
+      - choose:
+          - conditions: >
+              {{ is_state('counter.water_current_output', '1') }}
+            sequence:
+              - delay:
+                  seconds: "{{ wait_1_to_2 | int }}"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '2') }}
+            sequence:
+              - delay:
+                  seconds: "{{ wait_2_to_3 | int }}"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '3') }}
+            sequence:
+              - delay:
+                  seconds: "{{ wait_3_to_4 | int }}"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '4') }}
+            sequence:
+              - delay:
+                  seconds: "{{ wait_4_to_5 | int }}"
+          - conditions: >
+              {{ is_state('counter.water_current_output', '5') }}
+            sequence:
+              - delay:
+                  seconds: "{{ wait_5_to_1 | int }}"
+
+      # we can now set the output to the correct new output.
+      - if:
+          - condition: numeric_state
+            entity_id: counter.water_current_output
+            below: 5
+        then:
+          - service: counter.increment
+            target:
+              entity_id: counter.water_current_output
+        else:
+          - service: counter.reset
+            target:
+              entity_id: counter.water_current_output
+      - delay:
+          seconds: 5
 
       - service: system_log.write
         data:
@@ -65,43 +230,14 @@
           logger: garden_water_logger
           message: >-
             watering_single: Watering is done.
-
-      - choose:
-          - conditions:
-              - condition: template
-                value_template: "{{ output == 1 }}"
-            sequence:
-              - service: input_number.set_value
-                data:
-                  value: '{{ states("input_number.watering_zone1_total")|int + duration|int * states("input_number.watering_zone1_water_amount")|float * 60 }}'
-          - conditions:
-              - condition: template
-                value_template: "{{ output == 2 }}"
-            sequence:
-              - service: input_number.set_value
-                data:
-                  value: '{{ states("input_number.watering_zone2_total")|int + duration|int * states("input_number.watering_zone2_water_amount")|float * 60 }}'
-          - conditions:
-              - condition: template
-                value_template: "{{ output == 3 }}"
-            sequence:
-              - service: input_number.set_value
-                data:
-                  value: '{{ states("input_number.watering_zone3_total")|int + duration|int * states("input_number.watering_zone3_water_amount")|float * 60 }}'
-          - conditions:
-              - condition: template
-                value_template: "{{ output == 4 }}"
-            sequence:
-              - service: input_number.set_value
-                data:
-                  value: '{{ states("input_number.watering_zone4_total")|int + duration|int * states("input_number.watering_zone4_water_amount")|float * 60 }}'
-          - conditions:
-              - condition: template
-                value_template: "{{ output == 5 }}"
-            sequence:
-              - service: input_number.set_value
-                data:
-                  value: '{{ states("input_number.watering_zone5_total")|int + duration|int * states("input_number.watering_zone5_water_amount")|float * 60 }}'
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.watering_in_progress
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.water_status
+        data:
+          value: "<empty>"
 
 - watering_multiple:
     alias: watering_multiple

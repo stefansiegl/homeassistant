@@ -28,7 +28,7 @@
           sequence:
             - service: script.watering_water_current
               data:
-                duration: 7
+                duration: 5
             - service: system_log.write
               data:
                 level: debug

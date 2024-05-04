@@ -21,11 +21,7 @@ cards:
   # Left
   # --------------------------------------------------------
 
-  - type: vertical-stack
-    cards:
-      - !include ../cards/irrigation-status-card.yaml
-    view_layout:
-      grid-area: left
+
 
   # --------------------------------------------------------
   # Right

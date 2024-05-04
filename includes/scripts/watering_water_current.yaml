@@ -14,6 +14,14 @@
             min: 0
             unit_of_measurement: "seconds"
             mode: box
+    #  switch_to_output_mode:
+    #      description: will be set if this watering is only done to switch to the correct output
+    variables:
+      wait_1_to_2: 30
+      wait_2_to_3: 60
+      wait_3_to_4: 30
+      wait_4_to_5: 30
+      wait_5_to_1: 30
     mode: single
     sequence:
       - service: system_log.write
@@ -70,7 +78,7 @@
           level: debug
           logger: garden_water_logger
           message: >-
-            watering_water_current: output is now {{ states ("counter.water_current_output")}}
+            watering_water_current: output is already set to {{ states ("counter.water_current_output")}}
 
       # we need different pauses between switching based on the lengths
       # of the pipe and the output pressure.
@@ -84,10 +92,9 @@
                 target:
                   entity_id: input_text.water_status
                 data:
-                  value: "Wait (10s) - Switch to Zone 2"
+                  value: "Wait ({{ wait_1_to_2 | int }}s) - Switch to Zone 2"
               - delay:
-                  seconds: "10"
-                  #seconds: "30"
+                  seconds: "{{ wait_1_to_2 | int }}"
           - conditions: >
               {{ is_state('counter.water_current_output', '2') }}
             sequence:
@@ -95,10 +102,9 @@
                 target:
                   entity_id: input_text.water_status
                 data:
-                  value: "Wait (60s) - Switch to Zone 3"
+                  value: "Wait ({{ wait_2_to_3 | int }}s) - Switch to Zone 3"
               - delay:
-                  #seconds: "50"
-                  seconds: "60"
+                  seconds: "{{ wait_2_to_3 | int }}"
           - conditions: >
               {{ is_state('counter.water_current_output', '3') }}
             sequence:
@@ -106,10 +112,9 @@
                 target:
                   entity_id: input_text.water_status
                 data:
-                  value: "Wait (15s) - Switch to Zone 4"
+                  value: "Wait ({{ wait_3_to_4 | int }}s) - Switch to Zone 4"
               - delay:
-                  seconds: "15"
-                  #seconds: "30"
+                  seconds: "{{ wait_3_to_4 | int }}"
           - conditions: >
               {{ is_state('counter.water_current_output', '4') }}
             sequence:
@@ -117,10 +122,9 @@
                 target:
                   entity_id: input_text.water_status
                 data:
-                  value: "Wait (15s) - Switch to Zone 5"
+                  value: "Wait ({{ wait_4_to_5 | int }}s) - Switch to Zone 5"
               - delay:
-                  seconds: "15"
-                  #seconds: "30"
+                  seconds: "{{ wait_4_to_5 | int }}"
           - conditions: >
               {{ is_state('counter.water_current_output', '5') }}
             sequence:
@@ -128,10 +132,9 @@
                 target:
                   entity_id: input_text.water_status
                 data:
-                  value: "Wait (15s) - Switch to Zone 1"
+                  value: "Wait ({{ wait_5_to_1 | int }}s) - Switch to Zone 1"
               - delay:
-                  seconds: "15"
-                  #seconds: "30"
+                  seconds: "{{ wait_5_to_1 | int }}"
 
       - service: system_log.write
         data:

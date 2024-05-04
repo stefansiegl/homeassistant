@@ -90,10 +90,10 @@ cards:
           service: script.watering_single
           target: {}
           confirmation:
-            text: Tropfregner Beet für 30 Minuten?
+            text: Tropfregner Beet für 30 Minuten (output 2)?
           data:
             output: "2"
-            duration: "1800"
+            duration: 60
       - type: custom:mushroom-template-card
         icon_color: |
           {% if is_state("input_boolean.watering_in_progress", "on") %}
@@ -110,10 +110,10 @@ cards:
           service: script.watering_single
           target: {}
           confirmation:
-            text: Tropfregner Hecke für 30 Minuten?
+            text: Tropfregner Hecke für 30 Minuten (output 1)?
           data:
             output: "1"
-            duration: "1800"
+            duration: 60
       - type: custom:mushroom-template-card
         icon_color: |
           {% if is_state("input_boolean.watering_in_progress", "on") %}
@@ -129,10 +129,10 @@ cards:
           action: call-service
           service: script.watering_single
           target: {}
-          confirmation: text:Tropfregner Garage für 30 Minuten?
+          confirmation: text:Tropfregner Garage für 30 Minuten (output 3)?
           data:
             output: "3"
-            duration: "1800"
+            duration: 60
       - type: custom:mushroom-template-card
         icon_color: |
           {% if is_state("input_boolean.watering_in_progress", "on") %}
@@ -149,10 +149,10 @@ cards:
           service: script.watering_single
           target: {}
           confirmation:
-            text: Rasen Viereckregner für 30 Minuten?
+            text: Rasen Viereckregner für 30 Minuten (output 4)?
           data:
             output: "4"
-            duration: "1800"
+            duration: 60
       - type: custom:mushroom-template-card
         icon_color: |
           {% if is_state("input_boolean.watering_in_progress", "on") %}
@@ -169,7 +169,7 @@ cards:
           service: script.watering_single
           target: {}
           confirmation:
-            text: Rasen Kreisregner für 30 Minuten?
+            text: Rasen Kreisregner für 30 Minuten (output 5)?
           data:
             output: "5"
-            duration: "1800"
+            duration: 60
