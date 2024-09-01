@@ -22,6 +22,9 @@ esp32_ble_tracker:
 bluetooth_proxy:
   active: False
 
+ota:
+  platform: esphome
+
 #sensor:
 #  #Adrian
 #  - platform: atc_mithermometer

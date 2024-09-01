@@ -11,7 +11,8 @@ wifi:
   password: !secret wifi_password
 
 #api:
-#ota:
+ota:
+  platform: esphome
 
 # Bluetooth standard sending mode. Scan only once per minute (to reduce Bluetooth chatter). 
 # Remove for scan mode (basis config is available in linked package) and set logger to 
