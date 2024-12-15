@@ -39,6 +39,11 @@ watering_in_progress:
   icon: mdi:watering-can
   initial: false
 
+watering_script_interrupted:
+  name: Wurde das Bewässerungsskript unterbrochen und ist nicht komplett durchgelaufen?
+  icon: mdi:watering-can
+  initial: false
+
 watering_zone1_enabled:
   name: Soll der Rasen gewässert werden
   icon: mdi:watering-can

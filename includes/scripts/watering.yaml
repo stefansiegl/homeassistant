@@ -45,6 +45,12 @@
       wait_5_to_1: 30
     mode: single
     sequence:
+      # check whether the watering script was interrupted before and
+      # if that is the case increase the output by one and flag that to me
+      # reset at the end of the script
+      # input_boolean.watering_script_interrupted
+
+      # set the flag that watering is now active.
       - service: input_boolean.turn_on
         target:
           entity_id: input_boolean.watering_in_progress
@@ -69,7 +75,12 @@
               target:
                 entity_id: input_text.water_status
               data:
-                value: "target: {{output|int}} for {{duration}} seconds. Status: changing output - currently: {{(states('counter.water_current_output')|int)}}"
+                value: "Wechsel zum Zielausgang ({{output|int}}) aktueller Ausgang: {{(states('counter.water_current_output')|int)}} - Bewässere zum Ausgangswechsel"
+            - service: system_log.write
+              data:
+                level: debug
+                logger: garden_water_logger
+                message: "Wechsel zum Zielausgang ({{output|int}}) aktueller Ausgang: {{(states('counter.water_current_output')|int)}} - Bewässere zum Ausgangswechsel"
             - service: switch.turn_on
               target:
                 entity_id: switch.wassersteuerung
@@ -78,6 +89,18 @@
             - service: switch.turn_off
               target:
                 entity_id: switch.wassersteuerung
+
+            # logging
+            - service: input_text.set_value
+              target:
+                entity_id: input_text.water_status
+              data:
+                value: "Wechsel zum Zielausgang ({{output|int}}) aktueller Ausgang: {{(states('counter.water_current_output')|int)}} - Warte"
+            - service: system_log.write
+              data:
+                level: debug
+                logger: garden_water_logger
+                message: "Wechsel zum Zielausgang ({{output|int}}) aktueller Ausgang: {{(states('counter.water_current_output')|int)}} - Warte"
 
             # we need different pauses between switching based on the lengths
             # of the pipe and the output pressure.
@@ -111,6 +134,7 @@
                         seconds: "{{ wait_5_to_1 | int }}"
 
             # we can now set the output to the correct new output.
+            # set water_current_output
             - if:
                 - condition: numeric_state
                   entity_id: counter.water_current_output
@@ -126,18 +150,12 @@
             - delay:
                 seconds: 5
 
-            - service: input_text.set_value
-              target:
-                entity_id: input_text.water_status
-              data:
-                value: "target: {{output|int}} for {{duration}} seconds. Status: changing output - currently: {{(states('counter.water_current_output')|int)}} - waiting for physical switch"
-
             - service: system_log.write
               data:
                 level: debug
                 logger: garden_water_logger
                 message: >-
-                  watering_set_output: Iteration: target {{output|int}}. current {{
+                  Iteration: target {{output|int}}. current {{
                   states("counter.water_current_output")|int }} continue {{
                   (states("counter.water_current_output")|int) !=
                   (output|int) }}
@@ -161,7 +179,12 @@
         target:
           entity_id: input_text.water_status
         data:
-          value: "target: {{output|int}} for {{duration}} seconds. Watering until: {{ (now() | as_timestamp + (duration))|timestamp_custom('%H:%M', True) }} "
+          value: "Bewässerung bis {{ (now() | as_timestamp + (duration))|timestamp_custom('%H:%M', True) }} "
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: "Bewässerung bis {{ (now() | as_timestamp + (duration))|timestamp_custom('%H:%M', True) }} "
       - service: switch.turn_on
         target:
           entity_id: switch.wassersteuerung
@@ -175,7 +198,12 @@
         target:
           entity_id: input_text.water_status
         data:
-          value: "Watering done, waiting for physical switch of output"
+          value: "Bewässerung fertig, warte auf die physische Schaltung des Ausganges."
+      - service: system_log.write
+        data:
+          level: debug
+          logger: garden_water_logger
+          message: "Bewässerung fertig, warte auf die physische Schaltung des Ausganges."
 
       # we need different pauses between switching based on the lengths
       # of the pipe and the output pressure.
@@ -228,8 +256,7 @@
         data:
           level: debug
           logger: garden_water_logger
-          message: >-
-            watering_single: Watering is done.
+          message: "watering_single: Watering is done. Output is now {{(states('counter.water_current_output')|int)}}"
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.watering_in_progress
@@ -237,7 +264,7 @@
         target:
           entity_id: input_text.water_status
         data:
-          value: "<empty>"
+          value: "<leer>"
 
 - watering_multiple:
     alias: watering_multiple
