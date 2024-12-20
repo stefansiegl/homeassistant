@@ -1,15 +1,19 @@
 # Automatisierung für Lüftungsanlage
 - alias: Lüftungsanlage Automatikmodus
+  # OR connected
   trigger:
     - platform: numeric_state
       entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-      above: 50
+      above: input_number.humidity_control_ventilation_start
+      for: "00:05:00"
     - platform: numeric_state
       entity_id: sensor.temperatursensor_kueche_humidity
-      above: 50
+      above: input_number.humidity_control_ventilation_start
+      for: "00:05:00"
     - platform: numeric_state
       entity_id: sensor.temperatursensor_lego_humidity
-      above: 50
+      above: input_number.humidity_control_ventilation_start
+      for: "00:05:00"
     - platform: time
       at: "12:30:00"
   condition:
@@ -81,28 +85,71 @@
             - service: input_boolean.turn_off # Automatisierung startet
               target:
                 entity_id: input_boolean.lueftungsanlage_entfeuchten_aktiv
+
+    # this needs to be 3x wait_for_triggers to make them AND connected.
+
     - wait_for_trigger:
         - platform: numeric_state
           entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-          below: 45
+          below: input_number.humidity_control_ventilation_stop
+      timeout: "00:30:00"
+      continue_on_timeout: true
+    - variables: # Store timeout status for Room A
+        timeout_a: "{{ wait.trigger == none }}"
+    - wait_for_trigger:
         - platform: numeric_state
           entity_id: sensor.temperatursensor_kueche_humidity
-          below: 45
+          below: input_number.humidity_control_ventilation_stop
+      timeout: "00:30:00"
+      continue_on_timeout: true
+    - variables: # Store timeout status for Room B
+        timeout_b: "{{ wait.trigger == none }}"
+    - wait_for_trigger:
         - platform: numeric_state
           entity_id: sensor.temperatursensor_lego_humidity
-          below: 45
-    - service: logbook.log
-      data:
-        name: Ventilation Automation
-        message: "Humidity below 45%, turning off ventilation."
-    - if:
-        condition: state
-        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
-        state: "on"
-      then:
-        - service: notify.mobile_app_pixel_9_pro
-          data:
-            message: "Ventilation off"
-            title: "Ventilation off"
+          below: input_number.humidity_control_ventilation_stop
+      timeout: "00:30:00"
+      continue_on_timeout: true
+    - variables: # Store timeout status for Room C
+        timeout_c: "{{ wait.trigger == none }}"
+    - choose:
+        - conditions:
+            - condition: template # Check if any timeout occurred
+              value_template: "{{ timeout_a or timeout_b or timeout_c }}"
+          sequence:
+            - service: logbook.log
+              data:
+                name: Ventilation Automation
+                message: >
+                  Ventilation stopped.
+                  {% if timeout_a %} Room A timed out. {% endif %}
+                  {% if timeout_b %} Room B timed out. {% endif %}
+                  {% if timeout_c %} Room C timed out. {% endif %}
+            - if:
+                - condition: state
+                  entity_id: input_boolean.humidity_control_notify_details
+                  state: "on"
+              then:
+                - service: notify.mobile_app_pixel_9_pro
+                  data:
+                    message: >
+                      Ventilation stopped.
+                      {% if timeout_a %} Room A timed out. {% endif %}
+                      {% if timeout_b %} Room B timed out. {% endif %}
+                      {% if timeout_c %} Room C timed out. {% endif %}
+                    title: "Ventilation Stopped (Timeout)"
+        - conditions: [] # This is now the default case
+          sequence:
+            - service: logbook.log
+              data:
+                name: Ventilation Automation
+                message: "Ventilation stopped. All rooms below threshold."
+            - condition: state
+              entity_id: input_boolean.humidity_control_notify_details
+              state: "on"
+            - service: notify.mobile_app_pixel_9_pro
+              data:
+                message: "Ventilation stopped. All rooms below threshold."
+                title: "Ventilation Stopped"
     - service: fan.turn_off
       entity_id: fan.helios

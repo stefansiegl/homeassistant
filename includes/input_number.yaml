@@ -1,0 +1,31 @@
+humidity_control_humidifier_start:
+  name: "Luftfeuchtigkeit bei der ein Luftbefeuchter anschaltet"
+  min: 30
+  max: 80
+  step: 1
+  initial: 38
+  mode: slider
+
+humidity_control_humidifier_stop:
+  name: "Luftfeuchtigkeit bei der ein Luftbefeuchter wieder abschaltet"
+  min: 30
+  max: 80
+  step: 1
+  initial: 44
+  mode: slider
+
+humidity_control_ventilation_start:
+  name: "Luftfeuchtigkeit bei der die Ventilation anschaltet"
+  min: 30
+  max: 80
+  step: 1
+  initial: 50
+  mode: slider
+
+humidity_control_ventilation_stop:
+  name: "Luftfeuchtigkeit bei der die Ventilation wieder abschaltet"
+  min: 30
+  max: 80
+  step: 1
+  initial: 45
+  mode: slider

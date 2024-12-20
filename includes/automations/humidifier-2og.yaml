@@ -1,18 +1,19 @@
-# Automatisierung für Luftbefeuchter Arbeitszimmer
+# Automatisierung für Luftbefeuchter 2.OG
 - alias: Luftbefeuchter Arbeitszimmer
   trigger:
     - platform: numeric_state
       entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-      below: 40
+      below: input_number.humidity_control_humidifier_start
+      for: "00:05:00"
   condition:
     - condition: state
       entity_id: fan.helios
       state: "off"
     - condition: time
-      after: "14:00:00" # Befeuchter soll nicht zwischen 12:30 und 14:00 laufen
+      after: "14:00:00"
       before: "12:30:00"
   action:
-    - service: input_boolean.turn_on # Automatisierung startet
+    - service: input_boolean.turn_on
       target:
         entity_id: input_boolean.luftbefeuchter_arbeitszimmer_aktiv
     - service: logbook.log
@@ -20,9 +21,9 @@
         name: Luftbefeuchter 2.OG
         message: "Luftbefeuchter 2.OG an"
     - if:
-        condition: state
-        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
-        state: "on"
+        - condition: state
+          entity_id: input_boolean.humidity_control_notify_details
+          state: "on"
       then:
         - service: notify.mobile_app_pixel_9_pro
           data:
@@ -34,11 +35,31 @@
     - wait_for_trigger:
         - platform: numeric_state
           entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-          above: 45
+          above: input_number.humidity_control_humidifier_stop
+          for: "00:02:00"
+      timeout: "02:00:00"
+      continue_on_timeout: true
+    - if:
+        - condition: template
+          value_template: "{{ wait.trigger == none }}"
+      then:
+        - service: logbook.log
+          data:
+            name: Luftbefeuchter 2.OG
+            message: "Luftbefeuchter 2.OG - Timeout reached! Humidity did not reach the stop threshold."
+        - if:
+            - condition: state
+              entity_id: input_boolean.humidity_control_notify_details
+              state: "on"
+          then:
+            - service: notify.mobile_app_pixel_9_pro
+              data:
+                message: "Humidifier 2.OG - Timeout reached! Humidity did not reach the stop threshold."
+                title: "Humidifier 2.OG - Timeout"
     - service: humidifier.turn_off
       target:
         entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
-    - service: input_boolean.turn_off # Automatisierung startet
+    - service: input_boolean.turn_off
       target:
         entity_id: input_boolean.luftbefeuchter_arbeitszimmer_aktiv
     - service: logbook.log
@@ -46,9 +67,9 @@
         name: Luftbefeuchter 2.OG
         message: "Luftbefeuchter 2.OG aus"
     - if:
-        condition: state
-        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
-        state: "on"
+        - condition: state
+          entity_id: input_boolean.humidity_control_notify_details
+          state: "on"
       then:
         - service: notify.mobile_app_pixel_9_pro
           data:
