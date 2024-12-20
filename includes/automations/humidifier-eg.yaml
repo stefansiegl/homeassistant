@@ -1,0 +1,56 @@
+#Automatisierung für Luftbefeuchter Wohnzimmer
+- alias: Luftbefeuchter Wohnzimmer
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.temperatursensor_kueche_humidity
+      below: 40
+  condition:
+    - condition: state
+      entity_id: fan.helios
+      state: "off"
+    - condition: time
+      after: "14:00:00" # Befeuchter soll nicht zwischen 12:30 und 14:00 laufen
+      before: "12:30:00"
+  action:
+    - service: input_boolean.turn_on # Automatisierung startet
+      target:
+        entity_id: input_boolean.luftbefeuchter_wohnzimmer_aktiv
+    - service: logbook.log
+      data:
+        name: Luftbefeuchter EG
+        message: "Luftbefeuchter EG an"
+    - if:
+        condition: state
+        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+        state: "on"
+      then:
+        - service: notify.mobile_app_pixel_9_pro
+          data:
+            message: "Humidifier EG started"
+            title: "Humidifier EG started"
+    - service: humidifier.turn_on
+      target:
+        entity_id: humidifier.deerma_jsq2w_a365_humidifier
+    - wait_for_trigger:
+        - platform: numeric_state
+          entity_id: sensor.temperatursensor_kueche_humidity
+          above: 45
+    - service: humidifier.turn_off
+      target:
+        entity_id: humidifier.deerma_jsq2w_a365_humidifier
+    - service: input_boolean.turn_off # Automatisierung startet
+      target:
+        entity_id: input_boolean.luftbefeuchter_wohnzimmer_aktiv
+    - service: logbook.log
+      data:
+        name: Luftbefeuchter EG
+        message: "Luftbefeuchter EG aus"
+    - if:
+        condition: state
+        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+        state: "on"
+      then:
+        - service: notify.mobile_app_pixel_9_pro
+          data:
+            message: "Humidifier EG off"
+            title: "Humidifier EG off"

@@ -1,0 +1,56 @@
+#Automatisierung für Luftbefeuchter 1.OG
+- alias: Luftbefeuchter Kinder
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.temperatursensor_lego_humidity
+      below: 40
+  condition:
+    - condition: state
+      entity_id: fan.helios
+      state: "off"
+    - condition: time
+      after: "14:00:00" # Befeuchter soll nicht zwischen 12:30 und 14:00 laufen
+      before: "12:30:00"
+  action:
+    - service: input_boolean.turn_on # Automatisierung startet
+      target:
+        entity_id: input_boolean.luftbefeuchter_kinderspielzimmer_aktiv
+    - service: logbook.log
+      data:
+        name: Luftbefeuchter 1.OG
+        message: "Luftbefeuchter 1.OG an"
+    - if:
+        condition: state
+        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+        state: "on"
+      then:
+        - service: notify.mobile_app_pixel_9_pro
+          data:
+            message: "Humidifier 1.OG started"
+            title: "Humidifier 1.OG started"
+    - service: humidifier.turn_on
+      target:
+        entity_id: humidifier.deerma_jsq2w_7134_humidifier
+    - wait_for_trigger:
+        - platform: numeric_state
+          entity_id: sensor.temperatursensor_lego_humidity
+          above: 45
+    - service: humidifier.turn_off
+      target:
+        entity_id: humidifier.deerma_jsq2w_7134_humidifier
+    - service: input_boolean.turn_off # Automatisierung startet
+      target:
+        entity_id: input_boolean.luftbefeuchter_kinderspielzimmer_aktiv
+    - service: logbook.log
+      data:
+        name: Luftbefeuchter 1.OG
+        message: "Luftbefeuchter 1.OG aus"
+    - if:
+        condition: state
+        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+        state: "on"
+      then:
+        - service: notify.mobile_app_pixel_9_pro
+          data:
+            message: "Humidifier 1.OG off"
+            title: "Humidifier 1.OG off"

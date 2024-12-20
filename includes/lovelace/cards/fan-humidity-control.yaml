@@ -1,0 +1,187 @@
+type: custom:stack-in-card
+mode: vertical
+keep:
+  background: true
+style: |
+  ha-card {
+    color: blue
+  }
+cards:
+  - type: custom:mushroom-entity-card
+    name: Automatische Belüftung
+    icon_color: green
+    fill_container: false
+    tap_action:
+      action: toggle
+    entity: input_boolean.lueftungsanlage_automatikmodus_aktiv
+  - type: conditional
+    conditions:
+      - entity: input_boolean.lueftungsanlage_automatikmodus_aktiv
+        state: "off"
+    card:
+      type: custom:mushroom-fan-card
+      entity: fan.helios
+      icon_animation: true
+      secondary_info: state
+      show_percentage_control: true
+      show_oscillate_control: false
+      collapsible_controls: false
+      name: Belüftungsanlage (manuell)
+  - type: conditional
+    conditions:
+      - entity: input_boolean.lueftungsanlage_automatikmodus_aktiv
+        state: "on"
+    card:
+      type: custom:mushroom-template-card
+      icon: |-
+        {% if is_state("fan.helios","off") %}
+          mdi:hvac-off
+        {% else %}
+          mdi:hvac
+        {% endif %}
+      icon_color: |-
+        {% if is_state("fan.helios","off") %}
+          grey
+        {% else %}
+          green
+        {% endif %}
+      primary: "{{ state_attr(\"fan.helios\",\"percentage\") }}%"
+      secondary: >-
+        {% set forced_mode =
+        is_state("input_boolean.lueftungsanlage_zwangs_lueftung_aktiv","on") %}
+        {% set helius_on = state_attr("fan.helios","percentage") != 0 %} {% if
+        helius_on %}
+          {% if forced_mode %}
+            Ziel: Regel Lüftung
+          {% else %}
+            Ziel: Luftfeuchtigkeit verringern
+          {% endif %}
+        {% else %}
+          Keine Lüftung notwendig
+        {% endif %}
+      layout: horizontal
+      multiline_secondary: true
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        icon: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_a365_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            mdi:alert
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_wohnzimmer_aktiv', 'on')%}
+              mdi:air-humidifier
+            {% else %}
+              mdi:air-humidifier-off
+            {% endif %}
+          {% endif %}
+        icon_color: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_a365_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            red
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_wohnzimmer_aktiv', 'on')%}
+             green
+            {% else %}
+             grey
+            {% endif %}
+          {% endif %}
+        primary: "{{ states(\"sensor.temperatursensor_kueche_humidity\")|round(1)}}%"
+        secondary: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_a365_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            EG - Wasser nachfüllen
+          {% else %}
+            EG
+          {% endif %} {% if
+          is_state('input_boolean.lueftungsanlage_automatikmodus_aktiv', 'off')
+          %}
+            Keine Befeuchtung
+          {% endif %}
+        layout: vertical
+        multiline_secondary: true
+      - type: custom:mushroom-template-card
+        icon: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_7134_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            mdi:alert
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_kinderspielzimmer_aktiv', 'on')%}
+              mdi:air-humidifier
+            {% else %}
+              mdi:air-humidifier-off
+            {% endif %}
+          {% endif %}
+        icon_color: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_7134_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            red
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_kinderspielzimmer_aktiv', 'on')%}
+             green
+            {% else %}
+             grey
+            {% endif %}
+          {% endif %}
+        primary: "{{ states(\"sensor.temperatursensor_lego_humidity\")|round(1)}}%"
+        secondary: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_7134_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            1.OG - Wasser nachfüllen
+          {% else %}
+            1.OG
+          {% endif %} {% if
+          is_state('input_boolean.lueftungsanlage_automatikmodus_aktiv', 'off')
+          %}
+            Keine Befeuchtung
+          {% endif %}
+        layout: vertical
+        multiline_secondary: true
+      - type: custom:mushroom-template-card
+        icon: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_b6e0_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            mdi:alert
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_arbeitszimmer_aktiv', 'on')%}
+              mdi:air-humidifier
+            {% else %}
+              mdi:air-humidifier-off
+            {% endif %}
+          {% endif %}
+        icon_color: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_b6e0_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            red
+          {% else %}
+            {% if is_state('input_boolean.luftbefeuchter_arbeitszimmer_aktiv', 'on')%}
+             green
+            {% else %}
+             grey
+            {% endif %}
+          {% endif %}
+        primary: >-
+          {{
+          states("sensor.temperatursensor_arbeitszimmer_humidity")|round(1)}}%
+        secondary: >-
+          {% set water_shortage =
+          state_attr('humidifier.deerma_jsq2w_b6e0_humidifier',
+          'custom.water_shortage_fault') %} {% if water_shortage %}
+            2.OG - Wasser nachfüllen
+          {% else %}
+            2.OG
+          {% endif %} {% if
+          is_state('input_boolean.lueftungsanlage_automatikmodus_aktiv', 'off')
+          %}
+            Keine Befeuchtung
+          {% endif %}
+        layout: vertical
+        multiline_secondary: true

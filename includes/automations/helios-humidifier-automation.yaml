@@ -1,0 +1,108 @@
+# Automatisierung für Lüftungsanlage
+- alias: Lüftungsanlage Automatikmodus
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.temperatursensor_arbeitszimmer_humidity
+      above: 50
+    - platform: numeric_state
+      entity_id: sensor.temperatursensor_kueche_humidity
+      above: 50
+    - platform: numeric_state
+      entity_id: sensor.temperatursensor_lego_humidity
+      above: 50
+    - platform: time
+      at: "12:30:00"
+  condition:
+    - condition: state
+      entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #  input_boolean für Automatikmodus
+      state: "on"
+  action:
+    - service: logbook.log
+      data:
+        name: Ventilation Automation
+        message: "Helios Automation triggered."
+    - choose:
+        - conditions:
+            - condition: time
+              after: "12:30:00"
+              before: "14:00:00"
+          sequence:
+            - service: logbook.log
+              data:
+                name: Ventilation Automation
+                message: "Helios Automation daily mode activated."
+            - service: input_boolean.turn_on # Automatisierung startet
+              target:
+                entity_id: input_boolean.lueftungsanlage_zwangs_lueftung_aktiv
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 50
+            - delay:
+                hours: 1.5
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 25
+            - service: input_boolean.turn_off # Automatisierung endet
+              target:
+                entity_id: input_boolean.lueftungsanlage_entfeuchten_aktiv
+            - service: logbook.log
+              data:
+                name: Ventilation Automation
+                message: "Helios Automation daily mode de-activated."
+            - service: fan.turn_off
+              entity_id: fan.helios
+        - conditions: [] # Leere Liste für conditions im default-Zweig
+          sequence:
+            - service: logbook.log
+              data:
+                name: Ventilation Automation
+                message: "Reduce humidity mode activated."
+            - service: input_boolean.turn_on # Automatisierung startet
+              target:
+                entity_id: input_boolean.lueftungsanlage_zwangs_lueftung_aktiv
+            - if:
+                condition: state
+                entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+                state: "on"
+              then:
+                - service: notify.mobile_app_pixel_9_pro
+                  data:
+                    message: "Ventilation on - reduce humidity"
+                    title: "Ventilation on - reduce humidity"
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 25
+            - service: input_boolean.turn_off # Automatisierung startet
+              target:
+                entity_id: input_boolean.lueftungsanlage_entfeuchten_aktiv
+    - wait_for_trigger:
+        - platform: numeric_state
+          entity_id: sensor.temperatursensor_arbeitszimmer_humidity
+          below: 45
+        - platform: numeric_state
+          entity_id: sensor.temperatursensor_kueche_humidity
+          below: 45
+        - platform: numeric_state
+          entity_id: sensor.temperatursensor_lego_humidity
+          below: 45
+    - service: logbook.log
+      data:
+        name: Ventilation Automation
+        message: "Humidity below 45%, turning off ventilation."
+    - if:
+        condition: state
+        entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
+        state: "on"
+      then:
+        - service: notify.mobile_app_pixel_9_pro
+          data:
+            message: "Ventilation off"
+            title: "Ventilation off"
+    - service: fan.turn_off
+      entity_id: fan.helios

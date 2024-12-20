@@ -56,7 +56,8 @@ cards:
     cards:
       - !include ../cards/people.yaml
       - !include ../cards/fan-temperature-small.yaml
-      - !include ../cards/fan-control.yaml
+      #      - !include ../cards/fan-control.yaml
+      - !include ../cards/fan-humidity-control.yaml
       - !include ../cards/water-control.yaml
       - !include ../cards/heating-control.yaml
     view_layout:

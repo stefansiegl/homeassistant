@@ -47,6 +47,14 @@ cards:
           action: toggle
         entity: input_boolean.deactivate_vacuum_eg
 
+      - type: custom:mushroom-entity-card
+        name: Humidifier Handy Notifizierung
+        icon_color: green
+        fill_container: false
+        tap_action:
+          action: toggle
+        entity: input_boolean.humidity_control_notify_details
+
       - type: custom:auto-entities
         card:
           type: entities

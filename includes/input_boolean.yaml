@@ -68,3 +68,26 @@ watering_zone5_enabled:
   name: Soll die Hecke gewässert werden
   icon: mdi:watering-can
   initial: true
+
+luftbefeuchter_arbeitszimmer_aktiv:
+  initial: false
+  icon: mdi:air-humidifier
+luftbefeuchter_wohnzimmer_aktiv:
+  initial: false
+  icon: mdi:air-humidifier
+luftbefeuchter_kinderspielzimmer_aktiv:
+  initial: false
+  icon: mdi:air-humidifier
+lueftungsanlage_automatikmodus_aktiv:
+  initial: true
+  icon: mdi:hvac
+lueftungsanlage_zwangs_lueftung_aktiv:
+  initial: false
+  icon: mdi:hvac
+lueftungsanlage_entfeuchten_aktiv:
+  initial: false
+  icon: mdi:hvac
+
+humidity_control_notify_details:
+  initial: true
+  icon: mdi:shield-crown

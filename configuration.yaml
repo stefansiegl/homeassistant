@@ -74,3 +74,9 @@ powercalc: !include includes/powercalc.yaml
 logger:
   logs:
     garden_water_logger: debug
+
+history:
+  use_include_order: true
+  include:
+    domains:
+      - notification_history
