@@ -156,7 +156,7 @@ sensor:
   - state_topic: "gasmeter/main/rate"
     name: "Gasmeter Rate"
     unique_id: gasmeter_rate
-    unit_of_measurement: "m³/min"
+    unit_of_measurement: "m³"
     state_class: measurement
     device_class: gas # Needs Home Assistant 2022.11!
     icon: "mdi:gas-pump"
