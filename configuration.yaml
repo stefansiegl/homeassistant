@@ -42,7 +42,6 @@ alert: !include includes/alerts.yaml
 template: !include includes/template.yaml
 tts: !include includes/tts.yaml
 sensor: !include_dir_merge_list includes/sensors
-mqtt: !include includes/mqtt.yaml
 utility_meter: !include includes/utility_meter.yaml
 shell_command: !include includes/shell_command.yaml
 input_boolean: !include includes/input_boolean.yaml

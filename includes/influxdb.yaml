@@ -24,9 +24,6 @@ include:
     - sensor.nachtlicht_*
     # Central house fan
     - sensor.helios_*
-    # Water filtration
-    - sensor.grunbeck_weichwassermenge*
-    - sensor.grunbeck_salz_verbrauch*
     # Stromverbrauch und Einspeisung
     - sensor.tasmota_mt681*
     - sensor.tasmota_mt691*
