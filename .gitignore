@@ -16,6 +16,7 @@ tts
 image
 custom_components
 www/community
+www/spoolman_images
 themes
 .HA_VERSION
 *.log

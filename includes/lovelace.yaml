@@ -1,6 +1,8 @@
-# keep default mode as storage
+# keep default mode as storage, meaning that I can create dashboards in the UI
 mode: storage
-# add YAML mode dashboard
+
+# add YAML mode dashboard, with the benefit that those are then easier
+# for configuration management.
 dashboards:
   tablett-dashboard:
     mode: yaml
