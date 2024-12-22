@@ -45,22 +45,8 @@ cards:
         {% else %}
           green
         {% endif %}
-      primary: "{{ state_attr(\"fan.helios\",\"percentage\") }}%"
-      secondary: >-
-        {% set forced_mode =
-        is_state("input_boolean.lueftungsanlage_zwangs_lueftung_aktiv","on") %}
-        {% set helius_on = state_attr("fan.helios","percentage") != 0 %} {% if
-        helius_on %}
-          {% if forced_mode %}
-            Ziel: Regel Lüftung
-          {% else %}
-            Ziel: Luftfeuchtigkeit verringern
-          {% endif %}
-        {% else %}
-          Keine Lüftung notwendig
-        {% endif %}
-      layout: horizontal
-      multiline_secondary: true
+      primary: '{{ state_attr("fan.helios","percentage") }}%'
+      secondary: '{{ states("input_text.humidity_control_status") }}'
   - type: horizontal-stack
     cards:
       - type: custom:mushroom-template-card
@@ -88,7 +74,7 @@ cards:
              grey
             {% endif %}
           {% endif %}
-        primary: "{{ states(\"sensor.temperatursensor_kueche_humidity\")|round(1)}}%"
+        primary: '{{ states("sensor.temperatursensor_kueche_humidity")|round(1)}}%'
         secondary: >-
           {% set water_shortage =
           state_attr('humidifier.deerma_jsq2w_a365_humidifier',
@@ -128,7 +114,7 @@ cards:
              grey
             {% endif %}
           {% endif %}
-        primary: "{{ states(\"sensor.temperatursensor_lego_humidity\")|round(1)}}%"
+        primary: '{{ states("sensor.temperatursensor_lego_humidity")|round(1)}}%'
         secondary: >-
           {% set water_shortage =
           state_attr('humidifier.deerma_jsq2w_7134_humidifier',
