@@ -1,5 +1,6 @@
 # Automatisierung für Luftbefeuchter EG
 - alias: Luftbefeuchter Wohnzimmer
+  id: Luftbefeuchter Wohnzimmer
   trigger:
     - platform: numeric_state
       entity_id: sensor.temperatursensor_kueche_humidity
@@ -20,6 +21,7 @@
       data:
         name: Luftbefeuchter EG
         message: "Luftbefeuchter EG an"
+        entity_id: humidifier.deerma_jsq2w_a365_humidifier
     - if:
         - condition: state
           entity_id: input_boolean.humidity_control_notify_details
@@ -47,6 +49,7 @@
           data:
             name: Luftbefeuchter EG
             message: "Luftbefeuchter EG - Timeout reached! Humidity did not reach the stop threshold."
+            entity_id: humidifier.deerma_jsq2w_a365_humidifier
         - if:
             - condition: state
               entity_id: input_boolean.humidity_control_notify_details
@@ -56,6 +59,7 @@
               data:
                 message: "Humidifier EG - Timeout reached! Humidity did not reach the stop threshold."
                 title: "Humidifier EG - Timeout"
+                entity_id: humidifier.deerma_jsq2w_a365_humidifier
     - service: humidifier.turn_off
       target:
         entity_id: humidifier.deerma_jsq2w_a365_humidifier

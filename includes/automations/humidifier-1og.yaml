@@ -1,5 +1,6 @@
 #Automatisierung für Luftbefeuchter 1.OG
 - alias: Luftbefeuchter Kinder
+  id: Luftbefeuchter Kinder
   trigger:
     - platform: numeric_state
       entity_id: sensor.temperatursensor_lego_humidity
@@ -20,6 +21,7 @@
       data:
         name: Luftbefeuchter 1.OG
         message: "Luftbefeuchter 1.OG an"
+        entity_id: humidifier.deerma_jsq2w_7134_humidifier
     - if:
         condition: state
         entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
@@ -47,6 +49,7 @@
           data:
             name: Luftbefeuchter 1.OG
             message: "Luftbefeuchter 1.OG - Timeout reached! Humidity did not reach the stop threshold."
+            entity_id: humidifier.deerma_jsq2w_7134_humidifier
         - if:
             - condition: state
               entity_id: input_boolean.humidity_control_notify_details
@@ -55,6 +58,7 @@
             - service: notify.mobile_app_pixel_9_pro
               data:
                 message: "Humidifier 1.OG - Timeout reached! Humidity did not reach the stop threshold."
+                entity_id: humidifier.deerma_jsq2w_7134_humidifier
                 title: "Humidifier 1.OG - Timeout"
     - service: humidifier.turn_off
       target:
@@ -66,6 +70,7 @@
       data:
         name: Luftbefeuchter 1.OG
         message: "Luftbefeuchter 1.OG aus"
+        entity_id: humidifier.deerma_jsq2w_7134_humidifier
     - if:
         condition: state
         entity_id: input_boolean.humidity_control_notify_details # Your input_boolean

@@ -1,5 +1,6 @@
 # Automatisierung für Luftbefeuchter 2.OG
 - alias: Luftbefeuchter Arbeitszimmer
+  id: Luftbefeuchter Arbeitszimmer
   trigger:
     - platform: numeric_state
       entity_id: sensor.temperatursensor_arbeitszimmer_humidity
@@ -20,6 +21,7 @@
       data:
         name: Luftbefeuchter 2.OG
         message: "Luftbefeuchter 2.OG an"
+        entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
     - if:
         - condition: state
           entity_id: input_boolean.humidity_control_notify_details
@@ -47,6 +49,7 @@
           data:
             name: Luftbefeuchter 2.OG
             message: "Luftbefeuchter 2.OG - Timeout reached! Humidity did not reach the stop threshold."
+            entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
         - if:
             - condition: state
               entity_id: input_boolean.humidity_control_notify_details
@@ -56,6 +59,7 @@
               data:
                 message: "Humidifier 2.OG - Timeout reached! Humidity did not reach the stop threshold."
                 title: "Humidifier 2.OG - Timeout"
+                entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
     - service: humidifier.turn_off
       target:
         entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
@@ -66,6 +70,7 @@
       data:
         name: Luftbefeuchter 2.OG
         message: "Luftbefeuchter 2.OG aus"
+        entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
     - if:
         - condition: state
           entity_id: input_boolean.humidity_control_notify_details

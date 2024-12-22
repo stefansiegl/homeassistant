@@ -1,5 +1,6 @@
 # Automatisierung für Lüftungsanlage
 - alias: Lüftungsanlage Automatikmodus
+  id: lueftungsanlage_automatikmodus # Add a unique ID here
   # OR connected
   trigger:
     - platform: numeric_state
@@ -24,11 +25,11 @@
       entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #  input_boolean für Automatikmodus
       state: "on"
   action:
-    - service: logger.log
+    - service: logbook.log
       data:
-        level: debug
-        name: humidity_control
-        message: "Helios Automation triggered."
+        name: Humidity Control
+        entity_id: fan.helios
+        message: "Helios Automation Script triggered"
 
     # This choose selects the mode the automation should run as
     # if one is selected the others are not executed.
@@ -41,11 +42,11 @@
               after: "12:30:00"
               before: "14:00:00"
           sequence:
-            - service: logger.log
+            - service: logbook.log
               data:
-                level: debug
-                name: humidity_control
-                message: "Helios Automation daily mode activated."
+                name: Humidity Control
+                entity_id: fan.helios
+                message: "Mode: Daily Mode - Started"
             - service: input_text.set_value
               target:
                 entity_id: input_text.humidity_control_status
@@ -58,16 +59,11 @@
                 percentage: 50
             - delay:
                 hours: 1.5
-            - service: fan.set_percentage
-              target:
+            - service: logbook.log
+              data:
+                name: Humidity Control
                 entity_id: fan.helios
-              data:
-                percentage: 25
-            - service: logger.log
-              data:
-                level: debug
-                name: humidity_control
-                message: "Helios Automation daily mode de-activated."
+                message: "Mode: Daily Mode - Ended"
             - service: input_text.set_value
               target:
                 entity_id: input_text.humidity_control_status
@@ -84,11 +80,11 @@
               entity_id: sensor.e3_6d_e1_02_ec_17_carbon_dioxide # Replace with your CO2 sensor entity ID
               above: 950
           sequence:
-            - service: logger.log
+            - service: logbook.log
               data:
-                level: debug
-                name: humidity_control
-                message: "CO2 mode activated."
+                name: Humidity Control
+                entity_id: fan.helios
+                message: "Mode: CO2 - Started"
             - service: input_text.set_value
               target:
                 entity_id: input_text.humidity_control_status
@@ -102,14 +98,14 @@
             - wait_for_trigger: # Wait for CO2 to drop below threshold
                 - platform: numeric_state
                   entity_id: sensor.e3_6d_e1_02_ec_17_carbon_dioxide
-                  below: 850
-              timeout: "00:30:00" # Minimum 30 minutes runtime
+                  below: 800
+              timeout: "02:00:00" # Minimum 30 minutes runtime
               continue_on_timeout: true
-            - service: logger.log
+            - service: logbook.log
               data:
-                level: debug
-                name: humidity_control
-                message: "CO2 mode de-activated."
+                name: Humidity Control
+                entity_id: fan.helios
+                message: "Mode: Daily Mode - Stopped"
             - service: input_text.set_value
               target:
                 entity_id: input_text.humidity_control_status
@@ -119,81 +115,46 @@
               entity_id: fan.helios
 
         # ------------------------
-        # Humidity control mode
+        # Humidity mode
         # ------------------------
-        - conditions: [] # Leere Liste für conditions im default-Zweig
+        - conditions: [] # This acts as the default case, triggering when other conditions are not met
           sequence:
-            - service: logger.log
+            - service: logbook.log
               data:
-                level: debug
-                name: humidity_control
-                message: "Reduce humidity mode activated."
+                name: Humidity Control
+                entity_id: fan.helios
+                message: "Mode: Humidity Mode - Started"
             - service: input_text.set_value
               target:
                 entity_id: input_text.humidity_control_status
               data:
                 value: "Humidity mode"
-            - if:
-                condition: state
-                entity_id: input_boolean.humidity_control_notify_details # Your input_boolean
-                state: "on"
-              then:
-                - service: notify.mobile_app_pixel_9_pro
-                  data:
-                    message: "Ventilation on - reduce humidity"
-                    title: "Ventilation on - reduce humidity"
             - service: fan.set_percentage
               target:
                 entity_id: fan.helios
               data:
-                percentage: 25
-            - service: input_text.set_value
-              target:
-                entity_id: input_text.humidity_control_status
-              data:
-                value: "idle"
-
-        # DEFAULT CASE ventilation
-        # this needs to be 3x wait_for_triggers to make them AND connected.
-
-        - wait_for_trigger:
-            - platform: numeric_state
-              entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-              below: input_number.humidity_control_ventilation_stop
-          timeout: "00:30:00"
-          continue_on_timeout: true
-        - variables: # Store timeout status for Room A
-            timeout_a: "{{ wait.trigger == none }}"
-        - wait_for_trigger:
-            - platform: numeric_state
-              entity_id: sensor.temperatursensor_kueche_humidity
-              below: input_number.humidity_control_ventilation_stop
-          timeout: "00:30:00"
-          continue_on_timeout: true
-        - variables: # Store timeout status for Room B
-            timeout_b: "{{ wait.trigger == none }}"
-        - wait_for_trigger:
-            - platform: numeric_state
-              entity_id: sensor.temperatursensor_lego_humidity
-              below: input_number.humidity_control_ventilation_stop
-          timeout: "00:30:00"
-          continue_on_timeout: true
-        - variables: # Store timeout status for Room C
-            timeout_c: "{{ wait.trigger == none }}"
-        - choose:
-            - conditions:
-                - condition: template # Check if any timeout occurred
-                  value_template: "{{ timeout_a or timeout_b or timeout_c }}"
-              sequence:
-                - service: logger.log
+                percentage: 50 # You can adjust the percentage as needed
+            - wait_for_trigger:
+                - platform: numeric_state
+                  entity_id: sensor.temperatursensor_arbeitszimmer_humidity
+                  below: input_number.humidity_control_ventilation_stop
+                - platform: numeric_state
+                  entity_id: sensor.temperatursensor_kueche_humidity
+                  below: input_number.humidity_control_ventilation_stop
+                - platform: numeric_state
+                  entity_id: sensor.temperatursensor_lego_humidity
+                  below: input_number.humidity_control_ventilation_stop
+              timeout: "01:00:00"
+              continue_on_timeout: true
+            - if:
+                - condition: template
+                  value_template: "{{ wait.trigger.all == none }}" # Check if ALL wait_for_triggers timed out
+              then:
+                - service: logbook.log
                   data:
-                    level: debug
-                    name: humidity_control
-                    message: >
-                      Ventilation stopped.
-                      {% if timeout_a %} Room A timed out. {% endif %}
-                      {% if timeout_b %} Room B timed out. {% endif %}
-                      {% if timeout_c %} Room C timed out. {% endif %}
+                    name: Humidity Control
+                    entity_id: fan.helios
+                    message: "Mode: Humidity Mode - Stopped [timeout]"
                 - if:
                     - condition: state
                       entity_id: input_boolean.humidity_control_notify_details
@@ -201,25 +162,27 @@
                   then:
                     - service: notify.mobile_app_pixel_9_pro
                       data:
-                        message: >
-                          Ventilation stopped.
-                          {% if timeout_a %} Room A timed out. {% endif %}
-                          {% if timeout_b %} Room B timed out. {% endif %}
-                          {% if timeout_c %} Room C timed out. {% endif %}
+                        message: "Ventilation stopped due to timeout."
                         title: "Ventilation Stopped (Timeout)"
-            - conditions: [] # This is now the default case
-              sequence:
-                - service: logger.log
+              else:
+                - service: logbook.log
                   data:
-                    level: debug
-                    name: humidity_control
-                    message: "Ventilation stopped. All rooms below threshold."
-                - condition: state
-                  entity_id: input_boolean.humidity_control_notify_details
-                  state: "on"
-                - service: notify.mobile_app_pixel_9_pro
-                  data:
-                    message: "Ventilation stopped. All rooms below threshold."
-                    title: "Ventilation Stopped"
-        - service: fan.turn_off
-          entity_id: fan.helios
+                    name: Humidity Control
+                    entity_id: fan.helios
+                    message: "Mode: Humidity Mode - Stopped"
+                - if:
+                    - condition: state
+                      entity_id: input_boolean.humidity_control_notify_details
+                      state: "on"
+                  then:
+                    - service: notify.mobile_app_pixel_9_pro
+                      data:
+                        message: "Ventilation stopped. All rooms below threshold."
+                        title: "Ventilation Stopped"
+            - service: input_text.set_value # Reset status to idle
+              target:
+                entity_id: input_text.humidity_control_status
+              data:
+                value: "idle"
+            - service: fan.turn_off
+              entity_id: fan.helios
