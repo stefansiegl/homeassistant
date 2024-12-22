@@ -171,3 +171,18 @@ cards:
           {% endif %}
         layout: vertical
         multiline_secondary: true
+      - type: custom:mushroom-template-card
+        icon: mdi:molecule-co2
+        icon_color: >-
+          {% if
+          states('sensor.e3_6d_e1_02_ec_17_carbon_dioxide')|int > 950%} 
+            red
+          {% else %}
+             green
+          {% endif %}
+        primary: >-
+          {{
+          states("sensor.e3_6d_e1_02_ec_17_carbon_dioxide")|round(0)}}
+        secondary: 2.OG
+        layout: vertical
+        multiline_secondary: true
