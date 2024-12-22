@@ -1,25 +1,15 @@
-# Uses MariaDB database for shortterm storage
-
-db_url: !secret maria_db_recorder_db_url
-# purge every night at ca. 4am.
-auto_purge: true
-purge_keep_days: 31
-
-# I use this script in the developer tools to find everything
-# {% set data = namespace(result=[]) %}
-# {% for state in states %}
-#   {% if state.entity_id.startswith('sensor.gasmeter') %}
-#    {% set data.result = data.result + [state.entity_id] %}
-#  {% endif %}
-# {% endfor %}
-# {{ data.result }}
-#
 exclude:
+  # I use this script in the developer tools to find everything
+  # {% set data = namespace(result=[]) %}
+  # {% for state in states %}
+  #   {% if state.entity_id.startswith('sensor.gasmeter') %}
+  #    {% set data.result = data.result + [state.entity_id] %}
+  #  {% endif %}
+  # {% endfor %}
+  # {{ data.result }}
+  #
   entities:
-    # I purposefully keep rate and value
-    # - sensor.gasmeter_rate
-    # - sensor.gasmeter_value
-    #- sensor.gasmeter_in_kwh
+    - sensor.gasmeter_in_kwh
     - sensor.gasmeter_kwh
     - sensor.gasmeter_uptime
     - sensor.gasmeter_mac
@@ -31,6 +21,7 @@ exclude:
     - sensor.gasmeter_interval
     - sensor.gasmeter_ip
     - sensor.gasmeter_status
+    - sensor.gasmeter_value
     - sensor.gasmeter_raw
     - sensor.gasmeter_error
     - sensor.gasmeter_rate_per_time_unit
@@ -38,13 +29,14 @@ exclude:
     - sensor.gasmeter_timestamp
     - sensor.gasmeter_json
     - sensor.gasmeter_value_2
+    - sensor.gasmeter_rate
     - sensor.gasmeter_error_2
     - sensor.gasmeter_uptime_2
     - sensor.gasmeter_in_kwh2
 
-    #- sensor.watermeter_value
-    #- sensor.watermeter_rate
-    #- sensor.watermeter_in_l
+    - sensor.watermeter_value
+    - sensor.watermeter_rate
+    - sensor.watermeter_in_l
     - sensor.watermeter_uptime
     - sensor.watermeter_mac
     - sensor.watermeter_fwversion

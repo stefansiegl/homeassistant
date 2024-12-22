@@ -18,6 +18,7 @@ lovelace: !include includes/lovelace.yaml
 recorder: !include includes/recorder.yaml
 # selected long term storage via influxDB
 influxdb: !include includes/influxdb.yaml
+logbook: !include includes/logbook.yaml
 
 # --------------------------------
 # Managed via UI (kept in root dir)
@@ -50,8 +51,6 @@ input_text: !include includes/input_text.yaml
 input_datetime: !include includes/input_datetime.yaml
 counter: !include includes/counter.yaml
 
-logbook:
-
 # --------------------------------
 # Communication
 # --------------------------------
@@ -71,5 +70,7 @@ powercalc: !include includes/powercalc.yaml
 # --------------------------------
 
 logger:
+  default: info
   logs:
     garden_water_logger: debug
+    humidity_control: debug
