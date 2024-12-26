@@ -69,6 +69,11 @@
                 entity_id: input_text.humidity_control_status
               data:
                 value: "idle"
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 0
             - service: fan.turn_off
               entity_id: fan.helios
 
@@ -111,6 +116,11 @@
                 entity_id: input_text.humidity_control_status
               data:
                 value: "idle"
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 0
             - service: fan.turn_off
               entity_id: fan.helios
 
@@ -184,5 +194,10 @@
                 entity_id: input_text.humidity_control_status
               data:
                 value: "idle"
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 0
             - service: fan.turn_off
               entity_id: fan.helios
