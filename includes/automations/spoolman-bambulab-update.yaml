@@ -1,0 +1,146 @@
+- alias: Update Spoolman from Bambu AMS
+  id: Update Spoolman from Bambu AMS
+  trigger:
+    - platform: state
+      # those are the 4 slots of the AMS of the BambuLab, the trigger is configured
+      # so that any change in any of those sensors trigger the automation, this could
+      # be a spool change, spool removal or printing of the spool.
+      entity_id:
+        - sensor.p1s_01p00a411800560_ams_1_slot_1
+        - sensor.p1s_01p00a411800560_ams_1_slot_2
+        - sensor.p1s_01p00a411800560_ams_1_slot_3
+        - sensor.p1s_01p00a411800560_ams_1_slot_4
+  variables:
+    tag_uid: "{{ state_attr(trigger.entity_id, 'tag_uid') }}"
+    tag_color: "{{ state_attr(trigger.entity_id, 'color') }}"
+    remaining_percent: "{{ state_attr(trigger.entity_id, 'remain') }}"
+
+    # the uid of the previous spool if any.
+    old_tag_uid: "{{ trigger.from_state.attributes.tag_uid }}" # Get the old tag_uid
+
+    # Spoolman device IDs. To retrieve these, go to the Spoolman web UI,
+    # navigate to a specific device, and copy the ID from the URL.
+    # These IDs are used to identify the Spoolman devices in Home Assistant.
+    # Whenever a new location in Spoolman is added, the integration needs to be
+    # refreshed and the device_ids added here.
+    spoolman_device_ids:
+      - e978256762619c1ac81191baa8c537bf #AMS
+      - 3d944f02f1d93671a6e3094e96f03a6d #Lager
+      - e2a02831d2421c2092033f531ba0c942 #Regal
+      - de486c8e25a582c274a75ba1c20d8eae #Unknown
+
+    # stores all spools spoolman knows across all locations.
+    spoolman_entities: >-
+      {% set data = namespace(spoolman_entities=[]) %}
+      {% for device_id in spoolman_device_ids %}
+        {% for entity_id in device_entities(device_id) %}
+          {% set data.spoolman_entities = data.spoolman_entities + [entity_id] %}
+        {% endfor %}
+      {% endfor %}
+      {{ data.spoolman_entities }}
+
+    # checks whether we have a spool that has the same UID as the one of the AMS. The replace
+    # within the script needs to happen since spoolman offers the UID with leading and trailing
+    # "" and then the comparison does not work anymore ... I do not like Jinja
+    matching_entity: |-
+      {% if tag_uid %}
+        {% set ns = namespace(found=false) %}
+        {% for spool_entity in spoolman_entities %}
+          {% set spool_uid = state_attr(spool_entity, 'extra_rfid_tag_string') | replace('"', '') %}
+          {% if spool_uid == tag_uid %}
+            {% set ns.found = true %}
+            {{ spool_entity }}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{ false }}
+      {% endif %}
+
+    # similar to above, but for the old spool (the one that was
+    # in the AMS before)
+    matching_old_entity: |- # Find the old spool entity
+      {% if old_tag_uid %}
+        {% set ns = namespace(found=false) %}
+        {% for spool_entity in spoolman_entities %}
+          {% set spool_uid = state_attr(spool_entity, 'extra_rfid_tag_string') | replace('"', '') %}
+          {% if spool_uid == old_tag_uid %}
+            {% set ns.found = true %}
+            {{ spool_entity }}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{ false }}
+      {% endif %}
+
+  actions:
+    #    # debug - remove this
+    #    - sequence:
+    #        - service: persistent_notification.create
+    #          data:
+    #            title: "Debugging"
+    #            message: "trigger_entity: {{ trigger.entity_id }}, tag_uid: {{ tag_uid }}, old_uid: {{old_tag_uid}}, Color {{ tag_color }}, remain {{remaining_percent}}, matching_entity: {{matching_entity}}, matching_old_entity: {{matching_old_entity}}"
+    - if:
+        - condition: template
+          value_template: "{{ tag_uid is not none }}" # Check if a tag_uid exists
+      then:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ matching_entity == false }}"
+              sequence:
+                - service: persistent_notification.create
+                  data:
+                    title: "New Filament Found"
+                    message: "New Filament Found: {{ tag_uid }}, Color {{ tag_color }}. Add it to spoolman at http://myspoolman.duckdns.org:7912/"
+              alias: No Spoolman spool found, Notify
+            - conditions:
+                - condition: template
+                  value_template: >-
+                    {{ matching_entity != false and remaining_percent is none }}
+              sequence:
+                - service: persistent_notification.create
+                  data:
+                    title: "Spoolman Update Issue"
+                    message: >-
+                      Spool {{ matching_entity }} found but no update percentage ({{ remaining_percent }})
+                      was available. Could be because of non BambuLab Filament
+              alias: Spool Found, No Remaining Data Available
+            - conditions:
+                - condition: template
+                  value_template: >-
+                    {{ matching_entity != false and remaining_percent is not none }}
+              sequence:
+                - service: spoolman.patch_spool
+                  data:
+                    id: "{{ state_attr(matching_entity, 'id') }}"
+                    remaining_weight: >-
+                      {{ remaining_percent / 100 * state_attr(matching_entity, 'initial_weight') }}
+                    location: "AMS"
+              alias: If Spool matches and remaining weight is available
+
+    - if:
+        - condition: template
+          value_template: >-
+            {{ state_attr(matching_entity, 'id') and
+            state_attr(trigger.entity_id, 'active') }}
+      then:
+        - action: spoolman.patch_spool
+          data:
+            id: "{{ state_attr(matching_entity, 'id') }}"
+            last_used: "{{ now().utcnow().isoformat() }}Z"
+            location: "AMS"
+            remaining_weight: >-
+              {{ remaining_percent / 100 * state_attr(matching_entity, 'initial_weight') }}
+    - if:
+        - condition: template
+          value_template: >-
+            {{ matching_old_entity and old_tag_uid != tag_uid }}  # Check if old entity exists AND old ID is different from new ID
+      then:
+        - action: spoolman.patch_spool
+          data:
+            id: "{{ state_attr(matching_old_entity, 'id') }}"
+            location: "Regal"
+  mode: queued
+  max: 10
