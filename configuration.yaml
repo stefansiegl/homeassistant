@@ -71,6 +71,5 @@ powercalc: !include includes/powercalc.yaml
 
 logger:
   default: info
-  logs:
-    garden_water_logger: debug
-    humidity_control: debug
+#  logs:
+#    homeassistant.components.automation: debug
