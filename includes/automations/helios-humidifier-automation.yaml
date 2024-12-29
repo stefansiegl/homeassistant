@@ -3,30 +3,17 @@
   id: lueftungsanlage_automatikmodus # Add a unique ID here
   # OR connected
   trigger:
-    - platform: numeric_state
-      entity_id: sensor.temperatursensor_arbeitszimmer_humidity
-      above: input_number.humidity_control_ventilation_start
-      for: "00:05:00"
-    - platform: numeric_state
-      entity_id: sensor.temperatursensor_kueche_humidity
-      above: input_number.humidity_control_ventilation_start
-      for: "00:05:00"
-    - platform: numeric_state
-      entity_id: sensor.temperatursensor_lego_humidity
-      above: input_number.humidity_control_ventilation_start
-      for: "00:05:00"
-    - platform: numeric_state
-      entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
-      above: 950
-    - platform: numeric_state
-      entity_id: sensor.aranet4_02_kueche_carbon_dioxide
-      above: 950
-    - platform: time
-      at: "12:30:00"
-  condition:
-    - condition: state
-      entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #  input_boolean für Automatikmodus
-      state: "on"
+    - platform: time_pattern
+      minutes: "/5" # Check every 5 minutes
+  condition: # only run if the automatic mode is on and the ventilation is not running right now
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #
+          state: "on"
+        - condition: state
+          entity_id: fan.helios
+          state: "off"
   action:
     - service: logbook.log
       data:
@@ -84,12 +71,14 @@
         # CO2 control mode
         # ------------------------
         - conditions:
-            - condition: numeric_state # CO2 Condition
-              entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
-              above: 950
-            - condition: numeric_state # CO2 Condition
-              entity_id: sensor.aranet4_02_kueche_carbon_dioxide
-              above: 950
+            - condition: or
+              conditions:
+                - condition: numeric_state # CO2 Condition
+                  entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+                  above: 950
+                - condition: numeric_state # CO2 Condition
+                  entity_id: sensor.aranet4_02_kueche_carbon_dioxide
+                  above: 950
           sequence:
             - service: logbook.log
               data:
@@ -139,7 +128,18 @@
         # ------------------------
         # Humidity mode
         # ------------------------
-        - conditions: [] # This acts as the default case, triggering when other conditions are not met
+        - conditions:
+            - condition: or
+              conditions:
+                - condition: numeric_state
+                  entity_id: sensor.temperatursensor_arbeitszimmer_humidity
+                  above: input_number.humidity_control_ventilation_start
+                - condition: numeric_state
+                  entity_id: sensor.temperatursensor_kueche_humidity
+                  above: input_number.humidity_control_ventilation_start
+                - condition: numeric_state
+                  entity_id: sensor.temperatursensor_lego_humidity
+                  above: input_number.humidity_control_ventilation_start
           sequence:
             - service: logbook.log
               data:
