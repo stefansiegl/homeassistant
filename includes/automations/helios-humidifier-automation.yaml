@@ -16,7 +16,10 @@
       above: input_number.humidity_control_ventilation_start
       for: "00:05:00"
     - platform: numeric_state
-      entity_id: sensor.e3_6d_e1_02_ec_17_carbon_dioxide
+      entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+      above: 950
+    - platform: numeric_state
+      entity_id: sensor.aranet4_02_kueche_carbon_dioxide
       above: 950
     - platform: time
       at: "12:30:00"
@@ -82,7 +85,10 @@
         # ------------------------
         - conditions:
             - condition: numeric_state # CO2 Condition
-              entity_id: sensor.e3_6d_e1_02_ec_17_carbon_dioxide # Replace with your CO2 sensor entity ID
+              entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+              above: 950
+            - condition: numeric_state # CO2 Condition
+              entity_id: sensor.aranet4_02_kueche_carbon_dioxide
               above: 950
           sequence:
             - service: logbook.log
@@ -99,12 +105,18 @@
               target:
                 entity_id: fan.helios
               data:
-                percentage: 100
+                percentage: 50
             - wait_for_trigger: # Wait for CO2 to drop below threshold
                 - platform: numeric_state
-                  entity_id: sensor.e3_6d_e1_02_ec_17_carbon_dioxide
+                  entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
                   below: 800
-              timeout: "02:00:00" # Minimum 30 minutes runtime
+              timeout: "01:00:00" # Minimum 30 minutes runtime
+              continue_on_timeout: true
+            - wait_for_trigger: # Wait for CO2 to drop below threshold
+                - platform: numeric_state
+                  entity_id: sensor.aranet4_02_kueche_carbon_dioxide
+                  below: 800
+              timeout: "01:00:00" # Minimum 30 minutes runtime
               continue_on_timeout: true
             - service: logbook.log
               data:
@@ -148,13 +160,19 @@
                 - platform: numeric_state
                   entity_id: sensor.temperatursensor_arbeitszimmer_humidity
                   below: input_number.humidity_control_ventilation_stop
+              timeout: "00:30:00"
+              continue_on_timeout: true
+            - wait_for_trigger:
                 - platform: numeric_state
                   entity_id: sensor.temperatursensor_kueche_humidity
                   below: input_number.humidity_control_ventilation_stop
+              timeout: "00:30:00"
+              continue_on_timeout: true
+            - wait_for_trigger:
                 - platform: numeric_state
                   entity_id: sensor.temperatursensor_lego_humidity
                   below: input_number.humidity_control_ventilation_stop
-              timeout: "01:00:00"
+              timeout: "00:30:00"
               continue_on_timeout: true
             - if:
                 - condition: template
