@@ -5,15 +5,11 @@
   trigger:
     - platform: time_pattern
       minutes: "/5" # Check every 5 minutes
-  condition: # only run if the automatic mode is on and the ventilation is not running right now
-    - condition: and
-      conditions:
-        - condition: state
-          entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #
-          state: "on"
-        - condition: state
-          entity_id: fan.helios
-          state: "off"
+  condition:
+    - condition: state
+      entity_id: input_boolean.lueftungsanlage_automatikmodus_aktiv #
+      state: "on"
+
   action:
     - service: logbook.log
       data:
@@ -24,48 +20,48 @@
     # This choose selects the mode the automation should run as
     # if one is selected the others are not executed.
     - choose:
-        # ------------------------
-        # Daily mode
-        # ------------------------
-        - conditions:
-            - condition: time
-              after: "12:30:00"
-              before: "14:00:00"
-          sequence:
-            - service: logbook.log
-              data:
-                name: Humidity Control
-                entity_id: fan.helios
-                message: "Mode: Daily Mode - Started"
-            - service: input_text.set_value
-              target:
-                entity_id: input_text.humidity_control_status
-              data:
-                value: "Daily mode"
-            - service: fan.set_percentage
-              target:
-                entity_id: fan.helios
-              data:
-                percentage: 50
-            - delay:
-                hours: 1.5
-            - service: logbook.log
-              data:
-                name: Humidity Control
-                entity_id: fan.helios
-                message: "Mode: Daily Mode - Ended"
-            - service: input_text.set_value
-              target:
-                entity_id: input_text.humidity_control_status
-              data:
-                value: "idle"
-            - service: fan.set_percentage
-              target:
-                entity_id: fan.helios
-              data:
-                percentage: 0
-            - service: fan.turn_off
-              entity_id: fan.helios
+        # # ------------------------
+        # # Daily mode
+        # # ------------------------
+        # - conditions:
+        #     - condition: time
+        #       after: "12:30:00"
+        #       before: "14:00:00"
+        #   sequence:
+        #     - service: logbook.log
+        #       data:
+        #         name: Humidity Control
+        #         entity_id: fan.helios
+        #         message: "Mode: Daily Mode - Started"
+        #     - service: input_text.set_value
+        #       target:
+        #         entity_id: input_text.humidity_control_status
+        #       data:
+        #         value: "Daily mode"
+        #     - service: fan.set_percentage
+        #       target:
+        #         entity_id: fan.helios
+        #       data:
+        #         percentage: 50
+        #     - delay:
+        #         hours: 1.5
+        #     - service: logbook.log
+        #       data:
+        #         name: Humidity Control
+        #         entity_id: fan.helios
+        #         message: "Mode: Daily Mode - Ended"
+        #     - service: input_text.set_value
+        #       target:
+        #         entity_id: input_text.humidity_control_status
+        #       data:
+        #         value: "idle"
+        #     - service: fan.set_percentage
+        #       target:
+        #         entity_id: fan.helios
+        #       data:
+        #         percentage: 0
+        #     - service: fan.turn_off
+        #       entity_id: fan.helios
 
         # ------------------------
         # CO2 control mode
@@ -75,10 +71,10 @@
               conditions:
                 - condition: numeric_state # CO2 Condition
                   entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
-                  above: 950
+                  above: 800
                 - condition: numeric_state # CO2 Condition
                   entity_id: sensor.aranet4_02_kueche_carbon_dioxide
-                  above: 950
+                  above: 800
           sequence:
             - service: logbook.log
               data:
@@ -98,13 +94,13 @@
             - wait_for_trigger: # Wait for CO2 to drop below threshold
                 - platform: numeric_state
                   entity_id: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
-                  below: 800
+                  below: 700
               timeout: "01:00:00" # Minimum 30 minutes runtime
               continue_on_timeout: true
             - wait_for_trigger: # Wait for CO2 to drop below threshold
                 - platform: numeric_state
                   entity_id: sensor.aranet4_02_kueche_carbon_dioxide
-                  below: 800
+                  below: 700
               timeout: "01:00:00" # Minimum 30 minutes runtime
               continue_on_timeout: true
             - service: logbook.log
@@ -122,8 +118,19 @@
                 entity_id: fan.helios
               data:
                 percentage: 0
-            - service: fan.turn_off
-              entity_id: fan.helios
+
+            # - service: input_text.set_value
+            #   target:
+            #     entity_id: input_text.humidity_control_status
+            #   data:
+            #     value: "idle"
+            # - service: fan.set_percentage
+            #   target:
+            #     entity_id: fan.helios
+            #   data:
+            #     percentage: 0
+            # - service: fan.turn_off
+            #   entity_id: fan.helios
 
         # ------------------------
         # Humidity mode
@@ -217,5 +224,16 @@
                 entity_id: fan.helios
               data:
                 percentage: 0
-            - service: fan.turn_off
-              entity_id: fan.helios
+
+            # - service: input_text.set_value # Reset status to idle
+            #   target:
+            #     entity_id: input_text.humidity_control_status
+            #   data:
+            #     value: "idle"
+            # - service: fan.set_percentage
+            #   target:
+            #     entity_id: fan.helios
+            #   data:
+            #     percentage: 0
+            # - service: fan.turn_off
+            #   entity_id: fan.helios

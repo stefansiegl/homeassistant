@@ -6,3 +6,45 @@
       value_template: "{{ states('alert') | count }}"
       icon_template: mdi:alert-circle
       entity_picture_template: "/local/alert.png"
+
+    filament_inventory:
+      value_template: |-
+        {% set ns = namespace(filaments=[]) %}
+
+        {% for device_id in spoolman_device_ids %}
+          {% for entity_id in device_entities(device_id) %}
+            {% set filament_name = state_attr(entity_id, 'filament_name') %}
+            {% set filament_material = state_attr(entity_id, 'filament_material') %}
+
+            {% if filament_name and filament_material %}  # Check if both name and material are present
+              {% set remaining_weight = state_attr(entity_id, 'remaining_weight') %}
+              {% if remaining_weight is none %}
+                {% set remaining_weight = 0 %}
+              {% endif %}
+
+              {% set found = false %}
+              {% for i in range(ns.filaments | length) %}
+                {% if ns.filaments[i].name == filament_name and ns.filaments[i].material == filament_material %}
+                  {% set ns.filaments = ns.filaments[:i] + [{
+                    'name': filament_name,
+                    'material': filament_material,
+                    'remaining_weight': ns.filaments[i].remaining_weight + remaining_weight
+                  }] + ns.filaments[i+1:] %}
+                  {% set found = true %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+
+              {% if not found %}
+                {% set ns.filaments = ns.filaments + [{
+                  'name': filament_name,
+                  'material': filament_material,
+                  'remaining_weight': remaining_weight
+                }] %}
+              {% endif %}
+            {% endif %}  # End of if filament_name and filament_material
+
+          {% endfor %}
+        {% endfor %}
+
+        {{ ns.filaments }}
