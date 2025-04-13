@@ -11,7 +11,7 @@ humidity_control_humidifier_stop:
   min: 30
   max: 80
   step: 1
-  initial: 44
+  initial: 40
   mode: slider
 
 humidity_control_ventilation_start:
@@ -19,7 +19,7 @@ humidity_control_ventilation_start:
   min: 30
   max: 80
   step: 1
-  initial: 50
+  initial: 48
   mode: slider
 
 humidity_control_ventilation_stop:
