@@ -1,7 +1,7 @@
 # ---------------------------------------------------------
 # MÜLLABFUHR & NACHBARSCHAFT
 # ---------------------------------------------------------
-- id: 'müll_erinnerung_david'
+- id: "müll_erinnerung_david"
   alias: "Müll: Benachrichtigung & Nachbar-Option"
   description: "Erinnert am Vorabend und bietet Threema-Link für Nachbarn"
   triggers:
@@ -41,7 +41,7 @@
 # ---------------------------------------------------------
 # WASCHMASCHINE
 # ---------------------------------------------------------
-- id: 'waschmaschine_status_mgmt'
+- id: "waschmaschine_status_mgmt"
   alias: "Haushalt: Waschmaschine Status-Management"
   description: "V9: Robust gegen Neustarts & Waschpausen (5 Min Puffer)"
   triggers:
@@ -112,7 +112,7 @@
                 option: "standby"
   mode: restart
 
-- id: 'waschmaschine_notify'
+- id: "waschmaschine_notify"
   alias: "Haushalt: Waschmaschine Benachrichtigung"
   triggers:
     - trigger: state
@@ -132,7 +132,7 @@
 # ---------------------------------------------------------
 # TROCKNER
 # ---------------------------------------------------------
-- id: 'trockner_status_mgmt'
+- id: "trockner_status_mgmt"
   alias: "Haushalt: Trockner Status-Management"
   description: "V9: Separierte Start-Logik mit Template-Check für garantierte Ausführung"
   triggers:
@@ -203,7 +203,7 @@
                 option: "standby"
   mode: restart
 
-- id: 'trockner_notify'
+- id: "trockner_notify"
   alias: "Haushalt: Trockner Benachrichtigung"
   triggers:
     - trigger: state
@@ -219,3 +219,132 @@
           push:
             sound: "default"
             interruption-level: "active"
+
+# ------------------------------------------------------------------------------
+# AUTOMATION: LÜFTUNGSANLAGE (HELIOS) CO2 STEUERUNG
+# ------------------------------------------------------------------------------
+- alias: "Lüftung: Automatische CO2 Steuerung"
+  id: "ventilation_auto_co2_control"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: sensor.house_max_co2
+    - platform: state
+      entity_id: input_boolean.ventilation_kill_switch
+    - platform: homeassistant
+      event: start
+
+  action:
+    # 1. Guard Clause: Warten nach Neustart
+    - if: "{{ trigger.platform == 'homeassistant' }}"
+      then:
+        - delay: "01:00:00"
+
+    # 2. Logik
+    - choose:
+        # FALL A: NOT-AUS IST AKTIV
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.ventilation_kill_switch
+              state: "on"
+          sequence:
+            - service: fan.set_percentage
+              target:
+                entity_id: fan.helios
+              data:
+                percentage: 0
+
+        # FALL B: NORMALBETRIEB
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.ventilation_kill_switch
+              state: "off"
+            - condition: template
+              value_template: "{{ states('sensor.house_max_co2') | is_number }}"
+          sequence:
+            - choose:
+                # Regel 1: Über 1100 ppm -> Stufe 2 (25%)
+                - conditions:
+                    - condition: numeric_state
+                      entity_id: sensor.house_max_co2
+                      above: 1100
+                  sequence:
+                    - service: fan.set_percentage
+                      target:
+                        entity_id: fan.helios
+                      data:
+                        percentage: 25
+
+                # Regel 2: Zwischen 700 und 1100 ppm -> Stufe 1 (2%)
+                - conditions:
+                    - condition: numeric_state
+                      entity_id: sensor.house_max_co2
+                      above: 700
+                      below: 1101
+                  sequence:
+                    - service: fan.set_percentage
+                      target:
+                        entity_id: fan.helios
+                      data:
+                        percentage: 2
+
+                # Regel 3: Unter 700 ppm -> Aus (0%)
+                - conditions:
+                    - condition: numeric_state
+                      entity_id: sensor.house_max_co2
+                      below: 701
+                  sequence:
+                    - service: fan.set_percentage
+                      target:
+                        entity_id: fan.helios
+                      data:
+                        percentage: 0
+
+# ------------------------------------------------------------------------------
+# AUTOMATION: LUFTBEFEUCHTER STEUERUNG (EG, 1.OG, 2.OG)
+# ------------------------------------------------------------------------------
+- alias: "Klima: Automatische Befeuchtung"
+  id: "climate_auto_humidification"
+  mode: parallel
+  trigger:
+    - platform: time_pattern
+      minutes: "/5"
+    - platform: state
+      entity_id: input_boolean.ventilation_kill_switch
+    - platform: state
+      entity_id:
+        - sensor.aranet4_02_kueche_humidity
+        - sensor.c9_46_fc_e8_90_d9_humidity # 1. OG
+        - sensor.aranet4_01_arbeitszimmer_humidity # 2. OG
+    - platform: homeassistant
+      event: start
+
+  variables:
+    target_humidity: "{{ states('input_number.ziel_luftfeuchtigkeit') | float(45) }}"
+    kill_switch: "{{ is_state('input_boolean.ventilation_kill_switch', 'on') }}"
+
+  action:
+    # Guard Clause für Neustart
+    - if: "{{ trigger.platform == 'homeassistant' }}"
+      then:
+        - delay: "01:00:00"
+
+    # --- STEUERUNG EG (Küche) ---
+    - choose:
+        - conditions: "{{ kill_switch }}"
+          sequence:
+            - service: humidifier.turn_off
+              target:
+                entity_id: humidifier.deerma_jsq2w_a365_humidifier
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.humidifier_eg_empty
+              state: "off"
+          sequence:
+            - choose:
+                # < 30% -> Stufe 4 (Max)
+                - conditions: "{{ states('sensor.aranet4_02_kueche_humidity') | float(0) < 30 }}"
+                  sequence:
+                    - service: humidifier.turn_on
+                      target:
+                        entity_id: humidifier.deerma_jsq2w_a365_humidifier

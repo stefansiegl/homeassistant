@@ -21,3 +21,4 @@ themes
 .HA_VERSION
 *.log
 *.log.txt
+.ha_run.lock
