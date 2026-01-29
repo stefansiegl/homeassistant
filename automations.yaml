@@ -1,0 +1,221 @@
+# ---------------------------------------------------------
+# MÜLLABFUHR & NACHBARSCHAFT
+# ---------------------------------------------------------
+- id: 'müll_erinnerung_david'
+  alias: "Müll: Benachrichtigung & Nachbar-Option"
+  description: "Erinnert am Vorabend und bietet Threema-Link für Nachbarn"
+  triggers:
+    - trigger: time
+      at: "18:00:00"
+  conditions:
+    - condition: template
+      value_template: >
+        {{ states('sensor.waste_rest_days') | int == 1 or 
+           states('sensor.waste_gelb_days') | int == 1 or 
+           states('sensor.waste_bio_days') | int == 1 or 
+           states('sensor.waste_papier_days') | int == 1 }}
+  actions:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: >
+          {% set tonnen = [] %}
+          {% if states('sensor.waste_rest_days') | int == 1 %}{% set tonnen = tonnen + ['Rest'] %}{% endif %}
+          {% if states('sensor.waste_gelb_days') | int == 1 %}{% set tonnen = tonnen + ['Gelb'] %}{% endif %}
+          {% if states('sensor.waste_bio_days') | int == 1 %}{% set tonnen = tonnen + ['Bio'] %}{% endif %}
+          {% if states('sensor.waste_papier_days') | int == 1 %}{% set tonnen = tonnen + ['Papier'] %}{% endif %}
+          🚛 {{ tonnen | join(' & ') }} morgen fällig!
+        message: "Klick hier, um David via Threema zu bitten, falls du nicht da bist."
+        data:
+          actions:
+            - action: "URI"
+              title: "David via Threema fragen"
+              uri: >
+                {% set tonnen = [] %}
+                {% if states('sensor.waste_rest_days') | int == 1 %}{% set tonnen = tonnen + ['den Restmüll'] %}{% endif %}
+                {% if states('sensor.waste_gelb_days') | int == 1 %}{% set tonnen = tonnen + ['die Gelbe Tonne'] %}{% endif %}
+                {% if states('sensor.waste_bio_days') | int == 1 %}{% set tonnen = tonnen + ['den Biomüll'] %}{% endif %}
+                {% if states('sensor.waste_papier_days') | int == 1 %}{% set tonnen = tonnen + ['das Altpapier'] %}{% endif %}
+                {% set nachricht = "Hallo David! Kannst du morgen bitte " + tonnen | join(' und ') + " für mich rausstellen? Ich bin mal wieder unterwegs ;-) Ganz lieben Dank dir!" %}
+                threema://compose?id=DEINE_DAVID_ID&text={{ nachricht | urlencode }}
+
+# ---------------------------------------------------------
+# WASCHMASCHINE
+# ---------------------------------------------------------
+- id: 'waschmaschine_status_mgmt'
+  alias: "Haushalt: Waschmaschine Status-Management"
+  description: "V9: Robust gegen Neustarts & Waschpausen (5 Min Puffer)"
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_6_waschmaschine_power
+      above: 10
+      for: "00:01:00"
+      id: "trigger_start"
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_6_waschmaschine_power
+      below: 4
+      for: "00:05:00"
+      id: "trigger_fertig"
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_6_waschmaschine_power
+      below: 1.0
+      for: "00:10:00"
+      id: "trigger_standby"
+    - trigger: homeassistant
+      event: start
+      id: "system_start"
+  actions:
+    - if:
+        - condition: trigger
+          id: "system_start"
+      then:
+        - delay: "00:01:00"
+        - if:
+            - condition: template
+              value_template: "{{ states('sensor.shellyplug_6_waschmaschine_power') | float(0) < 1.0 }}"
+          then:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.waschmaschine_status_helper
+              data:
+                option: "standby"
+        - stop: "Systemstart-Check abgeschlossen"
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "trigger_start"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.waschmaschine_status_helper
+              data:
+                option: "läuft"
+        - conditions:
+            - condition: trigger
+              id: "trigger_fertig"
+            - condition: state
+              entity_id: input_select.waschmaschine_status_helper
+              state: "läuft"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.waschmaschine_status_helper
+              data:
+                option: "fertig"
+        - conditions:
+            - condition: trigger
+              id: "trigger_standby"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.waschmaschine_status_helper
+              data:
+                option: "standby"
+  mode: restart
+
+- id: 'waschmaschine_notify'
+  alias: "Haushalt: Waschmaschine Benachrichtigung"
+  triggers:
+    - trigger: state
+      entity_id: input_select.waschmaschine_status_helper
+      from: "läuft"
+      to: "fertig"
+  actions:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "Waschmaschine fertig! 🧺"
+        message: "Die Wäsche kann entnommen werden."
+        data:
+          push:
+            sound: "default"
+            interruption-level: "active"
+
+# ---------------------------------------------------------
+# TROCKNER
+# ---------------------------------------------------------
+- id: 'trockner_status_mgmt'
+  alias: "Haushalt: Trockner Status-Management"
+  description: "V9: Separierte Start-Logik mit Template-Check für garantierte Ausführung"
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_s4_trockner_power
+      above: 10
+      for: "00:01:00"
+      id: "trigger_start"
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_s4_trockner_power
+      below: 4
+      for: "00:03:00"
+      id: "trigger_fertig"
+    - trigger: numeric_state
+      entity_id: sensor.shellyplug_s4_trockner_power
+      below: 1.0
+      for: "00:10:00"
+      id: "trigger_standby"
+    - trigger: homeassistant
+      event: start
+      id: "system_start"
+  actions:
+    - if:
+        - condition: trigger
+          id: "system_start"
+      then:
+        - delay: "00:01:00"
+        - if:
+            - condition: template
+              value_template: "{{ states('sensor.shellyplug_s4_trockner_power') | float(0) < 1.0 }}"
+          then:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.trockner_status_helper
+              data:
+                option: "standby"
+        - stop: "Systemstart-Check abgeschlossen"
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "trigger_start"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.trockner_status_helper
+              data:
+                option: "läuft"
+        - conditions:
+            - condition: trigger
+              id: "trigger_fertig"
+            - condition: state
+              entity_id: input_select.trockner_status_helper
+              state: "läuft"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.trockner_status_helper
+              data:
+                option: "fertig"
+        - conditions:
+            - condition: trigger
+              id: "trigger_standby"
+          sequence:
+            - action: input_select.select_option
+              target:
+                entity_id: input_select.trockner_status_helper
+              data:
+                option: "standby"
+  mode: restart
+
+- id: 'trockner_notify'
+  alias: "Haushalt: Trockner Benachrichtigung"
+  triggers:
+    - trigger: state
+      entity_id: input_select.trockner_status_helper
+      from: "läuft"
+      to: "fertig"
+  actions:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "Trockner fertig! 🔥"
+        message: "Die Wäsche ist trocken und kann entnommen werden."
+        data:
+          push:
+            sound: "default"
+            interruption-level: "active"

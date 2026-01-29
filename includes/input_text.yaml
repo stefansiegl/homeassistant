@@ -1,7 +1,0 @@
-water_overview_status:
-  name: Status
-  initial: idle
-
-humidity_control_status:
-  name: Status
-  initial: idle

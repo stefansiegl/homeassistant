@@ -1,6 +1,0 @@
-water_current_output:
-  initial: 1
-  # has at maximum 5 outputs.
-  maximum: 5
-  step: 1
-  restore: true

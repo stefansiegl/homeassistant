@@ -1,75 +1,238 @@
-# --------------------------------
-# Core configuration
-# --------------------------------
+# ---------------------------------------------------------
+# CORE CONFIGURATION
+# ---------------------------------------------------------
 
-# Loads default set of integrations. Do not remove.
 default_config:
-# Load frontend themes from the themes folder
+
+# Themes für das Mushroom/Google Sans Design
 frontend:
   themes: !include_dir_merge_named themes
-homeassistant: !include includes/homeassistant.yaml
-lovelace: !include includes/lovelace.yaml
 
-# --------------------------------
-# Storage
-# --------------------------------
+homeassistant:
+  customize:
+    # Gaszähler Einstellungen
+    sensor.gasmeter_value:
+      device_class: gas
+      state_class: total_increasing
 
-# short-term storage via MariaDB (7 days)
-recorder: !include includes/recorder.yaml
-# selected long term storage via influxDB
-influxdb: !include includes/influxdb.yaml
-logbook: !include includes/logbook.yaml
+    # Stromzähler (Tasmota MT691)
+    sensor.tasmota_mt691_power_cur:
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: "W"
+    sensor.tasmota_mt691_total_in:
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+    sensor.tasmota_mt691_total_out:
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
 
-# --------------------------------
-# Managed via UI (kept in root dir)
-# --------------------------------
+    # Müllabfuhr Icons (Bilder-Pfade für Dashboard)
+    sensor.waste_rest_display:
+      entity_picture: /local/images/waste/waste-schwarz.png
+    sensor.waste_gelb_display:
+      entity_picture: /local/images/waste/waste-gelb.png
+    sensor.waste_papiertonne_display:
+      entity_picture: /local/images/waste/waste-blau.png
+    sensor.waste_bio_display:
+      entity_picture: /local/images/waste/waste-gruen.png
+
+# ---------------------------------------------------------
+# RECORDER (MariaDB Short-term Storage)
+# ---------------------------------------------------------
+
+recorder:
+  db_url: !secret maria_db_recorder_db_url
+  auto_purge: true
+  purge_keep_days: 31
+  exclude:
+    entities:
+      - sensor.gasmeter_uptime
+      - sensor.gasmeter_mac
+      - sensor.gasmeter_fwversion
+      - sensor.gasmeter_hostname
+      - sensor.gasmeter_freemem
+      - sensor.gasmeter_wifirssi
+      - sensor.gasmeter_cputemp
+      - sensor.gasmeter_interval
+      - sensor.gasmeter_ip
+      - sensor.gasmeter_status
+      - sensor.gasmeter_raw
+      - sensor.gasmeter_error
+      - sensor.gasmeter_rate_per_time_unit
+      - sensor.gasmeter_rate_per_digitalization_round
+      - sensor.gasmeter_timestamp
+      - sensor.gasmeter_json
+      - sensor.gasmeter_value_2
+      - sensor.gasmeter_error_2
+      - sensor.gasmeter_uptime_2
+      - sensor.gasmeter_in_kwh2
+      - sensor.watermeter_uptime
+      - sensor.watermeter_mac
+      - sensor.watermeter_fwversion
+      - sensor.watermeter_hostname
+      - sensor.watermeter_freemem
+      - sensor.watermeter_wifirssi
+      - sensor.watermeter_cputemp
+      - sensor.watermeter_interval
+      - sensor.watermeter_ip
+      - sensor.watermeter_status
+      - sensor.watermeter_raw
+      - sensor.watermeter_error
+      - sensor.watermeter_rate_per_time_unit
+      - sensor.watermeter_rate_per_digitalization_round
+      - sensor.watermeter_timestamp
+      - sensor.watermeter_json
+      - sensor.watermeter_value_2
+      - sensor.watermeter_error_2
+      - sensor.watermeter_uptime_2
+
+# ---------------------------------------------------------
+# LOGBOOK (Verlaufseinträge filtern)
+# ---------------------------------------------------------
+
+logbook:
+  exclude:
+    entities:
+      - sensor.gasmeter_uptime
+      - sensor.gasmeter_status
+      - sensor.watermeter_uptime
+      - sensor.watermeter_status
+
+# ---------------------------------------------------------
+# INFLUXDB (Long-term Storage)
+# ---------------------------------------------------------
+
+influxdb:
+  host: 127.0.0.1
+  port: 8086
+  database: homeassistant
+  username: homeassistant
+  password: !secret influxdb_pass
+  max_retries: 3
+  default_measurement: state
+  include:
+    entity_globs:
+      - sensor.temperatursensor_*
+      - sensor.plantsensor_*
+      - sensor.shellyplug*[energy|power|uptime]
+      - sensor.vicare_*
+      - sensor.tasmota_mt691*
+
+# ---------------------------------------------------------
+# MODERN TEMPLATES (Sensoren & Mülllogik)
+# ---------------------------------------------------------
+
+template:
+  - sensor:
+      # Wassermesser Umrechnung
+      - name: "Watermeter in l"
+        unique_id: watermeter_in_l
+        icon: "mdi:gauge"
+        state: "{{ states('sensor.watermeter_value')|float(default=0) * 1000 }}"
+        unit_of_measurement: "l"
+        availability: "{{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none'] }}"
+
+      # Müll-Logik: Restmüll
+      - name: "Waste Rest Days"
+        unique_id: waste_rest_days
+        state: "{{ state_attr('sensor.waste_collection_rest', 'daysTo') | default(99) }}"
+        unit_of_measurement: "d"
+      - name: "Waste Rest Display"
+        unique_id: waste_rest_display_modern
+        state: >
+          {% set days = state_attr('sensor.waste_collection_rest', 'daysTo') %}
+          {% if days == None %} Unbekannt
+          {% elif days == 0 %} Heute
+          {% elif days == 1 %} Morgen
+          {% else %} In {{ days }} Tagen
+          {% endif %}
+
+      # Müll-Logik: Gelbe Tonne
+      - name: "Waste Gelb Days"
+        unique_id: waste_gelb_days
+        state: "{{ state_attr('sensor.waste_collection_gelb', 'daysTo') | default(99) }}"
+        unit_of_measurement: "d"
+      - name: "Waste Gelb Display"
+        unique_id: waste_gelb_display_modern
+        state: >
+          {% set days = state_attr('sensor.waste_collection_gelb', 'daysTo') %}
+          {% if days == None %} Unbekannt
+          {% elif days == 0 %} Heute
+          {% elif days == 1 %} Morgen
+          {% else %} In {{ days }} Tagen
+          {% endif %}
+
+      # Müll-Logik: Biotonne
+      - name: "Waste Bio Days"
+        unique_id: waste_bio_days
+        state: "{{ state_attr('sensor.waste_collection_bio', 'daysTo') | default(99) }}"
+        unit_of_measurement: "d"
+      - name: "Waste Bio Display"
+        unique_id: waste_bio_display_modern
+        state: >
+          {% set days = state_attr('sensor.waste_collection_bio', 'daysTo') %}
+          {% if days == None %} Unbekannt
+          {% elif days == 0 %} Heute
+          {% elif days == 1 %} Morgen
+          {% else %} In {{ days }} Tagen
+          {% endif %}
+
+      # Müll-Logik: Papiertonne
+      - name: "Waste Papier Days"
+        unique_id: waste_papier_days
+        state: "{{ state_attr('sensor.waste_collection_papier', 'daysTo') | default(99) }}"
+        unit_of_measurement: "d"
+      - name: "Waste Papier Display"
+        unique_id: waste_papier_display_modern
+        state: >
+          {% set days = state_attr('sensor.waste_collection_papier', 'daysTo') %}
+          {% if days == None %} Unbekannt
+          {% elif days == 0 %} Heute
+          {% elif days == 1 %} Morgen
+          {% else %} In {{ days }} Tagen
+          {% endif %}
+
+# ---------------------------------------------------------
+# UI-MANAGED FILES & SYSTEM
+# ---------------------------------------------------------
+
+# Diese Dateien müssen als (leere) Dateien im /config/ Ordner existieren!
+automation: !include automations.yaml
+script: !include scripts.yaml
 scene: !include scenes.yaml
 
-# automations created in the UI
-automation: !include automations.yaml
-# automations created manually in YAML
-automation manual: !include_dir_merge_list includes/automations/
-
-# scripts created in the UI
-script: !include scripts.yaml
-# scripts created in YAML
-script manual: !include_dir_merge_list includes/scripts/
-
-# --------------------------------
-# Default entities
-# --------------------------------
-
-alert: !include includes/alerts.yaml
-template: !include includes/template.yaml
-tts: !include includes/tts.yaml
-sensor: !include_dir_merge_list includes/sensors
-utility_meter: !include includes/utility_meter.yaml
-shell_command: !include includes/shell_command.yaml
-input_boolean: !include includes/input_boolean.yaml
-input_number: !include includes/input_number.yaml
-input_text: !include includes/input_text.yaml
-input_datetime: !include includes/input_datetime.yaml
-counter: !include includes/counter.yaml
-
-# --------------------------------
-# Communication
-# --------------------------------
-
-cloud:
 bluetooth:
 mobile_app:
+cloud:
 
-# --------------------------------
-# Extensions
-# --------------------------------
-waste_collection_schedule: !include includes/waste_collection_schedule.yaml
-powercalc: !include includes/powercalc.yaml
+tts:
+  - platform: google_translate
 
-# --------------------------------
-# Debug logging
-# --------------------------------
+# ---------------------------------------------------------
+# EXTENSIONS (Waste Collection Integration)
+# ---------------------------------------------------------
+
+waste_collection_schedule:
+  sources:
+    - name: awido_de
+      args:
+        customer: !secret waste_collection_customer
+        city: !secret waste_collection_city
+        street: !secret waste_collection_street
+      customize:
+        - type: Restmülltonne
+          alias: rest
+        - type: Gelbe Tonne
+          alias: gelb
+        - type: Biotonne
+          alias: bio
+        - type: Papiertonne
+          alias: papier
+  fetch_time: "04:00"
+  day_switch_time: "08:00"
 
 logger:
   default: info
-#  logs:
-#    homeassistant.components.automation: debug
