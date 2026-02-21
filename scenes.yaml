@@ -1,0 +1,433 @@
+# ==========================================
+# SZENEN ERDGESCHOSS (VOLLSTÄNDIGER ARCHITEKTUR-STANDARD)
+#
+# Infos für die KI & Doku:
+# - Jedes Licht aus dem EG ist in jeder Szene vorhanden.
+# - Alle Parameter (state, brightness, color_temp, rgb_color) sind immer gelistet.
+# - Nicht genutzte Parameter sind auskommentiert.
+# ==========================================
+
+- id: eg_hell
+  name: "Hell" # Sprachbefehl: "Schalte Hell ein"
+  icon: mdi:lightbulb-on
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_schrank:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_regal:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+- id: eg_brettspiele
+  name: "Brettspiele" # Sprachbefehl: "Schalte Brettspiele ein"
+  icon: mdi:dice-multiple
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "on"
+      brightness: 100
+      color_temp: 300
+      # rgb_color: [255, 255, 255]
+
+    # -- Esszimmer -- (Haupt-Fokusbereich)
+    light.licht_eg_esszimmer_lang:
+      state: "on"
+      brightness: 50
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "on"
+      brightness: 100
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_iris:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+- id: eg_entspannter_abend
+  name: "Gemütlich" # Sprachbefehl: "Schalte Gemütlich ein"
+  icon: mdi:sofa
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "on"
+      brightness: 75
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "on"
+      brightness: 75
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_schrank:
+      state: "on"
+      brightness: 150
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "on"
+      brightness: 50
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 180
+      # color_temp: 250
+      rgb_color: [255, 150, 60]
+    light.licht_eg_wohnzimmer_regal:
+      state: "on"
+      brightness: 150
+      color_temp: 450
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "on"
+      brightness: 100
+      # color_temp: 250
+      rgb_color: [255, 120, 40]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "on"
+      brightness: 80
+      # color_temp: 250
+      rgb_color: [255, 120, 40]
+
+- id: eg_kino
+  name: "Kino" # Sprachbefehl: "Schalte Kino ein"
+  icon: mdi:popcorn
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot1:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot2:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot3:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot4:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 10
+      # color_temp: 250
+      rgb_color: [255, 60, 0]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 70
+      # color_temp: 250
+      rgb_color: [255, 60, 0]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "on"
+      brightness: 40
+      # color_temp: 250
+      rgb_color: [255, 40, 0]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "on"
+      brightness: 10
+      # color_temp: 250
+      rgb_color: [255, 40, 0]
+
+- id: eg_mood_savanna_sunset
+  name: "Sonnenuntergang" # Sprachbefehl: "Schalte Sonnenuntergang ein"
+  icon: mdi:weather-sunset
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 150, 50]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 100, 50]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 80, 0]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 50, 50]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 120, 0]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 200, 0]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 80, 0]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 200
+      # color_temp: 250
+      rgb_color: [255, 50, 50]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 255
+      # color_temp: 250
+      # rgb_color: [255, 255, 255]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 80, 0]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "on"
+      brightness: 150
+      # color_temp: 250
+      rgb_color: [255, 50, 0]

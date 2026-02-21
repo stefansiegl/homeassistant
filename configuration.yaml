@@ -234,5 +234,16 @@ waste_collection_schedule:
   fetch_time: "04:00"
   day_switch_time: "08:00"
 
+# ---------------------------------------------------------
+# POWERCALC (Automatische Stromberechnung)
+# ---------------------------------------------------------
+
+powercalc:
+  discovery:
+    enabled: true
+  create_energy_sensors: true
+  create_domain_groups:
+    - light
+
 logger:
   default: info

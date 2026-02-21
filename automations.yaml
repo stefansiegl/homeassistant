@@ -1,350 +1,1416 @@
-# ---------------------------------------------------------
-# MÜLLABFUHR & NACHBARSCHAFT
-# ---------------------------------------------------------
-- id: "müll_erinnerung_david"
-  alias: "Müll: Benachrichtigung & Nachbar-Option"
-  description: "Erinnert am Vorabend und bietet Threema-Link für Nachbarn"
+- id: müll_erinnerung_david
+  alias: 'Müll: Benachrichtigung & Nachbar-Option'
+  description: Erinnert um 17:30 Uhr per Push und kurzer Sprachansage (deutsch).
   triggers:
-    - trigger: time
-      at: "18:00:00"
+  - trigger: time
+    at: '17:30:00'
   conditions:
-    - condition: template
-      value_template: >
-        {{ states('sensor.waste_rest_days') | int == 1 or 
-           states('sensor.waste_gelb_days') | int == 1 or 
-           states('sensor.waste_bio_days') | int == 1 or 
-           states('sensor.waste_papier_days') | int == 1 }}
+  - condition: template
+    value_template: "{{ state_attr('sensor.waste_rest_days', 'daysTo') | int(99) ==
+      1 or \n   state_attr('sensor.waste_gelb_days', 'daysTo') | int(99) == 1 or \n
+      \  state_attr('sensor.waste_bio_days', 'daysTo') | int(99) == 1 or \n   state_attr('sensor.waste_papier_days',
+      'daysTo') | int(99) == 1 }}\n"
   actions:
+  - variables:
+      tonnen_liste: '{% set t = [] %}
+
+        {% if state_attr(''sensor.waste_rest_days'', ''daysTo'') | int(99) == 1 %}{%
+        set t = t + [''Restmüll''] %}{% endif %}
+
+        {% if state_attr(''sensor.waste_gelb_days'', ''daysTo'') | int(99) == 1 %}{%
+        set t = t + [''Gelbe Tonne''] %}{% endif %}
+
+        {% if state_attr(''sensor.waste_bio_days'', ''daysTo'') | int(99) == 1 %}{%
+        set t = t + [''Biomüll''] %}{% endif %}
+
+        {% if state_attr(''sensor.waste_papier_days'', ''daysTo'') | int(99) == 1
+        %}{% set t = t + [''Altpapier''] %}{% endif %}
+
+        {{ t | join('' und '') }}
+
+        '
+  - action: media_player.volume_set
+    target:
+      entity_id: media_player.benachrichtung_lautsprecher
+    data:
+      volume_level: 0.4
+  - action: tts.google_translate_say
+    target:
+      entity_id: media_player.benachrichtung_lautsprecher
+    data:
+      message: 'Morgen: {{ tonnen_liste }}.'
+      language: de
+  - action: notify.mobile_app_pixel_9_pro
+    data:
+      title: "\U0001F69B {{ tonnen_liste }} morgen fällig!"
+      message: Klick für Nachbar-Option.
+      data:
+        actions:
+        - action: URI
+          title: David via Threema fragen
+          uri: '{% set nachricht = "Hallo David! Kannst du morgen bitte " + tonnen_liste
+            + " rausstellen? Danke!" %} threema://compose?id=THREEMA_ID_VON_DAVID&text={{
+            nachricht | urlencode }}
+
+            '
+  mode: single
+- id: waschmaschine_status_mgmt
+  alias: 'Haushalt: Waschmaschine Status-Management'
+  description: 'V9: Robust gegen Neustarts & Waschpausen (5 Min Puffer)'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_6_waschmaschine_power
+    above: 10
+    for: 00:01:00
+    id: trigger_start
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_6_waschmaschine_power
+    below: 4
+    for: 00:05:00
+    id: trigger_fertig
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_6_waschmaschine_power
+    below: 1.0
+    for: 00:10:00
+    id: trigger_standby
+  - trigger: homeassistant
+    event: start
+    id: system_start
+  actions:
+  - if:
+    - condition: trigger
+      id: system_start
+    then:
+    - delay: 00:01:00
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.shellyplug_6_waschmaschine_power'') |
+          float(0) < 1.0 }}'
+      then:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.waschmaschine_status_helper
+        data:
+          option: standby
+    - stop: Systemstart-Check abgeschlossen
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: trigger_start
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.waschmaschine_status_helper
+        data:
+          option: läuft
+    - conditions:
+      - condition: trigger
+        id: trigger_fertig
+      - condition: state
+        entity_id: input_select.waschmaschine_status_helper
+        state: läuft
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.waschmaschine_status_helper
+        data:
+          option: fertig
+    - conditions:
+      - condition: trigger
+        id: trigger_standby
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.waschmaschine_status_helper
+        data:
+          option: standby
+  mode: restart
+- id: waschmaschine_notify
+  alias: 'Haushalt: Waschmaschine Benachrichtigung'
+  description: Push immer, Sprachausgabe (kurz & deutsch) nur zu kinderfreundlichen
+    Zeiten.
+  triggers:
+  - trigger: state
+    entity_id: input_select.waschmaschine_status_helper
+    from: läuft
+    to: fertig
+  actions:
+  - action: notify.mobile_app_pixel_9_pro
+    data:
+      title: "Waschmaschine fertig! \U0001F9FA"
+      message: Wäsche entnehmen.
+      data:
+        push:
+          sound: default
+          interruption-level: active
+  - if:
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - condition: time
+          after: 08:00:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+      - condition: and
+        conditions:
+        - condition: time
+          after: 09:30:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - sat
+          - sun
+    then:
+    - action: media_player.volume_set
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        volume_level: 0.4
+    - action: tts.google_translate_say
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        message: Waschmaschine ist fertig.
+        language: de
+- id: trockner_status_mgmt
+  alias: 'Haushalt: Trockner Status-Management'
+  description: 'V9: Separierte Start-Logik mit Template-Check für garantierte Ausführung'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_4_trockner_power
+    above: 10
+    for: 00:01:00
+    id: trigger_start
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_4_trockner_power
+    below: 4
+    for: 00:03:00
+    id: trigger_fertig
+  - trigger: numeric_state
+    entity_id: sensor.shellyplug_4_trockner_power
+    below: 1
+    for: 00:10:00
+    id: trigger_standby
+  - trigger: homeassistant
+    event: start
+    id: system_start
+  actions:
+  - if:
+    - condition: trigger
+      id: system_start
+    then:
+    - delay: 00:01:00
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.shellyplug_4_trockner_power'') | float(0)
+          < 1.0 }}'
+      then:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.trockner_status_helper
+        data:
+          option: standby
+    - stop: Systemstart-Check abgeschlossen
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: trigger_start
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.trockner_status_helper
+        data:
+          option: läuft
+    - conditions:
+      - condition: trigger
+        id: trigger_fertig
+      - condition: state
+        entity_id: input_select.trockner_status_helper
+        state: läuft
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.trockner_status_helper
+        data:
+          option: fertig
+    - conditions:
+      - condition: trigger
+        id: trigger_standby
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.trockner_status_helper
+        data:
+          option: standby
+  mode: restart
+- id: trockner_notify
+  alias: 'Haushalt: Trockner Benachrichtigung'
+  description: Push immer, Sprachausgabe (kurz & deutsch) nur zu kinderfreundlichen
+    Zeiten.
+  triggers:
+  - trigger: state
+    entity_id: input_select.trockner_status_helper
+    from: läuft
+    to: fertig
+  actions:
+  - action: notify.mobile_app_pixel_9_pro
+    data:
+      title: "Trockner fertig! \U0001F525"
+      message: Wäsche trocken.
+      data:
+        push:
+          sound: default
+          interruption-level: active
+  - if:
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - condition: time
+          after: 08:00:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+      - condition: and
+        conditions:
+        - condition: time
+          after: 09:30:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - sat
+          - sun
+    then:
+    - action: media_player.volume_set
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        volume_level: 0.4
+    - action: tts.google_translate_say
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        message: Trockner ist fertig.
+        language: de
+- id: ventilation_auto_co2_control
+  alias: 'Lüftung: Zentrale Steuerung (Radon & CO2 Mapping)'
+  description: Steuert die Helios KWL. Radon-Logik ist optional zuschaltbar.
+  triggers:
+  - entity_id: sensor.house_max_co2
+    trigger: state
+  - entity_id: sensor.radon_meter_radon
+    trigger: state
+  - entity_id: input_boolean.ventilation_kill_switch
+    trigger: state
+  - entity_id: input_number.radon_threshold_helper
+    trigger: state
+  - entity_id: input_boolean.radon_logic_enabled
+    trigger: state
+  - event: start
+    trigger: homeassistant
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ trigger.platform == ''homeassistant'' }}'
+    then:
+    - delay: 01:00:00
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.ventilation_kill_switch
+        state: 'on'
+      sequence:
+      - target:
+          entity_id: fan.helios
+        data:
+          percentage: 0
+        action: fan.set_percentage
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.ventilation_kill_switch
+        state: 'off'
+      sequence:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.radon_logic_enabled
+            state: 'on'
+          - condition: numeric_state
+            entity_id: sensor.radon_meter_radon
+            above: 110
+          sequence:
+          - target:
+              entity_id: fan.helios
+            data:
+              percentage: 100
+            action: fan.set_percentage
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.radon_logic_enabled
+            state: 'on'
+          - condition: numeric_state
+            entity_id: sensor.radon_meter_radon
+            above: input_number.radon_threshold_helper
+          sequence:
+          - target:
+              entity_id: fan.helios
+            data:
+              percentage: 75
+            action: fan.set_percentage
+        - conditions:
+          - condition: numeric_state
+            entity_id: sensor.house_max_co2
+            above: 1100
+          sequence:
+          - target:
+              entity_id: fan.helios
+            data:
+              percentage: 50
+            action: fan.set_percentage
+        - conditions:
+          - condition: numeric_state
+            entity_id: sensor.house_max_co2
+            above: 800
+          sequence:
+          - target:
+              entity_id: fan.helios
+            data:
+              percentage: 10
+            action: fan.set_percentage
+        default:
+        - target:
+            entity_id: fan.helios
+          data:
+            percentage: 0
+          action: fan.set_percentage
+  mode: restart
+- &id001
+  id: climate_humidification_delta_v2_2
+  alias: 'Klima: Intelligente Befeuchtung (Delta-Steuerung)'
+  description: Regelt 3 Befeuchter. Nachtruhe 22-08 Uhr. Buzzer via Switch-Alarm deaktiviert.
+  triggers:
+  - trigger: time_pattern
+    minutes: /30
+  - trigger: state
+    entity_id: input_number.ziel_luftfeuchtigkeit
+  - trigger: state
+    entity_id: input_boolean.ventilation_kill_switch
+  actions:
+  - variables:
+      ziel: '{{ states(''input_number.ziel_luftfeuchtigkeit'') | float(41) }}'
+      hum_eg: '{{ states(''sensor.aranet4_02_kueche_humidity'') | float(100) }}'
+      hum_1og: '{{ states(''sensor.c9_46_fc_e8_90_d9_humidity'') | float(100) }}'
+      hum_2og: '{{ states(''sensor.aranet4_01_arbeitszimmer_humidity'') | float(100)
+        }}'
+      delta_eg: '{{ ziel - hum_eg }}'
+      delta_1og: '{{ ziel - hum_1og }}'
+      delta_2og: '{{ ziel - hum_2og }}'
+  - if:
+    - or:
+      - condition: state
+        entity_id: input_boolean.ventilation_kill_switch
+        state: 'on'
+      - condition: time
+        after: '22:00:00'
+        before: 08:00:00
+    then:
+    - action: humidifier.turn_off
+      target:
+        entity_id:
+        - humidifier.deerma_jsq2w_a365_humidifier
+        - humidifier.deerma_jsq2w_7134_humidifier
+        - humidifier.deerma_jsq2w_b6e0_humidifier
+    - stop: Nachtruhe oder Kill-Switch aktiv
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ delta_eg > 0 }}'
+      sequence:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.deerma_jsq2w_a365_alarm
+      - action: humidifier.turn_on
+        target:
+          entity_id: humidifier.deerma_jsq2w_a365_humidifier
+      - action: humidifier.set_mode
+        target:
+          entity_id: humidifier.deerma_jsq2w_a365_humidifier
+        data:
+          mode: '{% if delta_eg > 10 %} High {% elif delta_eg > 5 %} Medium {% else
+            %} Low {% endif %}
+
+            '
+    default:
+    - action: humidifier.turn_off
+      target:
+        entity_id: humidifier.deerma_jsq2w_a365_humidifier
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ delta_1og > 0 }}'
+      sequence:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.deerma_jsq2w_7134_alarm
+      - action: humidifier.turn_on
+        target:
+          entity_id: humidifier.deerma_jsq2w_7134_humidifier
+      - action: humidifier.set_mode
+        target:
+          entity_id: humidifier.deerma_jsq2w_7134_humidifier
+        data:
+          mode: '{% if delta_1og > 10 %} High {% elif delta_1og > 5 %} Medium {% else
+            %} Low {% endif %}
+
+            '
+    default:
+    - action: humidifier.turn_off
+      target:
+        entity_id: humidifier.deerma_jsq2w_7134_humidifier
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ delta_2og > 0 }}'
+      sequence:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.deerma_jsq2w_b6e0_alarm
+      - action: humidifier.turn_on
+        target:
+          entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
+      - action: humidifier.set_mode
+        target:
+          entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
+        data:
+          mode: '{% if delta_2og > 5 %} Medium {% else %} Low {% endif %}
+
+            '
+    default:
+    - action: humidifier.turn_off
+      target:
+        entity_id: humidifier.deerma_jsq2w_b6e0_humidifier
+  mode: restart
+- id: humidifiers_water_shortage_notify
+  alias: 'Klima: Warnung Wassertank leer'
+  description: Sendet Push-Nachricht, wenn ein Befeuchter Wassermangel meldet.
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.deerma_jsq2w_a365_water_shortage_fault
+    - binary_sensor.deerma_jsq2w_7134_water_shortage_fault
+    - binary_sensor.deerma_jsq2w_b6e0_water_shortage_fault
+    to: 'on'
+  actions:
+  - action: notify.mobile_app_pixel_9_pro
+    data:
+      title: "\U0001F4A7 Wassertank leer!"
+      message: Der Befeuchter '{{ trigger.to_state.name }}' meldet Wassermangel. Bitte
+        nachfüllen.
+      data:
+        clickAction: /lovelace/klima
+  mode: parallel
+- id: central_maintenance_system
+  alias: Zentrales Wartungs-Management
+  description: ''
+  triggers:
+  - trigger: time
+    at: '10:00:00'
+  actions:
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
+        | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
+
+        '
+    then:
     - action: notify.mobile_app_pixel_9_pro
       data:
-        title: >
-          {% set tonnen = [] %}
-          {% if states('sensor.waste_rest_days') | int == 1 %}{% set tonnen = tonnen + ['Rest'] %}{% endif %}
-          {% if states('sensor.waste_gelb_days') | int == 1 %}{% set tonnen = tonnen + ['Gelb'] %}{% endif %}
-          {% if states('sensor.waste_bio_days') | int == 1 %}{% set tonnen = tonnen + ['Bio'] %}{% endif %}
-          {% if states('sensor.waste_papier_days') | int == 1 %}{% set tonnen = tonnen + ['Papier'] %}{% endif %}
-          🚛 {{ tonnen | join(' & ') }} morgen fällig!
-        message: "Klick hier, um David via Threema zu bitten, falls du nicht da bist."
+        title: "\U0001F9FC Wartung fällig"
+        message: Bitte die Befeuchter reinigen.
         data:
           actions:
-            - action: "URI"
-              title: "David via Threema fragen"
-              uri: >
-                {% set tonnen = [] %}
-                {% if states('sensor.waste_rest_days') | int == 1 %}{% set tonnen = tonnen + ['den Restmüll'] %}{% endif %}
-                {% if states('sensor.waste_gelb_days') | int == 1 %}{% set tonnen = tonnen + ['die Gelbe Tonne'] %}{% endif %}
-                {% if states('sensor.waste_bio_days') | int == 1 %}{% set tonnen = tonnen + ['den Biomüll'] %}{% endif %}
-                {% if states('sensor.waste_papier_days') | int == 1 %}{% set tonnen = tonnen + ['das Altpapier'] %}{% endif %}
-                {% set nachricht = "Hallo David! Kannst du morgen bitte " + tonnen | join(' und ') + " für mich rausstellen? Ich bin mal wieder unterwegs ;-) Ganz lieben Dank dir!" %}
-                threema://compose?id=DEINE_DAVID_ID&text={{ nachricht | urlencode }}
+          - action: MARK_HUMIDIFIER_CLEANED
+            title: Befeuchter erledigt ✅
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'')
+        | int(180) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
 
-# ---------------------------------------------------------
-# WASCHMASCHINE
-# ---------------------------------------------------------
-- id: "waschmaschine_status_mgmt"
-  alias: "Haushalt: Waschmaschine Status-Management"
-  description: "V9: Robust gegen Neustarts & Waschpausen (5 Min Puffer)"
-  triggers:
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_6_waschmaschine_power
-      above: 10
-      for: "00:01:00"
-      id: "trigger_start"
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_6_waschmaschine_power
-      below: 4
-      for: "00:05:00"
-      id: "trigger_fertig"
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_6_waschmaschine_power
-      below: 1.0
-      for: "00:10:00"
-      id: "trigger_standby"
-    - trigger: homeassistant
-      event: start
-      id: "system_start"
-  actions:
-    - if:
-        - condition: trigger
-          id: "system_start"
-      then:
-        - delay: "00:01:00"
-        - if:
-            - condition: template
-              value_template: "{{ states('sensor.shellyplug_6_waschmaschine_power') | float(0) < 1.0 }}"
-          then:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.waschmaschine_status_helper
-              data:
-                option: "standby"
-        - stop: "Systemstart-Check abgeschlossen"
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: "trigger_start"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.waschmaschine_status_helper
-              data:
-                option: "läuft"
-        - conditions:
-            - condition: trigger
-              id: "trigger_fertig"
-            - condition: state
-              entity_id: input_select.waschmaschine_status_helper
-              state: "läuft"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.waschmaschine_status_helper
-              data:
-                option: "fertig"
-        - conditions:
-            - condition: trigger
-              id: "trigger_standby"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.waschmaschine_status_helper
-              data:
-                option: "standby"
-  mode: restart
-
-- id: "waschmaschine_notify"
-  alias: "Haushalt: Waschmaschine Benachrichtigung"
-  triggers:
-    - trigger: state
-      entity_id: input_select.waschmaschine_status_helper
-      from: "läuft"
-      to: "fertig"
-  actions:
+        '
+    then:
     - action: notify.mobile_app_pixel_9_pro
       data:
-        title: "Waschmaschine fertig! 🧺"
-        message: "Die Wäsche kann entnommen werden."
+        title: "\U0001F300 Wartung fällig"
+        message: Bitte die Filter der Lüftungsanlage prüfen/reinigen.
         data:
-          push:
-            sound: "default"
-            interruption-level: "active"
-
-# ---------------------------------------------------------
-# TROCKNER
-# ---------------------------------------------------------
-- id: "trockner_status_mgmt"
-  alias: "Haushalt: Trockner Status-Management"
-  description: "V9: Separierte Start-Logik mit Template-Check für garantierte Ausführung"
+          actions:
+          - action: MARK_FAN_FILTER_CLEANED
+            title: Filter erledigt ✅
+- id: central_maintenance_system
+  alias: Zentrales Wartungs-Management
+  description: ''
   triggers:
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_s4_trockner_power
-      above: 10
-      for: "00:01:00"
-      id: "trigger_start"
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_s4_trockner_power
-      below: 4
-      for: "00:03:00"
-      id: "trigger_fertig"
-    - trigger: numeric_state
-      entity_id: sensor.shellyplug_s4_trockner_power
-      below: 1.0
-      for: "00:10:00"
-      id: "trigger_standby"
-    - trigger: homeassistant
-      event: start
-      id: "system_start"
+  - trigger: time
+    at: '10:00:00'
   actions:
-    - if:
-        - condition: trigger
-          id: "system_start"
-      then:
-        - delay: "00:01:00"
-        - if:
-            - condition: template
-              value_template: "{{ states('sensor.shellyplug_s4_trockner_power') | float(0) < 1.0 }}"
-          then:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.trockner_status_helper
-              data:
-                option: "standby"
-        - stop: "Systemstart-Check abgeschlossen"
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: "trigger_start"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.trockner_status_helper
-              data:
-                option: "läuft"
-        - conditions:
-            - condition: trigger
-              id: "trigger_fertig"
-            - condition: state
-              entity_id: input_select.trockner_status_helper
-              state: "läuft"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.trockner_status_helper
-              data:
-                option: "fertig"
-        - conditions:
-            - condition: trigger
-              id: "trigger_standby"
-          sequence:
-            - action: input_select.select_option
-              target:
-                entity_id: input_select.trockner_status_helper
-              data:
-                option: "standby"
-  mode: restart
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
+        | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
 
-- id: "trockner_notify"
-  alias: "Haushalt: Trockner Benachrichtigung"
-  triggers:
-    - trigger: state
-      entity_id: input_select.trockner_status_helper
-      from: "läuft"
-      to: "fertig"
-  actions:
+        '
+    then:
     - action: notify.mobile_app_pixel_9_pro
       data:
-        title: "Trockner fertig! 🔥"
-        message: "Die Wäsche ist trocken und kann entnommen werden."
+        title: "\U0001F9FC Wartung fällig"
+        message: Bitte die Befeuchter reinigen.
         data:
-          push:
-            sound: "default"
-            interruption-level: "active"
+          actions:
+          - action: MARK_HUMIDIFIER_CLEANED
+            title: Befeuchter erledigt ✅
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'')
+        | int(180) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
 
-# ------------------------------------------------------------------------------
-# AUTOMATION: LÜFTUNGSANLAGE (HELIOS) CO2 STEUERUNG
-# ------------------------------------------------------------------------------
-- alias: "Lüftung: Automatische CO2 Steuerung"
-  id: "ventilation_auto_co2_control"
-  mode: restart
-  trigger:
-    - platform: state
-      entity_id: sensor.house_max_co2
-    - platform: state
-      entity_id: input_boolean.ventilation_kill_switch
-    - platform: homeassistant
-      event: start
+        '
+    then:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "\U0001F300 Wartung fällig"
+        message: Bitte die Filter der Lüftungsanlage prüfen/reinigen.
+        data:
+          actions:
+          - action: MARK_FAN_FILTER_CLEANED
+            title: Filter erledigt ✅
+- id: central_maintenance_system
+  alias: Zentrales Wartungs-Management
+  description: ''
+  triggers:
+  - trigger: time
+    at: '10:00:00'
+  actions:
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
+        | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
 
-  action:
-    # 1. Guard Clause: Warten nach Neustart
-    - if: "{{ trigger.platform == 'homeassistant' }}"
+        '
+    then:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "\U0001F9FC Wartung fällig"
+        message: Bitte die Befeuchter reinigen.
+        data:
+          actions:
+          - action: MARK_HUMIDIFIER_CLEANED
+            title: Befeuchter erledigt ✅
+  - if:
+    - condition: template
+      value_template: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'')
+        | int(180) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))
+        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
+
+        '
+    then:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "\U0001F300 Wartung fällig"
+        message: Bitte die Filter der Lüftungsanlage prüfen/reinigen.
+        data:
+          actions:
+          - action: MARK_FAN_FILTER_CLEANED
+            title: Filter erledigt ✅
+- *id001
+- id: system_maintenance_reset_handler
+  alias: 'System: Wartung Reset Handler'
+  description: Setzt das jeweilige Wartungsdatum auf heute, wenn der Button in der
+    Benachrichtigung gedrückt wird.
+  triggers:
+  - trigger: event
+    event_type: mobile_app_notification_action
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action == ''MARK_HUMIDIFIER_CLEANED''
+          }}'
+      sequence:
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.letzte_reinigung_befeuchter
+        data:
+          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+      - action: notify.mobile_app_pixel_9_pro
+        data:
+          message: Check! Die Reinigung der Befeuchter wurde vermerkt.
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action == ''MARK_FAN_FILTER_CLEANED''
+          }}'
+      sequence:
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.letzte_wartung_luefterfilter
+        data:
+          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+      - action: notify.mobile_app_pixel_9_pro
+        data:
+          message: Check! Der Filterwechsel wurde im System gespeichert.
+- id: '1770730843209'
+  alias: 'Haushalt: Spülmaschine Status-Management'
+  description: Überwachung der Spülmaschine an Shelly Phase B
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.spuelmaschine_leistung
+    above: 5
+    for: 00:02:00
+    id: trigger_start
+  - trigger: numeric_state
+    entity_id: sensor.spuelmaschine_leistung
+    below: 2
+    for: 00:05:00
+    id: trigger_fertig
+  - trigger: numeric_state
+    entity_id: sensor.spuelmaschine_leistung
+    below: 1
+    for: 00:15:00
+    id: trigger_standby
+  - trigger: homeassistant
+    event: start
+    id: system_start
+  actions:
+  - if:
+    - condition: trigger
+      id: system_start
+    then:
+    - delay: 00:01:00
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.spuelmaschine_leistung'') | float(0) <
+          1.0 }}'
       then:
-        - delay: "01:00:00"
-
-    # 2. Logik
-    - choose:
-        # FALL A: NOT-AUS IST AKTIV
-        - conditions:
-            - condition: state
-              entity_id: input_boolean.ventilation_kill_switch
-              state: "on"
-          sequence:
-            - service: fan.set_percentage
-              target:
-                entity_id: fan.helios
-              data:
-                percentage: 0
-
-        # FALL B: NORMALBETRIEB
-        - conditions:
-            - condition: state
-              entity_id: input_boolean.ventilation_kill_switch
-              state: "off"
-            - condition: template
-              value_template: "{{ states('sensor.house_max_co2') | is_number }}"
-          sequence:
-            - choose:
-                # Regel 1: Über 1100 ppm -> Stufe 2 (25%)
-                - conditions:
-                    - condition: numeric_state
-                      entity_id: sensor.house_max_co2
-                      above: 1100
-                  sequence:
-                    - service: fan.set_percentage
-                      target:
-                        entity_id: fan.helios
-                      data:
-                        percentage: 25
-
-                # Regel 2: Zwischen 700 und 1100 ppm -> Stufe 1 (2%)
-                - conditions:
-                    - condition: numeric_state
-                      entity_id: sensor.house_max_co2
-                      above: 700
-                      below: 1101
-                  sequence:
-                    - service: fan.set_percentage
-                      target:
-                        entity_id: fan.helios
-                      data:
-                        percentage: 2
-
-                # Regel 3: Unter 700 ppm -> Aus (0%)
-                - conditions:
-                    - condition: numeric_state
-                      entity_id: sensor.house_max_co2
-                      below: 701
-                  sequence:
-                    - service: fan.set_percentage
-                      target:
-                        entity_id: fan.helios
-                      data:
-                        percentage: 0
-
-# ------------------------------------------------------------------------------
-# AUTOMATION: LUFTBEFEUCHTER STEUERUNG (EG, 1.OG, 2.OG)
-# ------------------------------------------------------------------------------
-- alias: "Klima: Automatische Befeuchtung"
-  id: "climate_auto_humidification"
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.spuelmaschine_status_helper
+        data:
+          option: standby
+    - stop: Systemstart-Check abgeschlossen
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: trigger_start
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.spuelmaschine_status_helper
+        data:
+          option: läuft
+    - conditions:
+      - condition: trigger
+        id: trigger_fertig
+      - condition: state
+        entity_id: input_select.spuelmaschine_status_helper
+        state: läuft
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.spuelmaschine_status_helper
+        data:
+          option: fertig
+    - conditions:
+      - condition: trigger
+        id: trigger_standby
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.spuelmaschine_status_helper
+        data:
+          option: standby
+  mode: restart
+- id: '1770730888979'
+  alias: 'Haushalt: Spülmaschine Benachrichtigung'
+  description: Push immer, Sprachausgabe (kurz & deutsch) nur zu kinderfreundlichen
+    Zeiten.
+  triggers:
+  - trigger: state
+    entity_id: input_select.spuelmaschine_status_helper
+    from: läuft
+    to: fertig
+  actions:
+  - action: notify.mobile_app_pixel_9_pro
+    data:
+      title: "Spülmaschine fertig! \U0001F37D️"
+      message: Geschirr sauber.
+      data:
+        push:
+          sound: default
+          interruption-level: active
+  - if:
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - condition: time
+          after: 08:00:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+      - condition: and
+        conditions:
+        - condition: time
+          after: 09:30:00
+          before: '20:30:00'
+        - condition: time
+          weekday:
+          - sat
+          - sun
+    then:
+    - action: media_player.volume_set
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        volume_level: 0.4
+    - action: tts.google_translate_say
+      target:
+        entity_id: media_player.benachrichtung_lautsprecher
+      data:
+        message: Geschirr ist fertig.
+        language: de
+- id: '1770731967147'
+  alias: 'Sicherheit: Radon Alarm (Kritisch)'
+  description: Warnt wiederkehrend bei Radon-Gefahr, bis aktiv am Handy bestätigt
+    wird.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.airthings_wave2_181676_radon_1_tages_wert
+    above: input_number.radon_threshold_helper
+    id: Kueche
+  - trigger: numeric_state
+    entity_id: sensor.radon_meter_radon
+    above: input_number.radon_threshold_helper
+    id: Keller
+  actions:
+  - alias: Benachrichtigungs-Schleife bis Bestätigung
+    repeat:
+      sequence:
+      - action: notify.mobile_app_pixel_9_pro
+        data:
+          title: '☢️ RADON ALARM: {{ trigger.id }}'
+          message: 'Der Radon-Wert in {{ trigger.id }} ist kritisch! Aktuell: {{ states(trigger.entity_id)
+            }} Bq/m³. (Grenzwert: {{ states(''input_number.radon_threshold_helper'')
+            }} Bq/m³) Bitte lüften!'
+          data:
+            ttl: 0
+            priority: high
+            actions:
+            - action: RADON_CONFIRM
+              title: Verstanden - Alarm aus
+      - alias: Warte auf Bestätigung oder Timeout (60 Min)
+        wait_for_trigger:
+        - trigger: event
+          event_type: mobile_app_notification_action
+          event_data:
+            action: RADON_CONFIRM
+        timeout: 01:00:00
+      until:
+      - condition: template
+        value_template: '{{ wait.trigger is defined }}'
   mode: parallel
-  trigger:
-    - platform: time_pattern
-      minutes: "/5"
-    - platform: state
-      entity_id: input_boolean.ventilation_kill_switch
-    - platform: state
-      entity_id:
-        - sensor.aranet4_02_kueche_humidity
-        - sensor.c9_46_fc_e8_90_d9_humidity # 1. OG
-        - sensor.aranet4_01_arbeitszimmer_humidity # 2. OG
-    - platform: homeassistant
-      event: start
-
-  variables:
-    target_humidity: "{{ states('input_number.ziel_luftfeuchtigkeit') | float(45) }}"
-    kill_switch: "{{ is_state('input_boolean.ventilation_kill_switch', 'on') }}"
-
-  action:
-    # Guard Clause für Neustart
-    - if: "{{ trigger.platform == 'homeassistant' }}"
-      then:
-        - delay: "01:00:00"
-
-    # --- STEUERUNG EG (Küche) ---
-    - choose:
-        - conditions: "{{ kill_switch }}"
+  max: 2
+- id: '1770844332079'
+  alias: David Licht Schalter
+  description: Schaltet das Licht bei David mit dem Hue Button um
+  triggers:
+  - entity_id: sensor.button_1og_david_klein_action
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.to_state.state not in [''off'', ''release'', '''',
+      ''none''] }}'
+  actions:
+  - target:
+      entity_id: light.licht_1og_david
+    action: light.toggle
+  mode: restart
+- id: '1770846814304'
+  alias: Lichtschalter-2OG-Schlafzimmer-bett&tuere
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 630f348ce74ce1b95aa5fc5b75898785
+    type: action
+    subtype: left_press
+    trigger: device
+  - domain: mqtt
+    device_id: 684dfe33d7c759e0ab160a5a9da701af
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    target:
+      entity_id: light.licht_2og_schlafzimmer
+    data:
+      brightness_pct: 40
+  mode: single
+- id: '1770847870893'
+  alias: Licht David - kleiner Schalter
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 2e0440a811764f5a442354a22f8191f5
+    type: action
+    subtype: press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    target:
+      device_id: f9fc258687fcc4585fa115046410b541
+    data:
+      brightness_pct: 60
+  mode: single
+- id: '1770908410686'
+  alias: Licht David
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: eb9176b54c72cdc77763504806f72acd
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    target:
+      device_id: f9fc258687fcc4585fa115046410b541
+    data: {}
+  mode: single
+- id: '1770908467492'
+  alias: Licht Adrian
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 57a44c1d926b3e4c1e7092c179feb5e3
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    data: {}
+    target:
+      device_id: 2bce890e0646c657ea35ad08973bf430
+  mode: single
+- id: '1771166154583'
+  alias: Lichtschalter-EG-Esszimmer-Tuere-02
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: f3f56a37a0a48b3897df52de23d30a29
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    target:
+      entity_id: light.licht_eg_kueche
+    data: {}
+  mode: single
+- id: '1771166205977'
+  alias: Lichtschalter-EG-Esszimmer-Tuere-03
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 489d632330420a07586faaa8b0ae6629
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.alle_lichter_esszimmer
+  mode: single
+- id: '1771166345281'
+  alias: Lichtschalter-EG-Esszimmer-Tuere-04
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 01c59c2f89281f09be49aae80825ad32
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.alle_lichter_wohnzimmer
+  mode: single
+- id: '1771258184473'
+  alias: Lichtschalter-EG-Küche-Tür
+  description: ''
+  triggers:
+  - domain: mqtt
+    device_id: 76be11dcc3a6cd381df514d76309bb40
+    type: action
+    subtype: left_press
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.toggle
+    metadata: {}
+    target:
+      entity_id: light.licht_eg_kueche
+    data: {}
+  mode: single
+- id: '1771268188341'
+  alias: Lichtschalter-EG-Esszimmer-Tuere-02 (Final Dim)
+  description: Toggle & Dimmen mit korrekten Subtypes
+  triggers:
+  - domain: mqtt
+    device_id: f3f56a37a0a48b3897df52de23d30a29
+    type: action
+    subtype: left_press
+    trigger: device
+    id: klick
+  - domain: mqtt
+    device_id: f3f56a37a0a48b3897df52de23d30a29
+    type: action
+    subtype: left_hold
+    trigger: device
+    id: halten
+  - domain: mqtt
+    device_id: f3f56a37a0a48b3897df52de23d30a29
+    type: action
+    subtype: left_hold_release
+    trigger: device
+    id: loslassen
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: klick
+      sequence:
+      - action: light.toggle
+        target:
+          entity_id: light.licht_eg_kueche
+    - conditions:
+      - condition: trigger
+        id: halten
+      sequence:
+      - repeat:
+          while:
+          - condition: template
+            value_template: '{{ true }}'
           sequence:
-            - service: humidifier.turn_off
-              target:
-                entity_id: humidifier.deerma_jsq2w_a365_humidifier
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.humidifier_eg_empty
-              state: "off"
+          - action: light.turn_on
+            target:
+              entity_id: light.licht_eg_kueche
+            data:
+              brightness_step_pct: 20
+              transition: 0.2
+          - delay:
+              milliseconds: 400
+    - conditions:
+      - condition: trigger
+        id: loslassen
+      sequence:
+      - stop: Dimmen beendet
+  mode: restart
+- id: '1771604553302'
+  alias: 'Licht: Hue Dimmer Switch EG komplett'
+  description: Szenen-Zyklus, schnelles Hold-to-Dim (ohne Ausgehen) und Power-Hold
+  triggers:
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: on_hold
+    id: power_hold
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: up_press
+    id: dim_up
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: up_hold
+    id: dim_up_hold
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: down_press
+    id: dim_down
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: down_hold
+    id: dim_down_hold
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: up_hold_release
+    id: stop_dimming
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: down_hold_release
+    id: stop_dimming
+    trigger: device
+  - domain: mqtt
+    device_id: 0457441d0c73d8db61464dce69f22ef2
+    type: action
+    subtype: off_press
+    id: hue_button
+    trigger: device
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: power_hold
+      sequence:
+      - target:
+          entity_id: light.alle_lichter_erdgeschoss
+        data:
+          transition: 3
+        action: light.turn_off
+    - conditions:
+      - condition: trigger
+        id: hue_button
+      sequence:
+      - target:
+          entity_id: input_select.szenen_zyklus_eg
+        data:
+          cycle: true
+        action: input_select.select_next
+      - delay:
+          milliseconds: 250
+      - target:
+          entity_id: '{% set szene = states(''input_select.szenen_zyklus_eg'') %}
+            {% if szene == ''Hell'' %} scene.hell {% elif szene == ''Gemütlich'' %}
+            scene.gemutlich {% elif szene == ''Kino'' %} scene.kino {% elif szene
+            == ''Sonnenuntergang'' %} scene.sonnenuntergang {% elif szene == ''Brettspiele''
+            %} scene.brettspiele {% else %} scene.gemutlich {% endif %} '
+        data:
+          transition: '{% set szene = states(''input_select.szenen_zyklus_eg'') %}
+            {% if szene in [''Hell'', ''Brettspiele''] %} 5 {% else %} 2 {% endif
+            %} '
+        action: scene.turn_on
+    - conditions:
+      - condition: trigger
+        id: dim_up
+      sequence:
+      - target:
+          entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+            ''eq'', ''on'') | map(attribute=''entity_id'') | list }} '
+        data:
+          brightness_step_pct: 15
+          transition: 0.3
+        action: light.turn_on
+    - conditions:
+      - condition: trigger
+        id: dim_up_hold
+      sequence:
+      - repeat:
+          count: 20
           sequence:
-            - choose:
-                # < 30% -> Stufe 4 (Max)
-                - conditions: "{{ states('sensor.aranet4_02_kueche_humidity') | float(0) < 30 }}"
-                  sequence:
-                    - service: humidifier.turn_on
-                      target:
-                        entity_id: humidifier.deerma_jsq2w_a365_humidifier
+          - target:
+              entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                ''eq'', ''on'') | map(attribute=''entity_id'') | list }} '
+            data:
+              brightness_step_pct: 15
+              transition: 0.3
+            action: light.turn_on
+          - delay:
+              milliseconds: 300
+    - conditions:
+      - condition: trigger
+        id: dim_down
+      sequence:
+      - target:
+          entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+            ''eq'', ''on'') | selectattr(''attributes.brightness'', ''defined'') |
+            selectattr(''attributes.brightness'', ''>'', 38) | map(attribute=''entity_id'')
+            | list }} '
+        data:
+          brightness_step_pct: -15
+          transition: 0.3
+        action: light.turn_on
+    - conditions:
+      - condition: trigger
+        id: dim_down_hold
+      sequence:
+      - repeat:
+          count: 20
+          sequence:
+          - target:
+              entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                ''eq'', ''on'') | selectattr(''attributes.brightness'', ''defined'')
+                | selectattr(''attributes.brightness'', ''>'', 38) | map(attribute=''entity_id'')
+                | list }} '
+            data:
+              brightness_step_pct: -15
+              transition: 0.3
+            action: light.turn_on
+          - delay:
+              milliseconds: 300
+    - conditions:
+      - condition: trigger
+        id: stop_dimming
+      sequence:
+      - delay:
+          milliseconds: 10
+  mode: restart
+- id: '1771687992488'
+  alias: 'Beleuchtung: 8-Fach Schalter Erdgeschoss'
+  description: Steuert Szenen, globales Aus und smartes Dimmen aktiver Lampen.
+  triggers:
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: on_1
+    id: scene_1
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: on_2
+    id: scene_2
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: on_3
+    id: scene_3
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: on_4
+    id: scene_4
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: off_1
+    id: off_all
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: off_2
+    id: off_all
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: off_3
+    id: off_all
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: off_4
+    id: off_all
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_up_1
+    id: dim_up
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_up_2
+    id: dim_up
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_up_3
+    id: dim_up
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_up_4
+    id: dim_up
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_down_1
+    id: dim_down
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_down_2
+    id: dim_down
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_down_3
+    id: dim_down
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_move_down_4
+    id: dim_down
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_stop_1
+    id: dim_stop
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_stop_2
+    id: dim_stop
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_stop_3
+    id: dim_stop
+    trigger: device
+  - domain: mqtt
+    device_id: 81ba3f8b1dc7583b21bf87aabad6c836
+    type: action
+    subtype: brightness_stop_4
+    id: dim_stop
+    trigger: device
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: scene_1
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.gemutlich
+    - conditions:
+      - condition: trigger
+        id: scene_2
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.hell
+    - conditions:
+      - condition: trigger
+        id: scene_3
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.kino
+    - conditions:
+      - condition: trigger
+        id: scene_4
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.sonnenuntergang
+    - conditions:
+      - condition: trigger
+        id: off_all
+      sequence:
+      - action: light.turn_off
+        target:
+          entity_id: light.alle_lichter_erdgeschoss
+    - conditions:
+      - condition: trigger
+        id: dim_up
+      sequence:
+      - repeat:
+          count: 20
+          sequence:
+          - choose:
+            - conditions:
+              - condition: template
+                value_template: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                  ''eq'', ''on'') | list | length > 0 }} '
+              sequence:
+              - action: light.turn_on
+                target:
+                  entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                    ''eq'', ''on'') | map(attribute=''entity_id'') | list }} '
+                data:
+                  brightness_step_pct: 10
+          - delay: '00:00:00.500'
+    - conditions:
+      - condition: trigger
+        id: dim_down
+      sequence:
+      - repeat:
+          count: 20
+          sequence:
+          - choose:
+            - conditions:
+              - condition: template
+                value_template: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                  ''eq'', ''on'') | selectattr(''attributes.brightness'', ''defined'')
+                  | selectattr(''attributes.brightness'', ''gt'', 25) | list | length
+                  > 0 }} '
+              sequence:
+              - action: light.turn_on
+                target:
+                  entity_id: '{{ expand(''light.alle_lichter_erdgeschoss'') | selectattr(''state'',
+                    ''eq'', ''on'') | selectattr(''attributes.brightness'', ''defined'')
+                    | selectattr(''attributes.brightness'', ''gt'', 25) | map(attribute=''entity_id'')
+                    | list }} '
+                data:
+                  brightness_step_pct: -10
+          - delay: '00:00:00.500'
+    - conditions:
+      - condition: trigger
+        id: dim_stop
+      sequence:
+      - stop: Dimm-Vorgang durch Loslassen der Taste abgebrochen.
+  mode: restart

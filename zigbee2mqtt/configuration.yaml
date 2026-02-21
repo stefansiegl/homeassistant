@@ -1,0 +1,117 @@
+version: 5
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://core-mosquitto:1883
+  user: zigbee2mqtt
+  password: ZigbeeStart2026!
+serial:
+  port: tcp://192.168.188.160:6638
+  adapter: zstack
+advanced:
+  channel: 11
+  network_key:
+    - 86
+    - 113
+    - 225
+    - 131
+    - 194
+    - 51
+    - 230
+    - 132
+    - 134
+    - 185
+    - 146
+    - 192
+    - 158
+    - 114
+    - 140
+    - 84
+  pan_id: 29165
+  ext_pan_id:
+    - 107
+    - 4
+    - 114
+    - 5
+    - 69
+    - 175
+    - 71
+    - 54
+frontend:
+  enabled: true
+  port: 8099
+homeassistant:
+  enabled: true
+devices:
+  '0x001788010e15f48f':
+    friendly_name: Licht-EG-Kueche
+  '0x00178801067e753a':
+    friendly_name: Licht-EG-Wohnzimmer-Iris
+  '0x00178801097fe7cb':
+    friendly_name: Licht-EG-Esszimmer-lang
+  '0x001788010979cc56':
+    friendly_name: Licht-EG-Esszimmer-Spot1
+  '0x00178801097a2ad5':
+    friendly_name: Licht-EG-Esszimmer-Spot2
+  '0x001788010979ed7a':
+    friendly_name: Licht-EG-Esszimmer-Spot3
+  '0x00178801096fd5d0':
+    friendly_name: Licht-EG-Esszimmer-Spot4
+  '0x0017880108fc92c6':
+    friendly_name: Licht-EG-Wohnzimmer-Regal
+  '0x00178801097ff23b':
+    friendly_name: Licht-EG-Wohnzimmer-zentral
+  '0x00178801097a02c0':
+    friendly_name: Licht-EG-Wohnzimmer-Spot1
+  '0x00178801096fc59b':
+    friendly_name: Licht-EG-Wohnzimmer-Spot2
+  '0x00178801096fbacf':
+    friendly_name: Licht-EG-Wohnzimmer-Spot3
+  '0x0017880108fb4e39':
+    friendly_name: Licht-EG-Esszimmer-Schrank
+  '0x001788010e15ea0f':
+    friendly_name: Licht-1OG-David
+  '0x001788010e15ea45':
+    friendly_name: Licht-1OG-Adrian
+  '0x001788010e15f492':
+    friendly_name: Licht-2OG-Schlafzimmer
+  '0x001788010ba0c683':
+    friendly_name: Button-1OG-David-klein
+  '0x001788010e7a196b':
+    friendly_name: Schalter-2OG-Schlafzimmer-Tuere
+  '0x001788010e7a1976':
+    friendly_name: Schalter-2OG-Schlafzimmer-Bett
+  '0x001788010e792d7c':
+    friendly_name: Schalter-1OG-Adrian-Tuere
+  '0x001788010e792d7a':
+    friendly_name: Schalter-1OG-David-Tuere
+  '0x001788010e793942':
+    friendly_name: Schalter-EG-Esszimmer-Tuere-Schalter4
+  '0x001788010e793917':
+    friendly_name: Schalter-EG-Esszimmer-Tuere-Schalter2
+  '0xa4c138a2122fdf34':
+    friendly_name: Steckdose-EG-Kueche-Kuehlschrank
+  '0xa4c1385c3fd5464e':
+    friendly_name: Steckdose-EG-Kueche-Mikrowelle
+  '0xa4c1388700f38809':
+    friendly_name: Steckdose-EG-Wohnzimmer-Homeassistant
+  '0x20a716fffef68725':
+    friendly_name: Bewegungssensor-Keller-Fussball
+  '0x001788010e793924':
+    friendly_name: Schalter-EG-Kueche-Tuere
+  '0x001788010e793938':
+    friendly_name: Schalter-EG-Esszimmer-Tuere-Schalter3
+  '0xa4c138a20acdb68d':
+    friendly_name: Steckdose-EG-Kueche-Thermomix
+  '0xa4c138a42a672882':
+    friendly_name: Steckdose-EG-Kueche-Kaffeemaschine
+  '0x0017880109260ef7':
+    friendly_name: Schalter-EG-HueDimmerSwitch
+  '0xa4c13871b797cdfa':
+    friendly_name: Licht-EG-Wohnzimmer-TV-LED
+  '0xa4c13831a285830d':
+    friendly_name: Licht-EG-Wohnzimmer-Couch-LED
+  '0xb4e3f9fffeec1c67':
+    friendly_name: Schalter-EG-Esszimmer-Tuere-8fach
+groups:
+  '1':
+    friendly_name: Schlafzimmer
