@@ -184,83 +184,83 @@
     # -- Küche --
     light.licht_eg_kueche:
       state: "on"
-      brightness: 75
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 40
+      color_temp: 250
+      rgb_color: [255, 255, 255]
 
     # -- Esszimmer --
     light.licht_eg_esszimmer_lang:
-      state: "on"
-      brightness: 75
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      state: "off"
+      brightness: 40
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot1:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 80
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot2:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 80
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot3:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 80
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot4:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 80
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_schrank:
-      state: "on"
+      state: "off"
       brightness: 150
       color_temp: 450
       # rgb_color: [255, 255, 255]
 
     # -- Wohnzimmer --
     light.licht_eg_wohnzimmer_zentral:
-      state: "on"
+      state: "off"
       brightness: 50
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_spot1:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 50
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_spot2:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 50
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_spot3:
       state: "on"
-      brightness: 100
-      color_temp: 450
-      # rgb_color: [255, 255, 255]
+      brightness: 50
+      color_temp: 250
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_iris:
-      state: "on"
+      state: "off"
       brightness: 180
       # color_temp: 250
-      rgb_color: [255, 150, 60]
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_regal:
-      state: "on"
+      state: "off"
       brightness: 150
       color_temp: 450
       # rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_tv_led:
       state: "on"
-      brightness: 100
-      # color_temp: 250
-      rgb_color: [255, 120, 40]
+      brightness: 90
+      color_temp: 370
+      rgb_color: [255, 255, 255]
     light.licht_eg_wohnzimmer_couch_led:
       state: "on"
-      brightness: 80
-      # color_temp: 250
-      rgb_color: [255, 120, 40]
+      brightness: 130
+      color_temp: 370
+      rgb_color: [255, 255, 255]
 
 - id: eg_kino
   name: "Kino" # Sprachbefehl: "Schalte Kino ein"
@@ -431,3 +431,351 @@
       brightness: 150
       # color_temp: 250
       rgb_color: [255, 50, 0]
+
+- id: kathi1
+  name: "Kathi 1" # 60-Watt-Glühbirne (Warmweiß, 2700K)
+  icon: mdi:lightbulb
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 200
+      color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
+      # brightness: 200
+      # color_temp_kelvin: 2700
+      # color_temp: 370
+      # rgb_color: [255, 169, 87]
+
+- id: kathi2
+  name: "Kathi 2" # 40-Watt-Glühbirne (Gedimmt & Wärmer, 2400K)
+  icon: mdi:lightbulb-on-outline
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 120
+      color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
+      # brightness: 120
+      # color_temp_kelvin: 2400
+      # color_temp: 416
+      # rgb_color: [255, 147, 41]
+
+- id: kathi3
+  name: "Kathi 3" # Kerzenschein (Sehr dunkel & Sehr warm, 1800K)
+  icon: mdi:candle
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_esszimmer_spot1:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_esszimmer_spot4:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_spot1:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_spot2:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_spot3:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 50
+      color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
+      # brightness: 50
+      # color_temp_kelvin: 1800
+      # color_temp: 555
+      # rgb_color: [255, 137, 18]
+
+# ==========================================
+# SZENEN OBERGESCHOSS - DAVID
+# ==========================================
+
+- id: david_hell
+  name: "David Hell"
+  icon: mdi:lightbulb-on
+  entities:
+    light.licht_1og_david:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+- id: david_gemutlich
+  name: "David Gemütlich"
+  icon: mdi:sofa
+  entities:
+    light.licht_1og_david:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 150, 60]
+
+# ==========================================
+# SZENEN OBERGESCHOSS - ADRIAN
+# ==========================================
+
+- id: adrian_hell
+  name: "Adrian Hell"
+  icon: mdi:lightbulb-on
+  entities:
+    light.licht_1og_adrian:
+      state: "on"
+      brightness: 255
+      color_temp: 250
+      # rgb_color: [255, 255, 255]
+
+- id: adrian_gemutlich
+  name: "Adrian Gemütlich"
+  icon: mdi:sofa
+  entities:
+    light.licht_1og_adrian:
+      state: "on"
+      brightness: 100
+      color_temp: 450
+      # rgb_color: [255, 150, 60]

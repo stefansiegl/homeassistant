@@ -840,21 +840,6 @@
         value_template: '{{ wait.trigger is defined }}'
   mode: parallel
   max: 2
-- id: '1770844332079'
-  alias: David Licht Schalter
-  description: Schaltet das Licht bei David mit dem Hue Button um
-  triggers:
-  - entity_id: sensor.button_1og_david_klein_action
-    trigger: state
-  conditions:
-  - condition: template
-    value_template: '{{ trigger.to_state.state not in [''off'', ''release'', '''',
-      ''none''] }}'
-  actions:
-  - target:
-      entity_id: light.licht_1og_david
-    action: light.toggle
-  mode: restart
 - id: '1770846814304'
   alias: Lichtschalter-2OG-Schlafzimmer-bett&tuere
   description: ''
@@ -878,58 +863,148 @@
     data:
       brightness_pct: 40
   mode: single
-- id: '1770847870893'
-  alias: Licht David - kleiner Schalter
-  description: ''
-  triggers:
-  - domain: mqtt
-    device_id: 2e0440a811764f5a442354a22f8191f5
-    type: action
-    subtype: press
-    trigger: device
-  conditions: []
-  actions:
-  - action: light.toggle
-    metadata: {}
-    target:
-      device_id: f9fc258687fcc4585fa115046410b541
-    data:
-      brightness_pct: 60
-  mode: single
 - id: '1770908410686'
-  alias: Licht David
-  description: ''
+  alias: 'David: Kombinierte Steuerung'
+  description: Zentralisierte Steuerung für Licht (Toggle, Dimmen, Szenen) mit simuliertem
+    Doppelklick
   triggers:
-  - domain: mqtt
+  - trigger: device
+    domain: mqtt
     device_id: eb9176b54c72cdc77763504806f72acd
     type: action
     subtype: left_press
-    trigger: device
-  conditions: []
+    id: press_eval_gross
+  - trigger: device
+    domain: mqtt
+    device_id: eb9176b54c72cdc77763504806f72acd
+    type: action
+    subtype: left_hold
+    id: dim
+  - trigger: device
+    domain: mqtt
+    device_id: 2e0440a811764f5a442354a22f8191f5
+    type: action
+    subtype: press
+    id: press_eval_klein
+  - trigger: device
+    domain: mqtt
+    device_id: 2e0440a811764f5a442354a22f8191f5
+    type: action
+    subtype: hold
+    id: dim
   actions:
-  - action: light.toggle
-    metadata: {}
-    target:
-      device_id: f9fc258687fcc4585fa115046410b541
-    data: {}
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: press_eval_gross
+      sequence:
+      - wait_for_trigger:
+        - trigger: device
+          domain: mqtt
+          device_id: eb9176b54c72cdc77763504806f72acd
+          type: action
+          subtype: left_press
+        timeout:
+          milliseconds: 500
+      - if:
+        - condition: template
+          value_template: '{{ wait.trigger is not none }}'
+        then:
+        - if:
+          - condition: numeric_state
+            entity_id: light.licht_1og_david
+            attribute: brightness
+            above: 200
+          then:
+          - action: scene.turn_on
+            target:
+              entity_id: scene.david_gemutlich
+          else:
+          - action: scene.turn_on
+            target:
+              entity_id: scene.david_hell
+        else:
+        - action: light.toggle
+          target:
+            entity_id: light.licht_1og_david
+    - conditions:
+      - condition: trigger
+        id: press_eval_klein
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id: light.licht_1og_david
+        data:
+          brightness_pct: 90
+    - conditions:
+      - condition: trigger
+        id: dim
+      sequence:
+      - repeat:
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.licht_1og_david
+            data:
+              brightness_step_pct: '{{ 10 if (repeat.index % 20) < 10 else -10 }}'
+          - wait_for_trigger:
+            - trigger: device
+              domain: mqtt
+              device_id: eb9176b54c72cdc77763504806f72acd
+              type: action
+              subtype: left_hold_release
+            - trigger: device
+              domain: mqtt
+              device_id: 2e0440a811764f5a442354a22f8191f5
+              type: action
+              subtype: release
+            timeout:
+              milliseconds: 400
+          until:
+          - condition: template
+            value_template: '{{ wait.trigger is not none }}'
   mode: single
 - id: '1770908467492'
-  alias: Licht Adrian
-  description: ''
+  alias: 'Adrian: Kombinierte Steuerung'
+  description: Zentralisierte Steuerung für Licht (Toggle und Szenen) mit simuliertem
+    Doppelklick. (Dimmen entfernt)
   triggers:
-  - domain: mqtt
+  - trigger: device
+    domain: mqtt
     device_id: 57a44c1d926b3e4c1e7092c179feb5e3
     type: action
     subtype: left_press
-    trigger: device
-  conditions: []
   actions:
-  - action: light.toggle
-    metadata: {}
-    data: {}
-    target:
-      device_id: 2bce890e0646c657ea35ad08973bf430
-  mode: single
+  - wait_for_trigger:
+    - trigger: device
+      domain: mqtt
+      device_id: 57a44c1d926b3e4c1e7092c179feb5e3
+      type: action
+      subtype: left_press
+    timeout:
+      milliseconds: 500
+  - if:
+    - condition: template
+      value_template: '{{ wait.trigger is not none }}'
+    then:
+    - if:
+      - condition: numeric_state
+        entity_id: light.licht_1og_adrian
+        attribute: brightness
+        above: 200
+      then:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.adrian_gemutlich
+      else:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.adrian_hell
+    else:
+    - action: light.toggle
+      target:
+        entity_id: light.licht_1og_adrian
+  mode: restart
 - id: '1771166154583'
   alias: Lichtschalter-EG-Esszimmer-Tuere-02
   description: ''
@@ -1414,3 +1489,21 @@
       sequence:
       - stop: Dimm-Vorgang durch Loslassen der Taste abgebrochen.
   mode: restart
+- id: '1773005445626'
+  alias: 'Assist: Sprachausgabe umleiten'
+  description: Fängt das TTS-Audio vom ReSpeaker ab und spielt es auf einem echten
+    Lautsprecher ab.
+  triggers:
+  - event_type: esphome.tts_uri
+    trigger: event
+  conditions: []
+  actions:
+  - target:
+      device_id: 91100559296529f61f7936899693dca3
+    data:
+      media:
+        media_content_id: '{{ trigger.event.data.uri }}'
+        media_content_type: music
+        metadata: {}
+    action: media_player.play_media
+  mode: single

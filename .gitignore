@@ -22,3 +22,9 @@ themes
 *.log
 *.log.txt
 .ha_run.lock
+.cache/
+zigbee2mqtt/state.json
+zigbee2mqtt/coordinator_backup.json
+zigbee2mqtt/database.db
+ms365_storage/
+esphome/archive

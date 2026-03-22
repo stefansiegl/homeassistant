@@ -75,7 +75,7 @@ devices:
   '0x001788010e15f492':
     friendly_name: Licht-2OG-Schlafzimmer
   '0x001788010ba0c683':
-    friendly_name: Button-1OG-David-klein
+    friendly_name: Schalter-1OG-David-klein
   '0x001788010e7a196b':
     friendly_name: Schalter-2OG-Schlafzimmer-Tuere
   '0x001788010e7a1976':
@@ -112,6 +112,8 @@ devices:
     friendly_name: Licht-EG-Wohnzimmer-Couch-LED
   '0xb4e3f9fffeec1c67':
     friendly_name: Schalter-EG-Esszimmer-Tuere-8fach
+  '0x0015bc002200062b':
+    friendly_name: '0x0015bc002200062b'
 groups:
   '1':
     friendly_name: Schlafzimmer
