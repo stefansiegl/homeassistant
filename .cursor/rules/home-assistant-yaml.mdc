@@ -1,0 +1,43 @@
+---
+description: Home Assistant YAML — Naming, Dateien, Sicherheit
+globs: "**/*.yaml"
+alwaysApply: false
+---
+
+# Home Assistant — YAML-Implementierung
+
+Vollständige Liste „YAML vs. UI“: `docs/konfigurations-strategie.md`.
+
+## Wichtige Dateien
+
+| Datei | Inhalt |
+|-------|--------|
+| `configuration.yaml` | Core, Templates, Includes, Integrationen |
+| `automations.yaml` | Automationen (modular nach Bereich gruppieren) |
+| `scripts.yaml` / `scenes.yaml` | Skripte und Szenen |
+| `esphome/` | ESP-Geräte |
+| `zigbee2mqtt/configuration.yaml` | Zigbee friendly_name ↔ Hardware |
+
+`custom_components/` ist in `.gitignore` — nur ändern, wenn der Nutzer es verlangt.
+
+## Naming (aus bestehendem Bestand)
+
+- **Friendly name:** `Licht-EG-Kueche`, `Schalter-1OG-David-Tuere` (Bereich-Geschoss-Ort)
+- **entity_id:** oft abgeleitet, z. B. `light.licht_eg_kueche`, `sensor.schalter_eg_kueche_tuere_battery`
+- **Automation alias/id:** deutsch, sprechend, z. B. `Müll: Benachrichtigung & Nachbar-Option`
+- Neue Entities in passenden Inventar-Docs aktualisieren (`docs/lights.md`, `docs/hardware.md`)
+
+## Zigbee / MQTT Schalter
+
+Batterie-`sensor.*` reicht für Logik **nicht**. Device Triggers mit `device_id` aus `docs/lights.md` (MQTT platform) verwenden — siehe Beispiel dort.
+
+## Qualität
+
+- Bestehenden Stil in `automations.yaml` beibehalten (ID, alias, description).
+- Templates: defensive Defaults (`| float(default=0)`, `default(99)`).
+- UI: Mushroom Cards, „Glue-Method“ (siehe `docs/standards.md`).
+- Nach Änderungen: Nutzer auf Config-Check / Reload hinweisen (`Einstellungen → System → YAML-Konfiguration prüfen`).
+
+## Scope disziplinieren
+
+Nur Dateien ändern, die zur aktuellen Spec gehören — keine Refactors „nebenbei“.

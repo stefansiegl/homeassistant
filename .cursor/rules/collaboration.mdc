@@ -1,0 +1,38 @@
+---
+description: Zusammenarbeit, Docs-first, Sprache — gilt für das gesamte Repo
+alwaysApply: true
+---
+
+# Zusammenarbeit (Das gesunde Haus)
+
+## Sprache
+
+- Design-Dokumentation in `/docs` ist **Deutsch** — das ist Standard und unproblematisch.
+- Lies deutsche Specs vollständig; verstehe Begriffe im Haus-Kontext (Räume, OG, Gerätenamen).
+- Antworte dem Nutzer auf **Deutsch**, sofern er nicht auf Englisch schreibt.
+- Technische IDs (entity_id, device_id) und YAML-Keys bleiben wie in Home Assistant üblich (meist Englisch/snake_case).
+
+## Workflow (verbindlich)
+
+1. **Spec zuerst** — Vor Änderungen an `.yaml` / ESPHome / Zigbee2MQTT: passendes Dokument in `/docs` lesen oder anlegen/aktualisieren. YAML ohne Doc-Update ist ein Fehler (siehe `README.md`).
+2. **Implementierung auf Anfrage** — Erst nach explizitem Auftrag (z. B. „Implementiere `docs/…`“) Konfiguration ändern.
+3. **Scope nennen** — Am Ende kurz auflisten: geänderte Dateien, neue Entities/Automationen, was der Nutzer in HA testen soll.
+4. **Roadmap** — Offene Punkte aus `README.md` nur abarbeiten, wenn der Nutzer sie anspricht oder in der Spec referenziert.
+
+## Quellen-Hierarchie
+
+1. Feature-Spec (`docs/<thema>.md`)
+2. `docs/konfigurations-strategie.md` (YAML vs. UI — was wohin gehört)
+3. `docs/standards.md` (Naming, UI, KI-Regeln)
+4. Inventar-Docs (`docs/hardware.md`, `docs/lights.md`, …)
+5. Bestehende YAML-Konfiguration
+
+Neue Logik/Helfer/Dashboards → YAML (siehe Strategie-Doc). Geräte-Pairing, Integrationen, Konten → Nutzer in UI; nicht `.storage` editieren.
+
+Bei Widerspruch: **nicht raten** — Nutzer fragen oder Spec anpassen.
+
+## Nicht anfassen (ohne explizite Anweisung)
+
+- `.storage/`, `.cloud/`, Token-Caches, `secrets.yaml`-Inhalte
+- Secrets niemals hardcoden; nur `!secret` verwenden
+- Keine Commits/Pushes, es sei denn, der Nutzer verlangt es

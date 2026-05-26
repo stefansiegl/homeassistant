@@ -1,0 +1,36 @@
+---
+description: Struktur für Design-Docs in /docs (Deutsch)
+globs: docs/**/*.md
+alwaysApply: false
+---
+
+# Design-Dokumentation (`/docs`)
+
+## Sprache & Stil
+
+- Specs auf **Deutsch** schreiben.
+- Tabellen für Entities, Hardware und Controller bevorzugen (wie `docs/lights.md`).
+
+## Pflichtinhalt einer Feature-Spec
+
+Jede neue Datei `docs/<feature>.md` sollte enthalten:
+
+1. **Ziel** — Nutzen für Bewohner, dezent im Hintergrund
+2. **Entities** — bestehend / neu (mit entity_id)
+3. **Verhalten** — Trigger, Bedingungen, Aktionen (ohne YAML-Zwang)
+4. **Randfälle** — manuell, away, unavailable, Nacht
+5. **UI** (optional) — Dashboard / Mushroom / Glue
+6. **Abnahme** — Checkliste `- [ ]` zum Abhaken nach Test in HA
+
+## Inventar pflegen
+
+Wenn die Spec neue Lichter, Schalter oder Geräte einführt:
+
+- `docs/lights.md` oder `docs/hardware.md` ergänzen
+- Zigbee friendly_name in Spec oder Verweis auf `zigbee2mqtt/configuration.yaml`
+
+## README
+
+Große neue Features: optional Eintrag unter „Aktive Roadmap“ in `README.md` — nur mit Nutzer abgestimmt.
+
+`docs/standards.md` ist die Referenz für Naming, UI und KI-Regeln; bei Lücken dort ergänzen, nicht duplizieren.
