@@ -1,37 +1,28 @@
-# Home Assistant Configuration
+# 🏡 Home Automation: Das gesunde Haus
 
-Contains the configuration for my home automation project. A good number of the configurations are actually stored
-in the database of homeassistant and are thus not shown here. 
+Dieses Repository enthält die vollständige Konfiguration und das Design meines Smart Homes. Die Dokumentation dient als Master-Spezifikation ("Design as Code"), aus der die technische Implementierung abgeleitet wird.
 
-## What might be interesting
-- Waste Collection: [config](includes/waste_collection_schedule.yaml) and [sensors](includes/sensors/platformsensors-wastecollection.yaml)
-- Roborock Control: [script](includes/scripts/roborock_s7.yaml)
-- Automated vacuuming: [script](includes/scripts/vacuum_automated.yaml), [automation](includes/automations/vacuum-eg.yaml)
-- Only vacuum if the door is actually open: [input](includes/input_boolean.yaml) [automation-klo](includes/automations/door-klo-eg.yaml) [automation](includes/automations/vacuum-eg.yaml)
-- manual overrides - [input](includes/input_boolean.yaml)
-- Warning integrations in the UI [warning-chips](includes/lovelace/cards/warning-chips.yaml)
+## 🎯 Vision & Prinzipien
+Das Ziel ist ein sinnvolles SmartHome. Technik soll den Bewohnern dienen und sich dezent im Hintergrund halten.
+- **UI-Standard:** Mushroom Cards mit der "Glue-Method" (nahtlose Integration).
+- **Logik-Standard:** Modulare Automationen, getrennt nach Funktionsbereichen.
 
+## 📚 Dokumentation (Das Design)
+Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
+- [Standards & UI](./docs/standards.md) – Glue-Method, Naming Conventions, KI-Regeln.
+- [Beleuchtung](./docs/lighting.md) – Szenen, adaptive Steuerung und Logik.
+- [Klima & Umwelt](./docs/climate.md) – Radon-Lüftung, Luftfeuchtigkeit.
+- [Haushaltsgeräte](./docs/appliances.md) – Waschmaschine, Trockner, Roborock.
+- [Hardware-Inventar](./docs/hardware.md) – Liste aller verbauten Komponenten.
 
-## What is still open:
-- Finish Kiosk Mode (create default dashboard layout, integrate important information, put tablet to the wall)
-- Voice automation
-- Call kids to lunch/dinner through Nest minis in their rooms
-- Automated watering setup for the garden
-- Integrate eufy security cam
-- Integrate lawnmower robot (first my grass needs to grow though)
-- Include flower sensors outside (they do not want to connect yet)
+## 🚀 Aktive Roadmap (To-Do)
+*Diese Liste wird bei jeder Änderung aktualisiert und dient der KI als Aufgabenliste:*
 
-## Hardware
-- FritzBox and 3 Fritz Repeater
-- Philipps Hue lights:
-- Philipps Hue bridge:
-- Nuki door lock and bridge
-- 4 Google Nest minis
-- 3 ESPHomes providing BLE to the different floors
-- 2 Vacuums (Xiaomi Mi Robot, RoboRock S7 Max)
-- 1 Robot lawn mower
-- 10 ish Xiaomi temperature sensors
-- 8 flower sensors
-- a couple of door sensors
-- 5 shellies plugs and 1 Fritz power plug
-- Solar
+- [ ] Briefkastensensor integrieren (Benachrichtigung & Reset-Logik).
+- [ ] Mülltonnen-Erinnerung finalisieren.
+- [ ] Humidity-Modus für die Lüftungsanlage (Radon-Logik erweitern).
+- [ ] Kiosk-Mode für das Tablet (Default Dashboard Layout).
+- [ ] Terrasse: Rolladen-Steuerung bei Hitze automatisieren.
+
+## 🛠 Arbeiten mit der KI
+Bevor Code-Änderungen (`.yaml`) vorgenommen werden, muss immer zuerst das entsprechende Design-Dokument in `/docs` angelegt, geprüft oder aktualisiert werden. Code ohne Dokumentations-Update gilt als technischer Fehler.

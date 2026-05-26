@@ -114,6 +114,8 @@ devices:
     friendly_name: Schalter-EG-Esszimmer-Tuere-8fach
   '0x0015bc002200062b':
     friendly_name: '0x0015bc002200062b'
+  '0x842e14fffee721e6':
+    friendly_name: Schalter-EG-Licht-Drehregler-Esszimmer
 groups:
   '1':
     friendly_name: Schlafzimmer
