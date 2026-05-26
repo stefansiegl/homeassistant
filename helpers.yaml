@@ -1,0 +1,148 @@
+# Helfer & abgeleitete Helper-Entities (YAML)
+# - input_*: Keys = entity_id-Suffix (wie in automations.yaml)
+# - sensor/binary_sensor: UI-Helfer migriert (min_max, template)
+#
+# initial: Fallback beim ersten Anlegen / wenn kein restore_state existiert.
+
+input_boolean:
+  ventilation_kill_switch:
+    name: Ventilation Kill Switch
+    icon: mdi:fan-auto
+    initial: false
+  radon_logic_enabled:
+    name: Radon Lüfter Logik aktivieren
+    icon: mdi:shield-check
+    initial: false
+
+input_number:
+  ziel_luftfeuchtigkeit:
+    name: Ziel Luftfeuchtigkeit
+    min: 30
+    max: 60
+    step: 1
+    mode: slider
+    icon: mdi:water-percent
+    initial: 41
+  gaspreis_pro_m3:
+    name: Gaspreis pro m3
+    min: 0
+    max: 100
+    step: 1
+    mode: box
+    icon: mdi:currency-eur
+    unit_of_measurement: "EUR/m³"
+    initial: 1.32
+  radon_threshold_helper:
+    name: Radon Schwellwert
+    min: 0
+    max: 300
+    step: 5
+    mode: slider
+    icon: mdi:radioactive
+    unit_of_measurement: "Bq/m³"
+    initial: 95
+  intervall_befeuchter_reinigung:
+    name: Intervall Befeuchter Reinigung
+    min: 7
+    max: 360
+    step: 1
+    mode: box
+    icon: mdi:calendar-range
+    unit_of_measurement: Tage
+    initial: 90
+  intervall_luefterfilter_reinigung:
+    name: Intervall Lüfterfilter Reinigung
+    min: 30
+    max: 365
+    step: 1
+    mode: box
+    icon: mdi:calendar-range
+    unit_of_measurement: Tage
+    initial: 90
+
+input_select:
+  waschmaschine_status_helper:
+    name: Waschmaschine Status Helper
+    options:
+      - standby
+      - läuft
+      - fertig
+    icon: mdi:washing-machine
+    initial: standby
+  trockner_status_helper:
+    name: Trockner Status Helper
+    options:
+      - standby
+      - läuft
+      - fertig
+    icon: mdi:tumble-dryer
+    initial: standby
+  spuelmaschine_status_helper:
+    name: spuelmaschine_status_helper
+    options:
+      - standby
+      - läuft
+      - fertig
+    icon: mdi:dishwasher
+    initial: standby
+  szenen_zyklus_eg:
+    name: Szenen Zyklus EG
+    options:
+      - Hell
+      - Gemütlich
+      - Kino
+      - Sonnenuntergang
+    icon: mdi:car-light-dimmed
+    initial: Kino
+
+input_text:
+  placeholder:
+    name: Placeholder
+    min: 0
+    max: 1
+    mode: text
+    initial: "-"
+
+input_datetime:
+  letzte_reinigung_befeuchter:
+    name: Letzte Reinigung Befeuchter
+    has_date: true
+    has_time: false
+    icon: mdi:spray-bottle
+    initial: "2026-02-08"
+  letzte_wartung_luefterfilter:
+    name: Letzte Wartung Lüfterfilter
+    has_date: true
+    has_time: false
+    initial: "2026-02-08"
+
+# Kombinationssensor: max CO2 aller Aranet-Sensoren im Haus
+template:
+  - sensor:
+      - name: House Max CO2
+        unique_id: house_max_co2
+        icon: mdi:calculator
+        device_class: carbon_dioxide
+        unit_of_measurement: ppm
+        state_class: measurement
+        state: >
+          {% set values = [
+            states('sensor.aranet4_01_arbeitszimmer_carbon_dioxide') | float(0),
+            states('sensor.aranet4_02_kueche_carbon_dioxide') | float(0),
+            states('sensor.c9_46_fc_e8_90_d9_carbon_dioxide') | float(0),
+            states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') | float(0)
+          ] %}
+          {{ values | max | round(2) }}
+  - binary_sensor:
+      - name: Humidifier EG Empty
+        unique_id: humidifier_eg_empty
+        device_class: problem
+        state: "{{ is_state_attr('humidifier.deerma_jsq2w_a365_humidifier', 'water_shortage_fault', 'on') }}"
+      - name: Humidifier 1.OG Empty
+        unique_id: humidifier_1_og_empty
+        device_class: problem
+        state: "{{ is_state_attr('humidifier.deerma_jsq2w_7134_humidifier', 'water_shortage_fault', 'on') }}"
+      - name: Humidifier 2.OG Empty
+        unique_id: humidifier_2_og_empty
+        device_class: problem
+        state: "{{ is_state_attr('humidifier.deerma_jsq2w_b6e0_humidifier', 'water_shortage_fault', 'on') }}"

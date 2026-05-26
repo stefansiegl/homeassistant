@@ -31,6 +31,16 @@ Neue Logik/Helfer/Dashboards → YAML (siehe Strategie-Doc). Geräte-Pairing, In
 
 Bei Widerspruch: **nicht raten** — Nutzer fragen oder Spec anpassen.
 
+## Diagnose (Logs selbst prüfen)
+
+Bei Fehlern, Warnungen nach Neustart oder „funktioniert nicht“-Meldungen **zuerst selbst** nachsehen — den Nutzer nicht um Copy-Paste aus den HA-Logs bitten.
+
+1. **Home Assistant:** `ha core logs` (ggf. mit `grep` nach `ERROR`, `WARNING`, `already exists`).
+2. **Add-ons:** z. B. `ha supervisor logs`, Zigbee2MQTT unter `zigbee2mqtt/log/`.
+3. **Konfiguration:** betroffene YAML, `.storage` (nur lesen; editieren nur mit expliziter Anweisung).
+
+`home-assistant.log*` ist in `.gitignore`, über die Shell/`ha` aber erreichbar. Copy-Paste nur anfragen, wenn etwas nur in der HA-UI sichtbar ist oder der Nutzer gezielt eine Stelle zeigen will.
+
 ## Nicht anfassen (ohne explizite Anweisung)
 
 - `.storage/`, `.cloud/`, Token-Caches, `secrets.yaml`-Inhalte

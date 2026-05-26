@@ -150,7 +150,7 @@ Diese Schritte machst **du in Home Assistant** (oder über Add-on-UIs). Die KI d
 
 Abgleich mit dem, was noch in `.storage` steckt:
 
-- [ ] **Helpers** (`input_*`) → `helpers.yaml` + `!include`
+- [x] **Helpers** (`input_*`) → `helpers.yaml` (Package); UI-Helfer gelöscht, `.storage/input_*` geleert, Neustart ohne Warnungen
 - [ ] **Skripte** prüfen → `scripts.yaml`
 - [ ] **Dashboards** nacheinander → `dashboards/*.yaml` (Start: `test`, dann `Tablett`, zuletzt `Übersicht`)
 - [ ] **Lovelace-Ressourcen** in YAML überführen

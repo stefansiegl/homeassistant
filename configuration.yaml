@@ -39,6 +39,9 @@ homeassistant:
     sensor.waste_bio_display:
       entity_picture: /local/images/waste/waste-gruen.png
 
+  packages:
+    helpers: !include helpers.yaml
+
 # ---------------------------------------------------------
 # RECORDER (MariaDB Short-term Storage)
 # ---------------------------------------------------------
