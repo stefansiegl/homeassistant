@@ -198,7 +198,27 @@ template:
           {% else %} In {{ days }} Tagen
           {% endif %}
 
-      # Batterie-Dashboard: gefilterte Listen (Backend-Template, siehe docs/dashboard-batterie.md)
+  # Batterie-Dashboard: Trigger-Template (siehe docs/dashboard-batterie.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id: input_number.batterie_warnschwelle
+      - trigger: event
+        event_type: state_changed
+    condition:
+      - condition: template
+        value_template: >
+          {% if trigger.platform == 'homeassistant' or trigger.platform == 'state' %}
+            true
+          {% else %}
+            {% set e = trigger.event.data.entity_id | default('') %}
+            {{ e != 'sensor.batterie_ubersicht' and (
+              (e.startswith('sensor.') and state_attr(e, 'device_class') == 'battery') or
+              (e.startswith('binary_sensor.') and state_attr(e, 'device_class') == 'battery')
+            ) }}
+          {% endif %}
+    sensor:
       - name: "Batterie Uebersicht"
         unique_id: batterie_uebersicht
         icon: mdi:battery

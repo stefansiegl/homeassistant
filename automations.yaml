@@ -766,7 +766,7 @@
     wird.
   triggers:
   - trigger: numeric_state
-    entity_id: sensor.airthings_wave2_181676_radon_1_tages_wert
+    entity_id: sensor.airthings_wave2_181676_radon_1_tages_durchschnitt
     above: input_number.radon_threshold_helper
     id: Kueche
   - trigger: numeric_state

@@ -24,7 +24,7 @@ Orientierung: [`standards.md`](./standards.md), Referenz-Layout [`dashboards/ueb
 
 ## Datenquelle
 
-- **`sensor.batterie_ubersicht`** in [`configuration.yaml`](../configuration.yaml) — berechnet gefilterte Listen serverseitig (HA slug aus „Batterie Uebersicht“)
+- **`sensor.batterie_ubersicht`** in [`configuration.yaml`](../configuration.yaml) — Trigger-Template (aktualisiert bei Batterie-Änderungen, ohne Template-Loop)
 - **State** = Gesamtanzahl (Zahl, HA-Limit 255 Zeichen); **Attribut** `liste_alle` = mehrzeilige Gesamtliste
 
 ## Filterregeln (Template)
