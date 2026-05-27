@@ -32,7 +32,7 @@ Diese Bereiche gehören ins Repository. Die KI darf sie nach Spec ändern; du te
 | Template-Sensoren, -Schalter, -Buttons | `configuration.yaml` → `template:` | ✅ aktiv | z. B. Müll-Anzeige, Wasserzähler |
 | Automationen | `automations.yaml` | ✅ aktiv | Modular nach Bereich halten |
 | Szenen | `scenes.yaml` | ✅ aktiv | Vollständige Licht-Parameter dokumentiert |
-| Skripte | `scripts.yaml` | ⚠️ prüfen | Datei derzeit leer — UI-Skripte ggf. migrieren |
+| Skripte | `scripts.yaml` | ✅ aktiv | Keine Skripte; Datei bereit für YAML-Definitionen |
 | Blueprints (wiederverwendbar) | `blueprints/` | ✅ aktiv | Eigene + Community-Blueprints |
 | Packages (optional, große Teile) | `packages/*.yaml` | ❌ noch nicht | Sinnvoll, wenn `configuration.yaml` wächst |
 
@@ -40,10 +40,10 @@ Diese Bereiche gehören ins Repository. Die KI darf sie nach Spec ändern; du te
 
 | Was | Typische Datei | Status bei uns | Hinweise |
 |-----|----------------|----------------|----------|
-| `input_boolean` | `configuration.yaml` oder `helpers.yaml` | 🔄 migrieren | z. B. Lüftungs-Kill-Switch, Radon-Logik |
-| `input_number` | wie oben | 🔄 migrieren | z. B. Ziel-Luftfeuchtigkeit, Schwellwerte |
-| `input_select` | wie oben | 🔄 migrieren | z. B. Waschmaschinen-Status |
-| `input_text` / `input_datetime` | wie oben | 🔄 migrieren | IDs beim Migrieren **beibehalten** |
+| `input_boolean` | `helpers.yaml` | ✅ aktiv | z. B. Lüftungs-Kill-Switch, Radon-Logik |
+| `input_number` | wie oben | ✅ aktiv | z. B. Ziel-Luftfeuchtigkeit, Schwellwerte |
+| `input_select` | wie oben | ✅ aktiv | z. B. Waschmaschinen-Status |
+| `input_text` / `input_datetime` | wie oben | ✅ aktiv | IDs beim Migrieren **beibehalten** |
 | `timer`, `counter` | YAML | — | Falls genutzt, ebenfalls in YAML |
 | `schedule` | YAML | — | Zeitpläne für Automationen |
 
@@ -151,7 +151,7 @@ Diese Schritte machst **du in Home Assistant** (oder über Add-on-UIs). Die KI d
 Abgleich mit dem, was noch in `.storage` steckt:
 
 - [x] **Helpers** (`input_*`) → `helpers.yaml` (Package); UI-Helfer gelöscht, `.storage/input_*` geleert, Neustart ohne Warnungen
-- [ ] **Skripte** prüfen → `scripts.yaml`
+- [x] **Skripte** → `scripts.yaml` geprüft; keine UI-Skripte mehr (ehem. `script.gemini_test` entfernt)
 - [ ] **Dashboards** nacheinander → `dashboards/*.yaml` (Start: `test`, dann `Tablett`, zuletzt `Übersicht`)
 - [ ] **Lovelace-Ressourcen** in YAML überführen
 - [ ] README-Links zu fehlenden Docs (`appliances.md`, `lighting.md` vs. `lights.md`) bereinigen
