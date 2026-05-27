@@ -15,6 +15,7 @@ Technik: u. a. **button-card** (HACS), Szenen-Bilder unter `/local/images/dashbo
 
 ## Aktueller Inhalt (Stand Migration)
 
+0. **Haus-Warnungen** (conditional Mushroom-Karte) — nur bei `binary_sensor.haus_hat_warnungen` = `on`; siehe [`haus-warnungen.md`](./haus-warnungen.md)
 1. **Licht-Szenen** (horizontal, große Karten): `scene.hell`, `scene.gemutlich`, `scene.kino`, `scene.sonnenuntergang`
 2. **Müll-Hinweis** (button-card, JS-Template): Rest-, Gelb-, Bio-, Papier-Tonnen; Anzeige wenn nächste Abholung „bald“
 

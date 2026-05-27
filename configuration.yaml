@@ -128,6 +128,13 @@ influxdb:
 # MODERN TEMPLATES (Sensoren & Mülllogik)
 # ---------------------------------------------------------
 
+group:
+  haus_warnungen_checks:
+    name: Haus Warnungen Checks
+    entities:
+      - binary_sensor.gasmeter_warnung
+      - binary_sensor.watermeter_warnung
+
 template:
   - sensor:
       # Wassermesser Umrechnung
@@ -284,6 +291,182 @@ template:
             {{ ns.text | trim }}
             {% endif %}
 
+  # Haus-Warnungen Schicht 1 (siehe docs/haus-warnungen.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+    sensor:
+      - name: HA Start Timestamp
+        unique_id: ha_start_timestamp
+        icon: mdi:clock-start
+        state: "{{ as_timestamp(now()) | int }}"
+
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: "/5"
+      - trigger: state
+        entity_id:
+          - sensor.gasmeter_value
+          - sensor.gasmeter_error
+          - binary_sensor.gasmeter_problem
+          - sensor.watermeter_value
+          - sensor.watermeter_error
+          - binary_sensor.watermeter_problem
+          - input_number.zaehler_stale_minuten
+          - sensor.ha_start_timestamp
+    binary_sensor:
+      - name: Gasmeter Warnung
+        unique_id: gasmeter_warnung
+        device_class: problem
+        icon: mdi:gas-cylinder
+        state: >
+          {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+          {% set offline_min = 5 %}
+          {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
+          {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
+          {% set val = states('sensor.gasmeter_value') %}
+          {% if ha_age_min < offline_min %}
+            false
+          {% elif val in ['unavailable', 'unknown', 'none'] %}
+            {% set lu = states.sensor.gasmeter_value.last_updated %}
+            {{ lu is not none and (as_timestamp(now()) - as_timestamp(lu)) / 60 >= offline_min }}
+          {% elif is_state('binary_sensor.gasmeter_problem', 'on') %}
+            true
+          {% elif states('sensor.gasmeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
+            true
+          {% else %}
+            {% set lu = states.sensor.gasmeter_value.last_updated %}
+            {% if lu is none %}
+              false
+            {% else %}
+              {{ (as_timestamp(now()) - as_timestamp(lu)) / 60 > stale_min }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          grund: >
+            {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+            {% set offline_min = 5 %}
+            {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
+            {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
+            {% set val = states('sensor.gasmeter_value') %}
+            {% if ha_age_min < offline_min %}
+            {% elif val in ['unavailable', 'unknown', 'none'] %}
+              {% set lu = states.sensor.gasmeter_value.last_updated %}
+              {% if lu is not none and (as_timestamp(now()) - as_timestamp(lu)) / 60 >= offline_min %}
+                Gaszähler: Gerät offline
+              {% endif %}
+            {% elif is_state('binary_sensor.gasmeter_problem', 'on') %}
+              Gaszähler: Geräteproblem
+            {% elif states('sensor.gasmeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
+              Gaszähler: {{ states('sensor.gasmeter_error') }}
+            {% else %}
+              {% set lu = states.sensor.gasmeter_value.last_updated %}
+              {% if lu is not none %}
+                {% set age = ((as_timestamp(now()) - as_timestamp(lu)) / 60) | int %}
+                {% if age > stale_min %}
+                  Gaszähler: keine Werte seit {{ age }} Min
+                {% endif %}
+              {% endif %}
+            {% endif %}
+      - name: Watermeter Warnung
+        unique_id: watermeter_warnung
+        device_class: problem
+        icon: mdi:water-alert
+        state: >
+          {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+          {% set offline_min = 5 %}
+          {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
+          {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
+          {% set val = states('sensor.watermeter_value') %}
+          {% if ha_age_min < offline_min %}
+            false
+          {% elif val in ['unavailable', 'unknown', 'none'] %}
+            {% set lu = states.sensor.watermeter_value.last_updated %}
+            {{ lu is not none and (as_timestamp(now()) - as_timestamp(lu)) / 60 >= offline_min }}
+          {% elif is_state('binary_sensor.watermeter_problem', 'on') %}
+            true
+          {% elif states('sensor.watermeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
+            true
+          {% else %}
+            {% set lu = states.sensor.watermeter_value.last_updated %}
+            {% if lu is none %}
+              false
+            {% else %}
+              {{ (as_timestamp(now()) - as_timestamp(lu)) / 60 > stale_min }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          grund: >
+            {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+            {% set offline_min = 5 %}
+            {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
+            {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
+            {% set val = states('sensor.watermeter_value') %}
+            {% if ha_age_min < offline_min %}
+            {% elif val in ['unavailable', 'unknown', 'none'] %}
+              {% set lu = states.sensor.watermeter_value.last_updated %}
+              {% if lu is not none and (as_timestamp(now()) - as_timestamp(lu)) / 60 >= offline_min %}
+                Wasserzähler: Gerät offline
+              {% endif %}
+            {% elif is_state('binary_sensor.watermeter_problem', 'on') %}
+              Wasserzähler: Geräteproblem
+            {% elif states('sensor.watermeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
+              Wasserzähler: {{ states('sensor.watermeter_error') }}
+            {% else %}
+              {% set lu = states.sensor.watermeter_value.last_updated %}
+              {% if lu is not none %}
+                {% set age = ((as_timestamp(now()) - as_timestamp(lu)) / 60) | int %}
+                {% if age > stale_min %}
+                  Wasserzähler: keine Werte seit {{ age }} Min
+                {% endif %}
+              {% endif %}
+            {% endif %}
+
+  # Haus-Warnungen Schicht 3 (siehe docs/haus-warnungen.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: "/5"
+      - trigger: state
+        entity_id:
+          - binary_sensor.gasmeter_warnung
+          - binary_sensor.watermeter_warnung
+          - input_number.zaehler_stale_minuten
+    sensor:
+      - name: Haus Warnungen
+        unique_id: haus_warnungen
+        icon: mdi:home-alert
+        state: >
+          {% set ns = namespace(n=0) %}
+          {% for e in expand('group.haus_warnungen_checks') %}
+            {% if e.state == 'on' %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}
+        attributes:
+          liste: >
+            {% set out = namespace(text='') %}
+            {% for e in expand('group.haus_warnungen_checks') %}
+              {% if e.state == 'on' %}
+                {% set line = e.attributes.grund | default(e.name) | trim %}
+                {% if line %}
+                  {% set out.text = out.text ~ line ~ '\n' %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ out.text | trim }}
+
+  - binary_sensor:
+      - name: Haus hat Warnungen
+        unique_id: haus_hat_warnungen
+        device_class: problem
+        icon: mdi:alert-circle
+        state: "{{ states('sensor.haus_warnungen') | int(0) > 0 }}"
+
 # ---------------------------------------------------------
 # UI-MANAGED FILES & SYSTEM
 # ---------------------------------------------------------
@@ -336,6 +519,12 @@ cloud:
 
 tts:
   - platform: google_translate
+
+notify:
+  - platform: group
+    name: haus_warnungen
+    services:
+      - service: mobile_app_pixel_9_pro
 
 # ---------------------------------------------------------
 # EXTENSIONS (Waste Collection Integration)

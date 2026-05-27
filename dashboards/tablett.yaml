@@ -7,6 +7,19 @@ views:
   cards:
   - type: vertical-stack
     cards:
+    - type: conditional
+      conditions:
+        - condition: state
+          entity: binary_sensor.haus_hat_warnungen
+          state: 'on'
+      card:
+        type: custom:mushroom-template-card
+        primary: Achtung
+        secondary: "{{ state_attr('sensor.haus_warnungen', 'liste') }}"
+        multiline_secondary: true
+        icon: mdi:alert-circle
+        icon_color: red
+        layout: vertical
     - type: horizontal-stack
       cards:
       - type: custom:button-card

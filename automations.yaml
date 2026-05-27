@@ -635,6 +635,21 @@
         title: Nuki Haustür Batterie niedrig
         message: "Nuki-Schloss nur noch {{ states('sensor.nuki_haustur_battery') }} %. Bitte Batterien besorgen."
   mode: single
+- id: haus_warnungen_benachrichtigen
+  alias: 'System: Haus-Warnungen benachrichtigen'
+  description: Push wenn mindestens ein Haus-Warnung-Check aktiv ist.
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.haus_hat_warnungen
+    from: 'off'
+    to: 'on'
+    for: '00:05:00'
+  actions:
+  - action: notify.haus_warnungen
+    data:
+      title: Haus-Warnung
+      message: "{{ state_attr('sensor.haus_warnungen', 'liste') }}"
+  mode: single
 - id: '1770730843209'
   alias: 'Haushalt: Spülmaschine Status-Management'
   description: Überwachung der Spülmaschine an Shelly Phase B

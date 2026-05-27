@@ -68,6 +68,15 @@ input_number:
     icon: mdi:battery-alert
     unit_of_measurement: "%"
     initial: 25
+  zaehler_stale_minuten:
+    name: Zähler Stale Minuten
+    min: 15
+    max: 180
+    step: 15
+    mode: box
+    icon: mdi:timer-sand
+    unit_of_measurement: min
+    initial: 45
 
 input_select:
   waschmaschine_status_helper:

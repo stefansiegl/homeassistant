@@ -154,7 +154,12 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
   - Sprachassistent:
     - Relevante To-Do-Listen in `Einstellungen → Sprachassistenten → Freilegen` freigeben.
 
-*(Weitere Integrationen wie AI-on-the-Edge für Gas/Wasser, Xiaomi Miot Auto für Staubsauger etc. können wir hinzufügen, sobald wir sie im Repo dokumentieren.)*
+- **AI-on-the-Edge (Gas & Wasser)**
+  - Zweck: Auslesen analoger Zähler per ESP32-CAM + MQTT.
+  - Spec: [`ai-on-the-edge.md`](./ai-on-the-edge.md) — Entities, Live-Status, Energie-Dashboard, Fehler-Handling.
+  - Einrichtung: Geräte-Web-UI + Mosquitto; HA MQTT-Integration (Auto-Discovery). YAML: `customize`, Template `sensor.watermeter_in_l`, Recorder-Filter in `configuration.yaml`.
+
+*(Weitere Integrationen wie Xiaomi Miot Auto für Staubsauger etc. können wir ergänzen, sobald wir sie aktiv anfassen.)*
 
 ---
 

@@ -14,6 +14,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Dashboard Tablett (EG)**](./docs/dashboard-tablett.md) – Kiosk-Tablet: Touch-UI, Design-Prinzipien, Backlog.
 - [**Dashboard Übersicht**](./docs/dashboard-uebersicht.md) – Haupt-Dashboard: Lüftung, Klima, Haushalt, Backlog.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
+- [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
 - [Räume & Bereiche](./docs/raeume-und-bereiche.md) – Aktuelle Areas aus Home Assistant als lesbare Referenz.
 - [Standards & UI](./docs/standards.md) – Glue-Method, Naming Conventions, KI-Regeln.
