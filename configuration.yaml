@@ -216,6 +216,12 @@ lovelace:
       icon: mdi:lightbulb
       show_in_sidebar: true
       filename: dashboards/adrian-licht.yaml
+    dashboard-tablett:
+      mode: yaml
+      title: Tablett
+      icon: mdi:tablet-dashboard
+      show_in_sidebar: true
+      filename: dashboards/tablett.yaml
 
 bluetooth:
 mobile_app:

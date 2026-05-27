@@ -11,6 +11,7 @@ Das Ziel ist ein sinnvolles SmartHome. Technik soll den Bewohnern dienen und sic
 ## 📚 Dokumentation (Das Design)
 Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Konfigurations-Strategie**](./docs/konfigurations-strategie.md) – Was in YAML/Git liegt vs. was in der UI bleibt (inkl. Migrations-Backlog).
+- [**Dashboard Tablett (EG)**](./docs/dashboard-tablett.md) – Kiosk-Tablet: Touch-UI, Design-Prinzipien, Backlog.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
 - [Räume & Bereiche](./docs/raeume-und-bereiche.md) – Aktuelle Areas aus Home Assistant als lesbare Referenz.
