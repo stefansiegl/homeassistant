@@ -269,7 +269,7 @@ views:
     - type: custom:mushroom-template-card
       entity: input_select.trockner_status_helper
       primary: Trockner
-      secondary: "{% set status = states('input_select.trockner_status_helper') %}  {% set power = states('sensor.shellyplug_s4_trockner_power') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Trocknet ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
+      secondary: "{% set status = states('input_select.trockner_status_helper') %}  {% set power = states('sensor.shellyplug_4_trockner_power') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Trocknet ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
       icon: "{% if is_state('input_select.trockner_status_helper', 'fertig') %}\n  mdi:tumble-dryer-alert\n{% else %}\n  mdi:tumble-dryer\n{% endif %}"
       icon_color: "{% if is_state('input_select.trockner_status_helper', 'läuft') %}\n  orange\n{% elif is_state('input_select.trockner_status_helper', 'fertig') %}\n  green\n{% else %}\n  disabled\n{% endif %}"
       layout: vertical
@@ -278,7 +278,7 @@ views:
     - type: custom:mushroom-template-card
       entity: input_select.spuelmaschine_status_helper
       primary: Spülmaschine
-      secondary: "{% set status = states('input_select.spuelmaschine_status_helper') %}  {% set power = states('sensor.spuelmaschine_leistung') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Spült ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
+      secondary: "{% set status = states('input_select.spuelmaschine_status_helper') %}  {% set power = states('sensor.spuelmaschine_shellypro3em_leistung') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Spült ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
       icon: "{% if is_state('input_select.spuelmaschine_status_helper', 'fertig') %}\n  mdi:dishwasher-alert\n{% else %}\n  mdi:dishwasher\n{% endif %}"
       icon_color: "{% if is_state('input_select.spuelmaschine_status_helper', 'läuft') %}\n  teal\n{% elif is_state('input_select.spuelmaschine_status_helper', 'fertig') %}\n  green\n{% else %}\n  disabled\n{% endif %}"
       layout: vertical
@@ -375,28 +375,22 @@ views:
       primary: Befeuchter Reinigung
       secondary: 'Zuletzt: {{ states(''input_datetime.letzte_reinigung_befeuchter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter'')) + (states(''input_number.intervall_befeuchter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
       icon: mdi:air-humidifier
+      layout: horizontal
       icon_color: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'') | int(60) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))) / 86400 %} {% if tage >= limit %} red {% else %} blue {% endif %}'
       tap_action:
         action: call-service
-        service: input_datetime.set_datetime
-        target:
-          entity_id: input_datetime.letzte_reinigung_befeuchter
-        data:
-          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+        service: script.wartung_befeuchter_reinigung_vermerken
         confirmation:
           text: Hast du die Befeuchter heute wirklich gereinigt?
     - type: custom:mushroom-template-card
       primary: Lüfterfilter-Wartung
       secondary: 'Zuletzt: {{ states(''input_datetime.letzte_wartung_luefterfilter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter'')) + (states(''input_number.intervall_luefterfilter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
       icon: mdi:air-filter
+      layout: horizontal
       icon_color: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'') | int(180) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))) / 86400 %} {% if tage >= limit %} red {% else %} green {% endif %}'
       tap_action:
         action: call-service
-        service: input_datetime.set_datetime
-        target:
-          entity_id: input_datetime.letzte_wartung_luefterfilter
-        data:
-          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+        service: script.wartung_luefterfilter_vermerken
         confirmation:
           text: Sind die Filter heute wirklich getauscht/gereinigt worden?
   badges: []

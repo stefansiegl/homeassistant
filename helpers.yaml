@@ -59,6 +59,15 @@ input_number:
     icon: mdi:calendar-range
     unit_of_measurement: Tage
     initial: 90
+  batterie_warnschwelle:
+    name: Batterie Warnschwelle
+    min: 10
+    max: 50
+    step: 5
+    mode: box
+    icon: mdi:battery-alert
+    unit_of_measurement: "%"
+    initial: 25
 
 input_select:
   waschmaschine_status_helper:
@@ -102,6 +111,14 @@ input_text:
     max: 1
     mode: text
     initial: "-"
+
+input_button:
+  befeuchter_reinigung_vermerken:
+    name: Befeuchter Reinigung vermerken
+    icon: mdi:spray-bottle
+  luefterfilter_wartung_vermerken:
+    name: Lüfterfilter Wartung vermerken
+    icon: mdi:air-filter
 
 input_datetime:
   letzte_reinigung_befeuchter:

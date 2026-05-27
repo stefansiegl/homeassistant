@@ -59,7 +59,7 @@ Diese Bereiche gehören ins Repository. Die KI darf sie nach Spec ändern; du te
 
 | Was | Typische Datei | Status bei uns | Hinweise |
 |-----|----------------|----------------|----------|
-| Dashboard-Layouts | `dashboards/*.yaml` | 🔄 migrieren | Adrian Licht, Tablett, Übersicht in YAML; Specs in `docs/dashboard-*.md` |
+| Dashboard-Layouts | `dashboards/*.yaml` | 🔄 migrieren | Adrian Licht, Tablett, Übersicht, **Batterie** in YAML; Specs in `docs/dashboard-*.md`; Rest (Wasser, Karte) in Storage |
 | Lovelace-Ressourcen (Mushroom, card-mod) | `configuration.yaml` oder `lovelace/` | 🔄 teilweise | Bis Migration: oft noch in UI |
 | Themes | `themes/` | ⚠️ in `.gitignore` | Bewusst aus Git — ggf. später anders |
 
@@ -152,7 +152,7 @@ Abgleich mit dem, was noch in `.storage` steckt:
 
 - [x] **Helpers** (`input_*`) → `helpers.yaml` (Package); UI-Helfer gelöscht, `.storage/input_*` geleert, Neustart ohne Warnungen
 - [x] **Skripte** → `scripts.yaml` geprüft; keine UI-Skripte mehr (ehem. `script.gemini_test` entfernt)
-- [x] **Dashboards** → [`adrian-licht.yaml`](dashboards/adrian-licht.yaml), [`tablett.yaml`](dashboards/tablett.yaml), [`uebersicht.yaml`](dashboards/uebersicht.yaml) in YAML (Specs: [`docs/dashboard-tablett.md`](docs/dashboard-tablett.md), [`docs/dashboard-uebersicht.md`](docs/dashboard-uebersicht.md)); Rest (Battery, Power, Wasser, Karte) in Storage
+- [x] **Dashboards** → [`adrian-licht.yaml`](dashboards/adrian-licht.yaml), [`tablett.yaml`](dashboards/tablett.yaml), [`uebersicht.yaml`](dashboards/uebersicht.yaml), [`batterie.yaml`](dashboards/batterie.yaml) in YAML (Specs: [`docs/dashboard-tablett.md`](docs/dashboard-tablett.md), [`docs/dashboard-uebersicht.md`](docs/dashboard-uebersicht.md), [`docs/dashboard-batterie.md`](docs/dashboard-batterie.md)); Rest (Wasser, Karte) in Storage
 - [ ] **Lovelace-Ressourcen** in YAML überführen
 - [ ] README-Links zu fehlenden Docs (`appliances.md`, `lighting.md` vs. `lights.md`) bereinigen
 

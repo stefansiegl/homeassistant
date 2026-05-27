@@ -1,2 +1,22 @@
 # Home Assistant scripts (YAML)
-# Stand: keine aktiven Skripte. Neue Skripte hier definieren (entity_id = YAML-Key).
+# Wartungs-Tap auf Übersicht: Lovelace kann keine Templates in tap_action.
+
+wartung_befeuchter_reinigung_vermerken:
+  alias: Wartung Befeuchter Reinigung vermerken
+  mode: single
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.letzte_reinigung_befeuchter
+      data:
+        timestamp: "{{ as_timestamp(now()) | int }}"
+
+wartung_luefterfilter_vermerken:
+  alias: Wartung Lüfterfilter vermerken
+  mode: single
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.letzte_wartung_luefterfilter
+      data:
+        timestamp: "{{ as_timestamp(now()) | int }}"

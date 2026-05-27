@@ -17,7 +17,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 5. **Radon Logik** — `input_boolean.radon_logic_enabled`
 6. **Abfallentsorgung** — Übersicht + 4 Müll-Sensoren
 7. **Zigbee2MQTT** — `switch.zigbee2mqtt_bridge_permit_join`
-8. **Haus-Wartung** — Befeuchter-Reinigung, Lüfterfilter (Tap setzt Datum mit Bestätigung)
+8. **Haus-Wartung** — je eine kompakte Mushroom-Karte (Tap → Bestätigung → `script.wartung_*`)
 
 ## Abhängigkeiten
 
@@ -26,20 +26,11 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 
 ## Entity-Audit (Stand Migration)
 
-Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchter, Waste-Sensoren, Haushalt-Helper, Wartungs-`input_datetime`/`input_number`.
-
-**Bekannte Defekte im Dashboard (1:1 übernommen, Backlog):**
-
-| Referenz | Problem |
-|----------|---------|
-| `sensor.spuelmaschine_leistung` | Entity existiert nicht — Leistung in Spülmaschinen-Karte fehlt |
-| `sensor.shellyplug_s4_trockner_power` | Falscher Name — Registry: `sensor.shellyplug_4_trockner_power` |
+Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchter, Waste-Sensoren, Haushalt-Helper, Spülmaschine `sensor.spuelmaschine_shellypro3em_leistung`, Trockner `sensor.shellyplug_4_trockner_power`, Wartungs-`input_datetime`/`input_number`, Skripte `script.wartung_befeuchter_reinigung_vermerken` / `script.wartung_luefterfilter_vermerken`.
 
 ## Backlog (inhaltlich)
 
 - [ ] **Radon + Lüftung** — Debug-Karten (Block 4/5) und Automatisierung gemeinsam prüfen; Radon-hohe Lüfterstufe bringt vermutlich nicht den gewünschten Effekt
-- [ ] Spülmaschinen-Leistungssensor korrekt anbinden
-- [ ] Trockner power entity_id korrigieren
 - [ ] Lovelace-Ressourcen dauerhaft in `configuration.yaml` (siehe Strategie-Doc)
 - [ ] Layout/Inhalt später verfeinern (nicht Teil der Migration)
 

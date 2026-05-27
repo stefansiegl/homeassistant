@@ -198,6 +198,72 @@ template:
           {% else %} In {{ days }} Tagen
           {% endif %}
 
+      # Batterie-Dashboard: gefilterte Listen (Backend-Template, siehe docs/dashboard-batterie.md)
+      - name: "Batterie Uebersicht"
+        unique_id: batterie_uebersicht
+        icon: mdi:battery
+        state: >
+          {% set ns = namespace(n=0) %}
+          {% for s in states.sensor %}
+            {% if state_attr(s.entity_id, 'device_class') == 'battery' and s.state | is_number and 'pixel_' not in s.entity_id and 'tablett_' not in s.entity_id %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}
+        attributes:
+          liste_alle: >
+            {% set ns = namespace(lines=[]) %}
+            {% for s in states.sensor %}
+              {% if state_attr(s.entity_id, 'device_class') == 'battery' and s.state | is_number and 'pixel_' not in s.entity_id and 'tablett_' not in s.entity_id %}
+                {% set pct = s.state | float(100) | round(0) | int %}
+                {% set label = state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) %}
+                {% set ns.lines = ns.lines + [(pct, label)] %}
+              {% endif %}
+            {% endfor %}
+            {% set out = namespace(text='') %}
+            {% for pct, label in ns.lines | sort %}
+              {% set out.text = out.text ~ label ~ ' — ' ~ pct ~ '%\n' %}
+            {% endfor %}
+            {{ out.text | trim if out.text else 'Keine Batterie-Sensoren gefunden' }}
+          anzahl_niedrig: >
+            {% set threshold = states('input_number.batterie_warnschwelle') | float(25) %}
+            {% set ns = namespace(n=0) %}
+            {% for s in states.sensor %}
+              {% if state_attr(s.entity_id, 'device_class') == 'battery' and s.state | is_number and 'pixel_' not in s.entity_id and 'tablett_' not in s.entity_id and s.state | float(100) < threshold %}
+                {% set ns.n = ns.n + 1 %}
+              {% endif %}
+            {% endfor %}
+            {% for b in states.binary_sensor %}
+              {% if state_attr(b.entity_id, 'device_class') == 'battery' and b.state == 'on' and 'pixel_' not in b.entity_id and 'tablett_' not in b.entity_id %}
+                {% set ns.n = ns.n + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.n }}
+          liste_niedrig: >
+            {% set threshold = states('input_number.batterie_warnschwelle') | float(25) %}
+            {% set ns = namespace(text='', n=0) %}
+            {% for pct in range(0, threshold | int) %}
+              {% for s in states.sensor %}
+                {% if state_attr(s.entity_id, 'device_class') == 'battery' and s.state | is_number and 'pixel_' not in s.entity_id and 'tablett_' not in s.entity_id and s.state | int(100) == pct %}
+                  {% set label = state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) %}
+                  {% set ns.text = ns.text ~ label ~ ' — ' ~ pct ~ '%\n' %}
+                  {% set ns.n = ns.n + 1 %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+            {% for b in states.binary_sensor %}
+              {% if state_attr(b.entity_id, 'device_class') == 'battery' and b.state == 'on' and 'pixel_' not in b.entity_id and 'tablett_' not in b.entity_id %}
+                {% set label = state_attr(b.entity_id, 'friendly_name') | default(b.entity_id) %}
+                {% set ns.text = ns.text ~ label ~ ' — 0% (kritisch)\n' %}
+                {% set ns.n = ns.n + 1 %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.n == 0 %}
+            Alles ok — nichts unter {{ threshold | int }} %
+            {% else %}
+            {{ ns.text | trim }}
+            {% endif %}
+
 # ---------------------------------------------------------
 # UI-MANAGED FILES & SYSTEM
 # ---------------------------------------------------------
@@ -228,6 +294,12 @@ lovelace:
       icon: mdi:view-dashboard
       show_in_sidebar: true
       filename: dashboards/uebersicht.yaml
+    dashboard-battery:
+      mode: yaml
+      title: Batterie
+      icon: mdi:battery
+      show_in_sidebar: true
+      filename: dashboards/batterie.yaml
 
 bluetooth:
 mobile_app:

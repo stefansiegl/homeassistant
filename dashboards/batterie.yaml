@@ -1,0 +1,85 @@
+# Dashboard: Batterie
+# Siehe docs/dashboard-batterie.md
+
+views:
+- title: Batterie
+  cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Haustür — Nuki
+      subtitle: Zugang — Batterien rechtzeitig wechseln
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: grid
+      columns: 2
+      square: false
+      card_mod:
+        style: "ha-card {\n  box-shadow: none;\n  background: none;\n  margin-top: 0px;\n}\n:host {\n  --grid-card-gap: 0px;\n}"
+      cards:
+      - type: custom:mushroom-entity-card
+        entity: sensor.nuki_haustur_battery
+        name: Schloss Akku
+        layout: vertical
+        icon_color: "{% set pct = states('sensor.nuki_haustur_battery') | float(100) %} {% set limit = states('input_number.batterie_warnschwelle') | float(25) %} {% if pct < limit %} red {% elif pct < 40 %} orange {% else %} green {% endif %}"
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  border-right: none;\n  box-shadow: none;\n  background: {% if is_state('binary_sensor.nuki_haustur_battery_critical', 'on') %} rgba(255,0,0,0.1) {% else %} none {% endif %};\n}"
+      - type: custom:mushroom-template-card
+        primary: Nuki Status
+        secondary: "{% if is_state('binary_sensor.nuki_haustur_battery_critical', 'on') %}Schloss: kritisch{% else %}Schloss: ok{% endif %} · {% if is_state('binary_sensor.nuki_haustur_keypad_battery_critical', 'on') %}Keypad: kritisch{% else %}Keypad: ok{% endif %}"
+        icon: mdi:lock-alert
+        layout: vertical
+        icon_color: "{% if is_state('binary_sensor.nuki_haustur_battery_critical', 'on') or is_state('binary_sensor.nuki_haustur_keypad_battery_critical', 'on') %} red {% else %} green {% endif %}"
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  box-shadow: none;\n  background: {% if is_state('binary_sensor.nuki_haustur_keypad_battery_critical', 'on') %} rgba(255,0,0,0.1) {% else %} none {% endif %};\n}"
+      - type: custom:mushroom-entity-card
+        entity: lock.nuki_haustur_lock
+        name: Haustür
+        layout: vertical
+        icon_color: blue
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border-bottom-left-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n}"
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Bald leer
+      subtitle: Geräte unter der Warnschwelle
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: custom:mushroom-template-card
+      entity: sensor.batterie_ubersicht
+      primary: '{{ state_attr(''sensor.batterie_ubersicht'', ''anzahl_niedrig'') | int(0) }} Geräte unter {{ states(''input_number.batterie_warnschwelle'') | int }} %'
+      secondary: '{{ state_attr(''sensor.batterie_ubersicht'', ''liste_niedrig'') }}'
+      icon: mdi:battery-alert
+      layout: vertical
+      multiline_secondary: true
+      icon_color: '{% if state_attr(''sensor.batterie_ubersicht'', ''anzahl_niedrig'') | int(0) > 0 %} red {% else %} green {% endif %}'
+      tap_action:
+        action: none
+      card_mod:
+        style: "ha-card {\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n}\nmushroom-template-card {\n  --subtitle-line-clamp: unset;\n}\n.subtitle {\n  white-space: pre-line !important;\n  -webkit-line-clamp: unset !important;\n  overflow: visible !important;\n  max-height: 320px;\n  overflow-y: auto !important;\n}"
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Alle Batterien
+      subtitle: Sender-Geräte, sortiert nach Ladestand
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: custom:mushroom-template-card
+      entity: sensor.batterie_ubersicht
+      primary: '{{ states(''sensor.batterie_ubersicht'') | int(0) }} Geräte'
+      secondary: '{{ state_attr(''sensor.batterie_ubersicht'', ''liste_alle'') }}'
+      icon: mdi:battery
+      layout: vertical
+      multiline_secondary: true
+      icon_color: grey
+      tap_action:
+        action: none
+      card_mod:
+        style: "ha-card {\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n}\nmushroom-template-card {\n  --subtitle-line-clamp: unset;\n}\n.subtitle {\n  white-space: pre-line !important;\n  -webkit-line-clamp: unset !important;\n  overflow: visible !important;\n  max-height: 480px;\n  overflow-y: auto !important;\n}"

@@ -594,22 +594,63 @@
       - action: notify.mobile_app_pixel_9_pro
         data:
           message: Check! Der Filterwechsel wurde im System gespeichert.
+- id: nuki_haustuer_battery_warnung
+  alias: 'Nuki: Haustür Batterie warnen'
+  description: Push wenn Nuki-Schloss oder Keypad Batterie niedrig oder kritisch ist.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.nuki_haustur_battery
+    below: input_number.batterie_warnschwelle
+  - trigger: state
+    entity_id: binary_sensor.nuki_haustur_battery_critical
+    from: 'off'
+    to: 'on'
+    for: 01:00:00
+  - trigger: state
+    entity_id: binary_sensor.nuki_haustur_keypad_battery_critical
+    from: 'off'
+    to: 'on'
+    for: 01:00:00
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: "{{ trigger.entity_id == 'binary_sensor.nuki_haustur_keypad_battery_critical' }}"
+      sequence:
+      - action: notify.mobile_app_pixel_9_pro
+        data:
+          title: Nuki Keypad Batterie kritisch
+          message: Das Nuki-Keypad an der Haustür meldet kritischen Batteriestand. Bitte zeitnah wechseln.
+    - conditions:
+      - condition: template
+        value_template: "{{ trigger.entity_id == 'binary_sensor.nuki_haustur_battery_critical' }}"
+      sequence:
+      - action: notify.mobile_app_pixel_9_pro
+        data:
+          title: Nuki Haustür Batterie kritisch
+          message: Das Nuki-Schloss meldet kritischen Batteriestand. Bitte sofort wechseln — sonst kein Zugang.
+    default:
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: Nuki Haustür Batterie niedrig
+        message: "Nuki-Schloss nur noch {{ states('sensor.nuki_haustur_battery') }} %. Bitte Batterien besorgen."
+  mode: single
 - id: '1770730843209'
   alias: 'Haushalt: Spülmaschine Status-Management'
   description: Überwachung der Spülmaschine an Shelly Phase B
   triggers:
   - trigger: numeric_state
-    entity_id: sensor.spuelmaschine_leistung
+    entity_id: sensor.spuelmaschine_shellypro3em_leistung
     above: 5
     for: 00:02:00
     id: trigger_start
   - trigger: numeric_state
-    entity_id: sensor.spuelmaschine_leistung
+    entity_id: sensor.spuelmaschine_shellypro3em_leistung
     below: 2
     for: 00:05:00
     id: trigger_fertig
   - trigger: numeric_state
-    entity_id: sensor.spuelmaschine_leistung
+    entity_id: sensor.spuelmaschine_shellypro3em_leistung
     below: 1
     for: 00:15:00
     id: trigger_standby
@@ -624,7 +665,7 @@
     - delay: 00:01:00
     - if:
       - condition: template
-        value_template: '{{ states(''sensor.spuelmaschine_leistung'') | float(0) <
+        value_template: '{{ states(''sensor.spuelmaschine_shellypro3em_leistung'') | float(0) <
           1.0 }}'
       then:
       - action: input_select.select_option
