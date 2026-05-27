@@ -1,0 +1,402 @@
+# Dashboard: Übersicht (Haupt-Dashboard)
+# Siehe docs/dashboard-uebersicht.md
+
+views:
+- title: Home
+  cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Lüftungszentrale
+      subtitle: Steuerung & Überwachung
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: custom:mushroom-fan-card
+      entity: sensor.helios_fan_stage
+      name: Aktuelle Stufe
+      icon_animation: false
+      fill_container: true
+      layout: horizontal
+      icon_color: blue
+      card_mod:
+        style: "ha-card {\n  border-bottom-left-radius: 0px;\n  border-bottom-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: grid
+      columns: 2
+      square: false
+      card_mod:
+        style: "ha-card {\n  box-shadow: none;\n  background: none;\n  margin-top: 0px;\n}\n:host {\n  --grid-card-gap: 0px;\n}"
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.house_max_co2
+        primary: '{{ states(''sensor.house_max_co2'') }} ppm'
+        secondary: Max CO2
+        icon: mdi:molecule-co2
+        layout: vertical
+        icon_color: '{% if states(''sensor.house_max_co2'')|int > 1000 %} red {% elif states(''sensor.house_max_co2'')|int > 800 %} orange {% else %} green {% endif %}'
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-entity-card
+        entity: sensor.helios_heat_recovery_efficiency
+        primary_info: state
+        secondary_info: name
+        name: Effizienz
+        icon_color: green
+        layout: vertical
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.helios_bypass
+        primary: Modus
+        secondary: '{% if is_state(''binary_sensor.helios_bypass'', ''on'') %} Sommer {% else %} Winter {% endif %}'
+        icon: '{% if is_state(''binary_sensor.helios_bypass'', ''on'') %} mdi:weather-sunny {% else %} mdi:snowflake {% endif %}'
+        icon_color: '{% if is_state(''binary_sensor.helios_bypass'', ''on'') %} orange {% else %} blue {% endif %}'
+        layout: vertical
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border-bottom-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-entity-card
+        entity: input_boolean.ventilation_kill_switch
+        name: Not-Aus
+        layout: vertical
+        icon_color: '{% if is_state(entity, ''on'') %} red {% else %} grey {% endif %}'
+        tap_action:
+          action: toggle
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border-bottom-left-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n  background: {% if is_state(config.entity, 'on') %} rgba(255,0,0,0.1) {% else %} none {% endif %};\n}"
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Raumklima
+      subtitle: Luftqualität & Befeuchtung
+    - type: grid
+      columns: 6
+      square: false
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:map-marker-radius
+        icon_color: blue
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: custom:mushroom-template-card
+        icon: mdi:thermometer
+        icon_color: orange
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: custom:mushroom-template-card
+        icon: mdi:water-percent
+        icon_color: cyan
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: custom:mushroom-template-card
+        icon: mdi:molecule-co2
+        icon_color: indigo
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: custom:mushroom-template-card
+        icon: mdi:air-humidifier
+        icon_color: green
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: custom:mushroom-template-card
+        icon: mdi:water-alert
+        icon_color: red
+        layout: vertical
+        card_mod:
+          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      card_mod:
+        style: 'ha-card { margin-bottom: -15px; }'
+    - type: grid
+      columns: 6
+      square: false
+      card_mod:
+        style: ':host { --grid-card-gap: 0px; }
+
+          ha-card { border-radius: 15px 15px 0px 0px; border: 1px solid rgba(0,0,0,0.1); border-bottom: none; box-shadow: none; }'
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:silverware-fork-knife
+        icon_color: blue
+        secondary: EG (Küche)
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_02_kueche_temperature
+        primary: '{{ states(entity) | round(1, default=''--'') }}°'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_02_kueche_humidity
+        primary: '{{ states(entity) | round(0, default=''--'') }}%'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_02_kueche_carbon_dioxide
+        primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
+        icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: humidifier.deerma_jsq2w_a365_humidifier
+        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.deerma_jsq2w_a365_water_shortage_fault
+        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+        layout: vertical
+    - type: grid
+      columns: 6
+      square: false
+      card_mod:
+        style: ':host { --grid-card-gap: 0px; }
+
+          ha-card { border-radius: 0px; border: 1px solid rgba(0,0,0,0.1); border-bottom: none; box-shadow: none; }'
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:bed
+        icon_color: purple
+        secondary: 1. OG
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.c9_46_fc_e8_90_d9_temperature
+        primary: '{{ states(entity) | round(1, default=''--'') }}°'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.c9_46_fc_e8_90_d9_humidity
+        primary: '{{ states(entity) | round(0, default=''--'') }}%'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+        primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
+        icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: humidifier.deerma_jsq2w_7134_humidifier
+        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.deerma_jsq2w_7134_water_shortage_fault
+        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+        layout: vertical
+    - type: grid
+      columns: 6
+      square: false
+      card_mod:
+        style: ':host { --grid-card-gap: 0px; }
+
+          ha-card { border-radius: 0px; border: 1px solid rgba(0,0,0,0.1); border-bottom: none; box-shadow: none; }'
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:laptop
+        icon_color: orange
+        secondary: 2. OG (Büro)
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_01_arbeitszimmer_temperature
+        primary: '{{ states(entity) | round(1, default=''--'') }}°'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_01_arbeitszimmer_humidity
+        primary: '{{ states(entity) | round(0, default=''--'') }}%'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+        primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
+        icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: humidifier.deerma_jsq2w_b6e0_humidifier
+        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.deerma_jsq2w_b6e0_water_shortage_fault
+        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+        layout: vertical
+    - type: grid
+      columns: 6
+      square: false
+      card_mod:
+        style: ':host { --grid-card-gap: 0px; }
+
+          ha-card { border-radius: 0px 0px 15px 15px; border: 1px solid rgba(0,0,0,0.1); box-shadow: none; }'
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:sleep
+        icon_color: indigo
+        secondary: 2. OG (Schlafen)
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.db_04_e6_6d_44_0d_temperature
+        primary: '{{ states(entity) | round(1, default=''--'') }}°'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.db_04_e6_6d_44_0d_humidity
+        primary: '{{ states(entity) | round(0, default=''--'') }}%'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.db_04_e6_6d_44_0d_carbon_dioxide
+        primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
+        icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
+        layout: vertical
+      - type: custom:mushroom-template-card
+        primary: '-'
+        icon: mdi:minus
+        icon_color: disabled
+        layout: vertical
+      - type: custom:mushroom-template-card
+        primary: '-'
+        icon: mdi:minus
+        icon_color: disabled
+        layout: vertical
+  - type: horizontal-stack
+    cards:
+    - type: custom:mushroom-template-card
+      entity: input_select.waschmaschine_status_helper
+      primary: Waschmaschine
+      secondary: "{% set status = states('input_select.waschmaschine_status_helper') %}  {% set power = states('sensor.shellyplug_6_waschmaschine_power') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Wäscht ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
+      icon: "{% if is_state('input_select.waschmaschine_status_helper', 'fertig') %}\n  mdi:washing-machine-alert\n{% else %}\n  mdi:washing-machine\n{% endif %}"
+      tap_action:
+        action: more-info
+      color: "{% if is_state('input_select.waschmaschine_status_helper', 'läuft') %}\n  blue\n{% elif is_state('input_select.waschmaschine_status_helper', 'fertig') %}\n  green\n{% else %}\n  disabled\n{% endif %}"
+      vertical: true
+    - type: custom:mushroom-template-card
+      entity: input_select.trockner_status_helper
+      primary: Trockner
+      secondary: "{% set status = states('input_select.trockner_status_helper') %}  {% set power = states('sensor.shellyplug_s4_trockner_power') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Trocknet ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
+      icon: "{% if is_state('input_select.trockner_status_helper', 'fertig') %}\n  mdi:tumble-dryer-alert\n{% else %}\n  mdi:tumble-dryer\n{% endif %}"
+      icon_color: "{% if is_state('input_select.trockner_status_helper', 'läuft') %}\n  orange\n{% elif is_state('input_select.trockner_status_helper', 'fertig') %}\n  green\n{% else %}\n  disabled\n{% endif %}"
+      layout: vertical
+      tap_action:
+        action: more-info
+    - type: custom:mushroom-template-card
+      entity: input_select.spuelmaschine_status_helper
+      primary: Spülmaschine
+      secondary: "{% set status = states('input_select.spuelmaschine_status_helper') %}  {% set power = states('sensor.spuelmaschine_leistung') | float(0) | round(0) %} {% if status == 'läuft' %}\n  Spült ({{ power }} W)\n{% elif status == 'fertig' %}\n  Fertig! Bitte leeren.\n{% else %}\n  Standby\n{% endif %}"
+      icon: "{% if is_state('input_select.spuelmaschine_status_helper', 'fertig') %}\n  mdi:dishwasher-alert\n{% else %}\n  mdi:dishwasher\n{% endif %}"
+      icon_color: "{% if is_state('input_select.spuelmaschine_status_helper', 'läuft') %}\n  teal\n{% elif is_state('input_select.spuelmaschine_status_helper', 'fertig') %}\n  green\n{% else %}\n  disabled\n{% endif %}"
+      layout: vertical
+      tap_action:
+        action: more-info
+  - type: entities
+    entities:
+    - sensor.radon_meter_radon
+  - type: entities
+    entities:
+    - entity: input_boolean.radon_logic_enabled
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-template-card
+      primary: Abfallentsorgung
+      secondary: '{% set rest = state_attr(''sensor.waste_rest_days'', ''daysTo'') | int(99) %} {% set gelb = state_attr(''sensor.waste_gelb_days'', ''daysTo'') | int(99) %} {% set bio = state_attr(''sensor.waste_bio_days'', ''daysTo'') | int(99) %} {% set papier = state_attr(''sensor.waste_papier_days'', ''daysTo'') | int(99) %} {% set next = [rest, gelb, bio, papier] | min %}
+
+        Nächste Abholung:  {% if next == 0 %} Heute! 🚛 {% elif next == 1 %} Morgen! {% else %} in {{ next }} Tagen {% endif %}'
+      icon: mdi:delete-clock
+      icon_color: '{% set rest = state_attr(''sensor.waste_rest_days'', ''daysTo'') | int(99) %} {% set gelb = state_attr(''sensor.waste_gelb_days'', ''daysTo'') | int(99) %} {% set bio = state_attr(''sensor.waste_bio_days'', ''daysTo'') | int(99) %} {% set papier = state_attr(''sensor.waste_papier_days'', ''daysTo'') | int(99) %} {% set next = [rest, gelb, bio, papier] | min %} {% if next <= 1 %} red {% else %} grey {% endif %}'
+      tap_action:
+        action: none
+    - type: grid
+      square: false
+      columns: 2
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.waste_rest_days
+        primary: Restmüll
+        secondary: '{% set days = state_attr(entity, ''daysTo'') | int(-1) %}
+
+          {% if days == 0 %} Heute! 🚛
+
+          {% elif days == 1 %} Morgen!
+
+          {% else %} in {{ days }} Tagen
+
+          {% endif %}'
+        icon: mdi:trash-can
+        icon_color: black
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.waste_bio_days
+        primary: Biomüll
+        secondary: '{% set days = state_attr(entity, ''daysTo'') | int(-1) %}
+
+          {% if days == 0 %} Heute! 🚛
+
+          {% elif days == 1 %} Morgen!
+
+          {% else %} in {{ days }} Tagen
+
+          {% endif %}'
+        icon: mdi:trash-can
+        icon_color: green
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.waste_gelb_days
+        primary: Gelbe Tonne
+        secondary: '{% set days = state_attr(entity, ''daysTo'') | int(-1) %}
+
+          {% if days == 0 %} Heute! 🚛
+
+          {% elif days == 1 %} Morgen!
+
+          {% else %} in {{ days }} Tagen
+
+          {% endif %}'
+        icon: mdi:trash-can
+        icon_color: yellow
+        layout: vertical
+      - type: custom:mushroom-template-card
+        entity: sensor.waste_papier_days
+        primary: Altpapier
+        secondary: '{% set days = state_attr(entity, ''daysTo'') | int(-1) %}
+
+          {% if days == 0 %} Heute! 🚛
+
+          {% elif days == 1 %} Morgen!
+
+          {% else %} in {{ days }} Tagen
+
+          {% endif %}'
+        icon: mdi:trash-can
+        icon_color: blue
+        layout: vertical
+  - type: entities
+    entities:
+    - switch.zigbee2mqtt_bridge_permit_join
+  - type: vertical-stack
+    title: Haus-Wartung
+    cards:
+    - type: custom:mushroom-template-card
+      primary: Befeuchter Reinigung
+      secondary: 'Zuletzt: {{ states(''input_datetime.letzte_reinigung_befeuchter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter'')) + (states(''input_number.intervall_befeuchter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
+      icon: mdi:air-humidifier
+      icon_color: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'') | int(60) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))) / 86400 %} {% if tage >= limit %} red {% else %} blue {% endif %}'
+      tap_action:
+        action: call-service
+        service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.letzte_reinigung_befeuchter
+        data:
+          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+        confirmation:
+          text: Hast du die Befeuchter heute wirklich gereinigt?
+    - type: custom:mushroom-template-card
+      primary: Lüfterfilter-Wartung
+      secondary: 'Zuletzt: {{ states(''input_datetime.letzte_wartung_luefterfilter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter'')) + (states(''input_number.intervall_luefterfilter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
+      icon: mdi:air-filter
+      icon_color: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'') | int(180) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))) / 86400 %} {% if tage >= limit %} red {% else %} green {% endif %}'
+      tap_action:
+        action: call-service
+        service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.letzte_wartung_luefterfilter
+        data:
+          date: '{{ now().strftime(''%Y-%m-%d'') }}'
+        confirmation:
+          text: Sind die Filter heute wirklich getauscht/gereinigt worden?
+  badges: []
