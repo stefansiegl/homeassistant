@@ -37,12 +37,25 @@ Bei Fehlern, Warnungen nach Neustart oder „funktioniert nicht“-Meldungen **z
 
 1. **Home Assistant:** `ha core logs` (ggf. mit `grep` nach `ERROR`, `WARNING`, `already exists`).
 2. **Add-ons:** z. B. `ha supervisor logs`, Zigbee2MQTT unter `zigbee2mqtt/log/`.
-3. **Konfiguration:** betroffene YAML, `.storage` (nur lesen; editieren nur mit expliziter Anweisung).
+3. **Konfiguration:** betroffene YAML, `.storage` (**nur lesen** — siehe Abschnitt unten).
 
 `home-assistant.log*` ist in `.gitignore`, über die Shell/`ha` aber erreichbar. Copy-Paste nur anfragen, wenn etwas nur in der HA-UI sichtbar ist oder der Nutzer gezielt eine Stelle zeigen will.
 
+## `.storage` — wann editieren?
+
+**Standard: nicht editieren.** Registry, UI-Helfer, Lovelace-Storage, Tokens → **Nutzer in der HA-UI** (oder YAML-Migration im Repo).
+
+**Vor jedem `.storage`-Edit zuerst den Nutzer fragen** — auch wenn ein technischer Weg schneller wirkt. Kurz erklären:
+- Was soll geändert werden?
+- Warum reicht **UI** oder **YAML** nicht?
+- Warum ist `.storage` hier der **beste** Weg?
+
+Erst nach **ausdrücklicher Zustimmung** editieren. Kein „still im Hintergrund“ über lange Shell-Befehle — der Nutzer soll vorher verstehen, *was* passiert und *warum*, nicht erst am Popup erkennen, dass `.storage` angefasst wird.
+
+**Lesen** von `.storage` (Registry, Restore-State, Lovelace-Export) ist ok und oft nötig für Diagnose/Migration.
+
 ## Nicht anfassen (ohne explizite Anweisung)
 
-- `.storage/`, `.cloud/`, Token-Caches, `secrets.yaml`-Inhalte
+- `.storage/`, `.cloud/`, Token-Caches, `secrets.yaml`-Inhalte — **kein Edit ohne vorherige Rückfrage + Zustimmung** (siehe oben)
 - Secrets niemals hardcoden; nur `!secret` verwenden
 - Keine Commits/Pushes, es sei denn, der Nutzer verlangt es
