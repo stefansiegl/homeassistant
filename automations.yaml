@@ -396,8 +396,7 @@
             percentage: 0
           action: fan.set_percentage
   mode: restart
-- &id001
-  id: climate_humidification_delta_v2_2
+- id: climate_humidification_delta_v2_2
   alias: 'Klima: Intelligente Befeuchtung (Delta-Steuerung)'
   description: Regelt 3 Befeuchter. Nachtruhe 22-08 Uhr. Buzzer via Switch-Alarm deaktiviert.
   triggers:
@@ -560,85 +559,6 @@
           actions:
           - action: MARK_FAN_FILTER_CLEANED
             title: Filter erledigt ✅
-- id: central_maintenance_system
-  alias: Zentrales Wartungs-Management
-  description: ''
-  triggers:
-  - trigger: time
-    at: '10:00:00'
-  actions:
-  - if:
-    - condition: template
-      value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
-        | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
-        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
-
-        '
-    then:
-    - action: notify.mobile_app_pixel_9_pro
-      data:
-        title: "\U0001F9FC Wartung fällig"
-        message: Bitte die Befeuchter reinigen.
-        data:
-          actions:
-          - action: MARK_HUMIDIFIER_CLEANED
-            title: Befeuchter erledigt ✅
-  - if:
-    - condition: template
-      value_template: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'')
-        | int(180) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))
-        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
-
-        '
-    then:
-    - action: notify.mobile_app_pixel_9_pro
-      data:
-        title: "\U0001F300 Wartung fällig"
-        message: Bitte die Filter der Lüftungsanlage prüfen/reinigen.
-        data:
-          actions:
-          - action: MARK_FAN_FILTER_CLEANED
-            title: Filter erledigt ✅
-- id: central_maintenance_system
-  alias: Zentrales Wartungs-Management
-  description: ''
-  triggers:
-  - trigger: time
-    at: '10:00:00'
-  actions:
-  - if:
-    - condition: template
-      value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
-        | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
-        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
-
-        '
-    then:
-    - action: notify.mobile_app_pixel_9_pro
-      data:
-        title: "\U0001F9FC Wartung fällig"
-        message: Bitte die Befeuchter reinigen.
-        data:
-          actions:
-          - action: MARK_HUMIDIFIER_CLEANED
-            title: Befeuchter erledigt ✅
-  - if:
-    - condition: template
-      value_template: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'')
-        | int(180) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))
-        %} {{ (as_timestamp(now()) - letzte) / 86400 >= limit }}
-
-        '
-    then:
-    - action: notify.mobile_app_pixel_9_pro
-      data:
-        title: "\U0001F300 Wartung fällig"
-        message: Bitte die Filter der Lüftungsanlage prüfen/reinigen.
-        data:
-          actions:
-          - action: MARK_FAN_FILTER_CLEANED
-            title: Filter erledigt ✅
-- *id001
 - id: system_maintenance_reset_handler
   alias: 'System: Wartung Reset Handler'
   description: Setzt das jeweilige Wartungsdatum auf heute, wenn der Button in der
