@@ -22,7 +22,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 ## Abhängigkeiten
 
 - HACS: **Mushroom**, **card-mod** (18× `card_mod.style`)
-- Ressourcen derzeit noch in `.storage/lovelace_resources` (globaler Backlog: in YAML)
+- Ressourcen: `configuration.yaml` → `lovelace.resources` (Mushroom, card-mod)
 
 ## Entity-Audit (Stand Migration)
 
@@ -31,7 +31,6 @@ Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchte
 ## Backlog (inhaltlich)
 
 - [ ] **Radon + Lüftung** — Debug-Karten (Block 4/5) und Automatisierung gemeinsam prüfen; Radon-hohe Lüfterstufe bringt vermutlich nicht den gewünschten Effekt
-- [ ] Lovelace-Ressourcen dauerhaft in `configuration.yaml` (siehe Strategie-Doc)
 - [ ] Layout/Inhalt später verfeinern (nicht Teil der Migration)
 
 ## Migration

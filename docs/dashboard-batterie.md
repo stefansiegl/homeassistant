@@ -57,7 +57,7 @@ Push-Automation: `Nuki: Haustür Batterie warnen` in [`automations.yaml`](../aut
 
 ## Abhängigkeiten
 
-- HACS: **Mushroom**, **card-mod** (global in `.storage/lovelace_resources`)
+- HACS: **Mushroom**, **card-mod** (registriert in `configuration.yaml` → `lovelace.resources`)
 
 ## Test-Checkliste
 

@@ -26,7 +26,7 @@ YAML: [`dashboards/tablett.yaml`](../dashboards/tablett.yaml) — **1:1 aus Stor
 - [ ] **Inhalt festlegen** — Was soll auf dem Tablett dauerhaft sichtbar sein? (Licht, Müll, Wetter, Lüftung, …)
 - [ ] **Benutzer/Sichtbarkeit** — Tablet vermutlich Benutzer `kioskmode`; andere Nutzer (David, …) ggf. ausblenden; **Stefan (Admin)** sieht immer alles
 - [ ] **Kiosk-Mode** (README-Roadmap) — ggf. mit HACS `kiosk-mode` verknüpfen
-- [ ] **Lovelace-Ressourcen** — `button-card` (und ggf. Fonts) dauerhaft in YAML/`configuration.yaml`
+- [ ] **Lovelace-Ressourcen** — erledigt global in `configuration.yaml` (`button-card`, Mushroom, card-mod, kiosk-mode)
 
 ## Migration
 

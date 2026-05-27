@@ -275,6 +275,15 @@ scene: !include scenes.yaml
 
 lovelace:
   mode: storage
+  resources:
+    - url: /hacsfiles/lovelace-mushroom/mushroom.js
+      type: module
+    - url: /hacsfiles/lovelace-card-mod/card-mod.js
+      type: module
+    - url: /hacsfiles/button-card/button-card.js
+      type: module
+    - url: /hacsfiles/kiosk-mode/kiosk-mode.js
+      type: module
   dashboards:
     adrian-licht:
       mode: yaml
