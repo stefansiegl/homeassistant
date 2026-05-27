@@ -207,6 +207,16 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+lovelace:
+  mode: storage
+  dashboards:
+    adrian-licht:
+      mode: yaml
+      title: Adrian Licht
+      icon: mdi:lightbulb
+      show_in_sidebar: true
+      filename: dashboards/adrian-licht.yaml
+
 bluetooth:
 mobile_app:
 cloud:

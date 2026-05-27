@@ -1,0 +1,12 @@
+# Dashboard: Adrian Licht (1. OG)
+# Migriert aus .storage/lovelace.adrian_licht
+
+views:
+  - type: sections
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Neuer Abschnitt
+          - type: tile
+            entity: light.licht_1og_adrian

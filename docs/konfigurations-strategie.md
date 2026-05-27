@@ -152,7 +152,7 @@ Abgleich mit dem, was noch in `.storage` steckt:
 
 - [x] **Helpers** (`input_*`) → `helpers.yaml` (Package); UI-Helfer gelöscht, `.storage/input_*` geleert, Neustart ohne Warnungen
 - [x] **Skripte** → `scripts.yaml` geprüft; keine UI-Skripte mehr (ehem. `script.gemini_test` entfernt)
-- [ ] **Dashboards** nacheinander → `dashboards/*.yaml` (Start: `test`, dann `Tablett`, zuletzt `Übersicht`)
+- [ ] **Dashboards** → Pilot **Adrian Licht** in [`dashboards/adrian-licht.yaml`](dashboards/adrian-licht.yaml); nach Test Storage-Dashboard in UI löschen; danach Tablett, Übersicht
 - [ ] **Lovelace-Ressourcen** in YAML überführen
 - [ ] README-Links zu fehlenden Docs (`appliances.md`, `lighting.md` vs. `lights.md`) bereinigen
 
