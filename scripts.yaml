@@ -20,3 +20,23 @@ wartung_luefterfilter_vermerken:
         entity_id: input_datetime.letzte_wartung_luefterfilter
       data:
         timestamp: "{{ as_timestamp(now()) | int }}"
+
+system_ausstehende_updates_installieren:
+  alias: System ausstehende Updates installieren
+  description: Installiert alle update.*-Entities mit state on (HACS, Firmware, …).
+  mode: restart
+  sequence:
+    - repeat:
+        for_each: >
+          {% set ns = namespace(ids=[]) %}
+          {% for e in states.update %}
+            {% if e.state == 'on' and not e.attributes.get('in_progress') %}
+              {% set ns.ids = ns.ids + [e.entity_id] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.ids }}
+        sequence:
+          - action: update.install
+            target:
+              entity_id: "{{ repeat.item }}"
+          - delay: "00:00:05"
