@@ -79,7 +79,7 @@ Diese Bereiche gehören ins Repository. Die KI darf sie nach Spec ändern; du te
 | Was | Grund |
 |-----|--------|
 | `secrets.yaml` (Inhalt) | In `.gitignore` — nur Platzhalter/`!secret` in committeten Dateien |
-| `custom_components/` | In `.gitignore` — Updates über HACS, nicht Hand-Patches im Repo |
+| `custom_components/` | In `.gitignore` — Updates über HACS; **Inventar** in [`docs/hacs-inventar.md`](hacs-inventar.md) + `manifests/hacs-inventar.json` |
 | `.storage/`, `.cloud/`, Datenbanken, Logs | Laufzeit & Registry |
 
 ---

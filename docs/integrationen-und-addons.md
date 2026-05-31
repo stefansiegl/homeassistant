@@ -165,6 +165,8 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
 
 ## Frontend / HACS-Frontend-Komponenten
 
+> **Inventar (Stand, Versionen, Restore):** [`hacs-inventar.md`](./hacs-inventar.md) · JSON: `manifests/hacs-inventar.json` · Update: `bin/export-hacs-inventar.sh`
+
 > Dinge, die das Dashboard aussehen lassen wie “Das gesunde Haus”.
 
 - **Mushroom Cards & Mushroom Theme**

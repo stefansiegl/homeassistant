@@ -1,0 +1,137 @@
+{
+  "snapshot_date": "2026-05-31",
+  "source": "hacs.repositories + lovelace_resources + custom_components/manifest.json",
+  "hacs_installed": [
+    {
+      "category": "integration",
+      "repository": "RogerSelwyn/MS365-ToDo",
+      "domain": "ms365_todo",
+      "version": "v1.11.0"
+    },
+    {
+      "category": "integration",
+      "repository": "al-one/hass-xiaomi-miot",
+      "domain": "xiaomi_miot",
+      "version": "v1.1.4"
+    },
+    {
+      "category": "integration",
+      "repository": "asev/homeassistant-helios",
+      "domain": "helios",
+      "version": "v0.5"
+    },
+    {
+      "category": "integration",
+      "repository": "bramstroker/homeassistant-powercalc",
+      "domain": "powercalc",
+      "version": "v1.20.14"
+    },
+    {
+      "category": "integration",
+      "repository": "custom-components/ble_monitor",
+      "domain": "ble_monitor",
+      "version": "13.12.0"
+    },
+    {
+      "category": "integration",
+      "repository": "custom-components/grocy",
+      "domain": "grocy",
+      "version": "2025.7.0"
+    },
+    {
+      "category": "integration",
+      "repository": "ekutner/home-connect-hass",
+      "domain": "home_connect_alt",
+      "version": "1.4.1"
+    },
+    {
+      "category": "integration",
+      "repository": "hacs/integration",
+      "domain": "hacs",
+      "version": "2.0.5"
+    },
+    {
+      "category": "integration",
+      "repository": "kvj/hass_nuki_ng",
+      "domain": "nuki_ng",
+      "version": "0.5.5"
+    },
+    {
+      "category": "integration",
+      "repository": "laszlojakab/homeassistant-easycontrols",
+      "domain": "easycontrols",
+      "version": "0.7.0"
+    },
+    {
+      "category": "integration",
+      "repository": "mampfes/hacs_waste_collection_schedule",
+      "domain": "waste_collection_schedule",
+      "version": "v2.25.0"
+    },
+    {
+      "category": "integration",
+      "repository": "p0l0/hagruenbeck_cloud",
+      "domain": "gruenbeck_cloud",
+      "version": "1.0.5"
+    },
+    {
+      "category": "integration",
+      "repository": "py-smart-gardena/hass-gardena-smart-system",
+      "domain": "gardena_smart_system",
+      "version": "3.0.6"
+    },
+    {
+      "category": "plugin",
+      "repository": "NemesisRE/kiosk-mode",
+      "domain": null,
+      "version": "v13.1.0"
+    },
+    {
+      "category": "plugin",
+      "repository": "custom-cards/button-card",
+      "domain": null,
+      "version": "v7.0.1"
+    },
+    {
+      "category": "plugin",
+      "repository": "piitaya/lovelace-mushroom",
+      "domain": null,
+      "version": "v5.1.1"
+    },
+    {
+      "category": "plugin",
+      "repository": "thomasloven/lovelace-card-mod",
+      "domain": null,
+      "version": "v4.2.1"
+    },
+    {
+      "category": "theme",
+      "repository": "piitaya/lovelace-mushroom-themes",
+      "domain": null,
+      "version": "v0.0.11"
+    }
+  ],
+  "lovelace_resources": [
+    {
+      "id": "mushroom",
+      "type": "module",
+      "url": "/hacsfiles/lovelace-mushroom/mushroom.js"
+    },
+    {
+      "id": "card-mod",
+      "type": "module",
+      "url": "/hacsfiles/lovelace-card-mod/card-mod.js"
+    },
+    {
+      "id": "button-card",
+      "type": "module",
+      "url": "/hacsfiles/button-card/button-card.js"
+    },
+    {
+      "id": "kiosk-mode",
+      "type": "module",
+      "url": "/hacsfiles/kiosk-mode/kiosk-mode.js?hacstag=4973191281310"
+    }
+  ],
+  "note": "custom_components/ und www/community/ stehen absichtlich nicht in Git — siehe docs/konfigurations-strategie.md"
+}

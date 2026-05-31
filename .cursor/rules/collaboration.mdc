@@ -59,3 +59,9 @@ Erst nach **ausdrücklicher Zustimmung** editieren. Kein „still im Hintergrund
 - `.storage/`, `.cloud/`, Token-Caches, `secrets.yaml`-Inhalte — **kein Edit ohne vorherige Rückfrage + Zustimmung** (siehe oben)
 - Secrets niemals hardcoden; nur `!secret` verwenden
 - Keine Commits/Pushes, es sei denn, der Nutzer verlangt es
+
+## secrets.yaml — Offsite-Kopie
+
+Der Nutzer führt eine **manuelle Kopie von `secrets.yaml` in Google Drive** (nicht in Git).
+
+**Bei jeder Änderung an `secrets.yaml`** (neuer Key, geändertes Passwort, neues `!secret` das committed wird): am Ende der Aufgabe **explizit daran erinnern**, die Datei erneut nach Google Drive zu kopieren.

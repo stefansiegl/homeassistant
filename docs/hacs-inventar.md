@@ -1,0 +1,88 @@
+# HACS-Inventar
+
+Snapshot der **installierten HACS-Komponenten** — für Neuinstallation, Abgleich und Disaster Recovery.
+
+**Maschinenlesbar:** [`manifests/hacs-inventar.json`](../manifests/hacs-inventar.json)  
+**Aktualisieren:** `bin/export-hacs-inventar.sh` (liest `.storage/hacs.repositories`)
+
+**Stand:** 2026-05-31
+
+---
+
+## Was in Git liegt — und was nicht
+
+| In Git | Nicht in Git (`.gitignore`) |
+|--------|----------------------------|
+| Dieses Inventar + JSON-Snapshot | `custom_components/` (HACS-Code) |
+| Lovelace-Ressourcen in `configuration.yaml` | `www/community/` (Frontend-JS) |
+| Dashboard-YAML, Automationen | HACS-UI-Zustand (`.storage/hacs.*`) |
+| Specs in `docs/integrationen-und-addons.md` | OAuth-Tokens, Config-Entry-Daten |
+
+**Kurz:** Git dokumentiert *was* installiert ist und *wie* es eingebunden wird. Den **Code** holt HACS nach Restore erneut — siehe Abschnitt „Neuinstallation“.
+
+---
+
+## Integrationen (HACS)
+
+| Domain | Repository | Version | In HA konfiguriert |
+|--------|------------|---------|-------------------|
+| `ms365_todo` | RogerSelwyn/MS365-ToDo | v1.11.0 | ✅ To Do |
+| `xiaomi_miot` | al-one/hass-xiaomi-miot | v1.1.4 | ✅ |
+| `easycontrols` | laszlojakab/homeassistant-easycontrols | v0.7.0 | ✅ Helios KWL |
+| `powercalc` | bramstroker/homeassistant-powercalc | v1.20.14 | ✅ (viele Geräte) |
+| `waste_collection_schedule` | mampfes/hacs_waste_collection_schedule | v2.25.0 | ✅ Müll |
+| `nuki_ng` | kvj/hass_nuki_ng | v0.5.5 | ✅ Haustür |
+| `gardena_smart_system` | py-smart-gardena/hass-gardena-smart-system | v3.0.6 | ✅ (Integration vorhanden) |
+| `ble_monitor` | custom-components/ble_monitor | 13.12.0 | ⏸ deaktiviert |
+| `grocy` | custom-components/grocy | 2025.7.0 | ❌ deprecated, nicht genutzt |
+| `home_connect_alt` | ekutner/home-connect-hass | 1.4.1 | ❌ installiert, kein Config Entry |
+| `helios` | asev/homeassistant-helios | v0.5 | ❌ installiert, kein Config Entry (→ `easycontrols`) |
+| `gruenbeck_cloud` | p0l0/hagruenbeck_cloud | 1.0.5 | ❌ installiert, kein Config Entry |
+| `hacs` | hacs/integration | 2.0.5 | ✅ |
+
+---
+
+## Frontend (Lovelace-Karten & Theme)
+
+| Typ | Repository | Version | Registriert |
+|-----|------------|---------|-------------|
+| plugin | piitaya/lovelace-mushroom | v5.1.1 | ✅ `.storage` + `configuration.yaml` |
+| plugin | thomasloven/lovelace-card-mod | v4.2.1 | ✅ |
+| plugin | custom-cards/button-card | v7.0.1 | ✅ |
+| plugin | NemesisRE/kiosk-mode | v13.1.0 | ✅ |
+| theme | piitaya/lovelace-mushroom-themes | v0.0.11 | HACS (Theme-Auswahl UI) |
+
+**Lovelace-Ressourcen** (Storage + YAML-Spiegel identisch):
+
+- `/hacsfiles/lovelace-mushroom/mushroom.js`
+- `/hacsfiles/lovelace-card-mod/card-mod.js`
+- `/hacsfiles/button-card/button-card.js`
+- `/hacsfiles/kiosk-mode/kiosk-mode.js`
+
+---
+
+## Neuinstallation / Restore
+
+1. **HA-Backup restore** (empfohlen) — enthält `custom_components/`, `www/community/`, HACS-State.
+2. **Ohne Backup, nur Git:**
+   - HACS installieren → Integrationen/Plugins **aus dieser Liste** erneut laden (gleiche Repos + Versionen).
+   - Lovelace-Ressourcen: in HA UI **oder** aus `configuration.yaml` → `lovelace.resources` (bei `mode: storage` zusätzlich in UI registrieren).
+   - Integrationen in UI neu verknüpfen (OAuth, API-Keys → `secrets.yaml`).
+3. Nach HACS-Änderungen: **`bin/export-hacs-inventar.sh`** + Commit.
+
+---
+
+## Aufräum-Kandidaten (optional)
+
+- `grocy` — laut [`integrationen-und-addons.md`](integrationen-und-addons.md) deprecated
+- `helios` — falls nur `easycontrols` genutzt wird
+- `home_connect_alt`, `gruenbeck_cloud` — installiert ohne Config Entry
+
+Entfernen nur nach Prüfung in HACS/HA, ob wirklich ungenutzt.
+
+---
+
+## Referenzen
+
+- [`konfigurations-strategie.md`](konfigurations-strategie.md) — YAML vs. UI, `custom_components/` in Gitignore
+- [`integrationen-und-addons.md`](integrationen-und-addons.md) — Setup-Notizen pro Integration

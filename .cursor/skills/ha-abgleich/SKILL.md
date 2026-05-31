@@ -20,6 +20,7 @@ Diese Skill-Checkliste wird genutzt, um Änderungen systematisch abzusichern und
 
 - Änderungen auf den Spec-Scope begrenzen (keine Neben-Refactors)
 - Secrets: nur `!secret`, nichts hardcoden
+- **`secrets.yaml` geändert:** Nutzer an **Google-Drive-Kopie** erinnern (siehe `collaboration.mdc`)
 - Neue/änderte Entities:
   - Naming nach Standard
   - Inventar-Dateien aktualisieren (Lichter/HW)
