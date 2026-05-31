@@ -65,3 +65,9 @@ Erst nach **ausdrücklicher Zustimmung** editieren. Kein „still im Hintergrund
 Der Nutzer führt eine **manuelle Kopie von `secrets.yaml` in Google Drive** (nicht in Git).
 
 **Bei jeder Änderung an `secrets.yaml`** (neuer Key, geändertes Passwort, neues `!secret` das committed wird): am Ende der Aufgabe **explizit daran erinnern**, die Datei erneut nach Google Drive zu kopieren.
+
+## HACS-Inventar
+
+- Installierte HACS-Komponenten: [`docs/hacs-inventar.md`](../docs/hacs-inventar.md) + `manifests/hacs-inventar.json`
+- **Automatisch:** Cron Sonntag 06:00 → `bin/hacs-abgleich.sh --push`
+- **Nach HACS-Updates in der Session:** `bin/hacs-abgleich.sh --push` ausführen oder Nutzer daran erinnern

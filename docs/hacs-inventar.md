@@ -3,9 +3,9 @@
 Snapshot der **installierten HACS-Komponenten** — für Neuinstallation, Abgleich und Disaster Recovery.
 
 **Maschinenlesbar:** [`manifests/hacs-inventar.json`](../manifests/hacs-inventar.json)  
-**Aktualisieren:** `bin/export-hacs-inventar.sh` (liest `.storage/hacs.repositories`)
+**Aktualisieren:** `bin/hacs-abgleich.sh` (Export + optional Git-Commit/Push)
 
-**Stand:** 2026-05-31
+**Stand:** 2026-05-31 *(automatisch generiert)*
 
 ---
 
@@ -28,17 +28,17 @@ Snapshot der **installierten HACS-Komponenten** — für Neuinstallation, Abglei
 |--------|------------|---------|-------------------|
 | `ms365_todo` | RogerSelwyn/MS365-ToDo | v1.11.0 | ✅ To Do |
 | `xiaomi_miot` | al-one/hass-xiaomi-miot | v1.1.4 | ✅ |
-| `easycontrols` | laszlojakab/homeassistant-easycontrols | v0.7.0 | ✅ Helios KWL |
+| `helios` | asev/homeassistant-helios | v0.5 | ❌ installiert, kein Config Entry (→ easycontrols) |
 | `powercalc` | bramstroker/homeassistant-powercalc | v1.20.14 | ✅ (viele Geräte) |
-| `waste_collection_schedule` | mampfes/hacs_waste_collection_schedule | v2.25.0 | ✅ Müll |
-| `nuki_ng` | kvj/hass_nuki_ng | v0.5.5 | ✅ Haustür |
-| `gardena_smart_system` | py-smart-gardena/hass-gardena-smart-system | v3.0.6 | ✅ (Integration vorhanden) |
 | `ble_monitor` | custom-components/ble_monitor | 13.12.0 | ⏸ deaktiviert |
 | `grocy` | custom-components/grocy | 2025.7.0 | ❌ deprecated, nicht genutzt |
 | `home_connect_alt` | ekutner/home-connect-hass | 1.4.1 | ❌ installiert, kein Config Entry |
-| `helios` | asev/homeassistant-helios | v0.5 | ❌ installiert, kein Config Entry (→ `easycontrols`) |
-| `gruenbeck_cloud` | p0l0/hagruenbeck_cloud | 1.0.5 | ❌ installiert, kein Config Entry |
 | `hacs` | hacs/integration | 2.0.5 | ✅ |
+| `nuki_ng` | kvj/hass_nuki_ng | 0.5.5 | ✅ Haustür |
+| `easycontrols` | laszlojakab/homeassistant-easycontrols | 0.7.0 | ✅ Helios KWL |
+| `waste_collection_schedule` | mampfes/hacs_waste_collection_schedule | v2.25.0 | ✅ Müll |
+| `gruenbeck_cloud` | p0l0/hagruenbeck_cloud | 1.0.5 | ❌ installiert, kein Config Entry |
+| `gardena_smart_system` | py-smart-gardena/hass-gardena-smart-system | 3.0.6 | ✅ (Integration vorhanden) |
 
 ---
 
@@ -46,18 +46,30 @@ Snapshot der **installierten HACS-Komponenten** — für Neuinstallation, Abglei
 
 | Typ | Repository | Version | Registriert |
 |-----|------------|---------|-------------|
+| plugin | NemesisRE/kiosk-mode | v13.1.0 | ✅ `.storage` + `configuration.yaml` |
+| plugin | custom-cards/button-card | v7.0.1 | ✅ `.storage` + `configuration.yaml` |
 | plugin | piitaya/lovelace-mushroom | v5.1.1 | ✅ `.storage` + `configuration.yaml` |
-| plugin | thomasloven/lovelace-card-mod | v4.2.1 | ✅ |
-| plugin | custom-cards/button-card | v7.0.1 | ✅ |
-| plugin | NemesisRE/kiosk-mode | v13.1.0 | ✅ |
+| plugin | thomasloven/lovelace-card-mod | v4.2.1 | ✅ `.storage` + `configuration.yaml` |
 | theme | piitaya/lovelace-mushroom-themes | v0.0.11 | HACS (Theme-Auswahl UI) |
 
-**Lovelace-Ressourcen** (Storage + YAML-Spiegel identisch):
+**Lovelace-Ressourcen** (aus `.storage/lovelace_resources`):
 
 - `/hacsfiles/lovelace-mushroom/mushroom.js`
 - `/hacsfiles/lovelace-card-mod/card-mod.js`
 - `/hacsfiles/button-card/button-card.js`
 - `/hacsfiles/kiosk-mode/kiosk-mode.js`
+
+---
+
+## Regelmäßiger Abgleich
+
+| Was | Wie |
+|-----|-----|
+| **Automatisch** | Cron Sonntag 06:00 — `bin/hacs-abgleich.sh --push` (Commit nur bei Änderungen) |
+| **Manuell** | `bin/hacs-abgleich.sh --push` nach HACS-Updates |
+| **Nur Export** | `bin/export-hacs-inventar.sh` |
+
+Log: `log/hacs-abgleich.log`
 
 ---
 
@@ -68,7 +80,7 @@ Snapshot der **installierten HACS-Komponenten** — für Neuinstallation, Abglei
    - HACS installieren → Integrationen/Plugins **aus dieser Liste** erneut laden (gleiche Repos + Versionen).
    - Lovelace-Ressourcen: in HA UI **oder** aus `configuration.yaml` → `lovelace.resources` (bei `mode: storage` zusätzlich in UI registrieren).
    - Integrationen in UI neu verknüpfen (OAuth, API-Keys → `secrets.yaml`).
-3. Nach HACS-Änderungen: **`bin/export-hacs-inventar.sh`** + Commit.
+3. Nach HACS-Änderungen: **`bin/hacs-abgleich.sh --push`**.
 
 ---
 

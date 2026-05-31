@@ -31,6 +31,7 @@ Sie ist bewusst pragmatisch: lieber wenige, wiederholbare Checks als ein großer
 - **Lichter/Controller:** `docs/lights.md` aktualisiert?
 - **Hardware:** `docs/hardware.md` aktualisiert?
 - **Integrationen/Add-ons:** `docs/integrationen-und-addons.md` aktualisiert, wenn wir etwas installieren/abschalten?
+- **HACS:** nach manuellen HACS-Updates `bin/hacs-abgleich.sh --push`; automatisch sonntags 06:00 (Cron) — siehe [`hacs-inventar.md`](./hacs-inventar.md)
 - **Räume/Bereiche:** bei Umbenennung/Neuanlage `docs/raeume-und-bereiche.md` aktualisieren (aus Area Registry ablesen)
 
 ---

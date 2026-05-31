@@ -1,6 +1,6 @@
 {
   "snapshot_date": "2026-05-31",
-  "source": "hacs.repositories + lovelace_resources + custom_components/manifest.json",
+  "source": "hacs.repositories + lovelace_resources + core.config_entries",
   "hacs_installed": [
     {
       "category": "integration",
