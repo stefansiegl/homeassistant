@@ -17,4 +17,6 @@ Ich teste nun "SLC SmartOne ZigBee 4in1 Wandschalter Wanddimmer" von Lampenwelt
 
 ## Friends of Hue
 
-Die Schalter sind leider noch nicht gut genug, manchmal muss man mehrfach drücken, gefällt mir nicht. 
+Die Schalter sind leider noch nicht gut genug, manchmal muss man mehrfach drücken, gefällt mir nicht.
+
+**Hue Smart Button (David/Adrian):** Gehäuse kann die Taste klemmen — Adrian-klein nur zuverlässig mit leicht offenem Case. Details: [`lights.md`](lights.md) → Abschnitt „Hue Smart Button — Montage & Diagnose“. 

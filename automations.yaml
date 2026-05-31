@@ -841,43 +841,149 @@
   mode: single
 - id: '1770908410686'
   alias: 'David: Kombinierte Steuerung'
-  description: Zentralisierte Steuerung für Licht (Toggle, Dimmen, Szenen) mit simuliertem
-    Doppelklick
+  description: Klick Toggle, Halten = dimmen (kein Doppelklick mehr)
   triggers:
   - trigger: device
     domain: mqtt
     device_id: eb9176b54c72cdc77763504806f72acd
     type: action
     subtype: left_press
-    id: press_eval_gross
+    id: klick_gross
   - trigger: device
     domain: mqtt
     device_id: eb9176b54c72cdc77763504806f72acd
     type: action
     subtype: left_hold
-    id: dim
+    id: halten_gross
+  - trigger: device
+    domain: mqtt
+    device_id: eb9176b54c72cdc77763504806f72acd
+    type: action
+    subtype: left_hold_release
+    id: loslassen_gross
   - trigger: device
     domain: mqtt
     device_id: 2e0440a811764f5a442354a22f8191f5
     type: action
     subtype: press
-    id: press_eval_klein
+    id: klick_klein
   - trigger: device
     domain: mqtt
     device_id: 2e0440a811764f5a442354a22f8191f5
     type: action
     subtype: hold
-    id: dim
+    id: halten_klein
+  - trigger: device
+    domain: mqtt
+    device_id: 2e0440a811764f5a442354a22f8191f5
+    type: action
+    subtype: release
+    id: loslassen_klein
   actions:
   - choose:
     - conditions:
       - condition: trigger
-        id: press_eval_gross
+        id: klick_gross
+      sequence:
+      - action: light.toggle
+        target:
+          entity_id: light.licht_1og_david
+    - conditions:
+      - condition: trigger
+        id: klick_klein
+      sequence:
+      - action: light.toggle
+        target:
+          entity_id: light.licht_1og_david
+    - conditions:
+      - condition: trigger
+        id: halten_gross
+      sequence:
+      - repeat:
+          while:
+          - condition: template
+            value_template: '{{ true }}'
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.licht_1og_david
+            data:
+              brightness_step_pct: 5
+              transition: 0.4
+          - delay:
+              milliseconds: 450
+    - conditions:
+      - condition: trigger
+        id: halten_klein
+      sequence:
+      - repeat:
+          while:
+          - condition: template
+            value_template: '{{ true }}'
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.licht_1og_david
+            data:
+              brightness_step_pct: 5
+              transition: 0.4
+          - delay:
+              milliseconds: 450
+    - conditions:
+      - condition: trigger
+        id: loslassen_gross
+      sequence:
+      - stop: Dimmen beendet
+    - conditions:
+      - condition: trigger
+        id: loslassen_klein
+      sequence:
+      - stop: Dimmen beendet
+  mode: restart
+- id: '1770908467492'
+  alias: 'Adrian: Kombinierte Steuerung'
+  description: Tür-Doppelklick Szenen; Smart Button klein wie David (Toggle + Halten dimmen)
+  triggers:
+  - trigger: device
+    domain: mqtt
+    device_id: 57a44c1d926b3e4c1e7092c179feb5e3
+    type: action
+    subtype: left_press
+    id: press_eval_tuere
+  - trigger: device
+    domain: mqtt
+    device_id: e04e1bc520552046b664e45a54a136f1
+    type: action
+    subtype: 'on'
+    id: klick_klein
+  - trigger: device
+    domain: mqtt
+    device_id: e04e1bc520552046b664e45a54a136f1
+    type: action
+    subtype: 'off'
+    id: klick_klein
+  - trigger: device
+    domain: mqtt
+    device_id: e04e1bc520552046b664e45a54a136f1
+    type: action
+    subtype: hold
+    id: halten_klein
+  - trigger: device
+    domain: mqtt
+    device_id: e04e1bc520552046b664e45a54a136f1
+    type: action
+    subtype: release
+    id: loslassen_klein
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: press_eval_tuere
       sequence:
       - wait_for_trigger:
         - trigger: device
           domain: mqtt
-          device_id: eb9176b54c72cdc77763504806f72acd
+          device_id: 57a44c1d926b3e4c1e7092c179feb5e3
           type: action
           subtype: left_press
         timeout:
@@ -888,116 +994,60 @@
         then:
         - if:
           - condition: numeric_state
-            entity_id: light.licht_1og_david
+            entity_id: light.licht_1og_adrian
             attribute: brightness
             above: 200
           then:
           - action: scene.turn_on
             target:
-              entity_id: scene.david_gemutlich
+              entity_id: scene.adrian_gemutlich
           else:
           - action: scene.turn_on
             target:
-              entity_id: scene.david_hell
+              entity_id: scene.adrian_hell
         else:
         - action: light.toggle
           target:
-            entity_id: light.licht_1og_david
+            entity_id: light.licht_1og_adrian
     - conditions:
       - condition: trigger
-        id: press_eval_klein
+        id: klick_klein
       sequence:
-      - action: light.turn_on
+      - action: light.toggle
         target:
-          entity_id: light.licht_1og_david
-        data:
-          brightness_pct: 90
+          entity_id: light.licht_1og_adrian
     - conditions:
       - condition: trigger
-        id: dim
+        id: halten_klein
       sequence:
       - repeat:
+          count: 120
           sequence:
           - action: light.turn_on
             target:
-              entity_id: light.licht_1og_david
+              entity_id: light.licht_1og_adrian
             data:
-              brightness_step_pct: '{{ 10 if (repeat.index % 20) < 10 else -10 }}'
+              brightness_step_pct: 5
+              transition: 0.4
           - wait_for_trigger:
             - trigger: device
               domain: mqtt
-              device_id: eb9176b54c72cdc77763504806f72acd
-              type: action
-              subtype: left_hold_release
-            - trigger: device
-              domain: mqtt
-              device_id: 2e0440a811764f5a442354a22f8191f5
+              device_id: e04e1bc520552046b664e45a54a136f1
               type: action
               subtype: release
             timeout:
-              milliseconds: 400
-          until:
-          - condition: template
-            value_template: '{{ wait.trigger is not none }}'
-  mode: single
-- id: '1770908467492'
-  alias: 'Adrian: Kombinierte Steuerung'
-  description: Zentralisierte Steuerung für Licht (Toggle und Szenen) mit simuliertem
-    Doppelklick. (Dimmen entfernt)
-  triggers:
-  - trigger: device
-    domain: mqtt
-    device_id: 57a44c1d926b3e4c1e7092c179feb5e3
-    type: action
-    subtype: left_press
-  actions:
-  - wait_for_trigger:
-    - trigger: device
-      domain: mqtt
-      device_id: 57a44c1d926b3e4c1e7092c179feb5e3
-      type: action
-      subtype: left_press
-    timeout:
-      milliseconds: 500
-  - if:
-    - condition: template
-      value_template: '{{ wait.trigger is not none }}'
-    then:
-    - if:
-      - condition: numeric_state
-        entity_id: light.licht_1og_adrian
-        attribute: brightness
-        above: 200
-      then:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.adrian_gemutlich
-      else:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.adrian_hell
-    else:
-    - action: light.toggle
-      target:
-        entity_id: light.licht_1og_adrian
+              milliseconds: 450
+          - if:
+            - condition: template
+              value_template: '{{ wait.trigger is not none }}'
+            then:
+            - stop: Dimmen beendet
+    - conditions:
+      - condition: trigger
+        id: loslassen_klein
+      sequence:
+      - stop: Dimmen beendet
   mode: restart
-- id: '1771166154583'
-  alias: Lichtschalter-EG-Esszimmer-Tuere-02
-  description: ''
-  triggers:
-  - domain: mqtt
-    device_id: f3f56a37a0a48b3897df52de23d30a29
-    type: action
-    subtype: left_press
-    trigger: device
-  conditions: []
-  actions:
-  - action: light.toggle
-    metadata: {}
-    target:
-      entity_id: light.licht_eg_kueche
-    data: {}
-  mode: single
 - id: '1771166205977'
   alias: Lichtschalter-EG-Esszimmer-Tuere-03
   description: ''
@@ -1009,11 +1059,10 @@
     trigger: device
   conditions: []
   actions:
-  - action: light.toggle
-    metadata: {}
-    data: {}
-    target:
-      entity_id: light.alle_lichter_esszimmer
+  - action: script.licht_eg_raum_toggle
+    data:
+      raum: ess
+      ziel_gruppe: light.alle_lichter_esszimmer
   mode: single
 - id: '1771166345281'
   alias: Lichtschalter-EG-Esszimmer-Tuere-04
@@ -1026,11 +1075,10 @@
     trigger: device
   conditions: []
   actions:
-  - action: light.toggle
-    metadata: {}
-    data: {}
-    target:
-      entity_id: light.alle_lichter_wohnzimmer
+  - action: script.licht_eg_raum_toggle
+    data:
+      raum: wohn
+      ziel_gruppe: light.alle_lichter_wohnzimmer
   mode: single
 - id: '1771258184473'
   alias: Lichtschalter-EG-Küche-Tür
@@ -1043,66 +1091,28 @@
     trigger: device
   conditions: []
   actions:
-  - action: light.toggle
-    metadata: {}
-    target:
-      entity_id: light.licht_eg_kueche
-    data: {}
+  - action: script.licht_eg_raum_toggle
+    data:
+      raum: kueche
+      ziel_gruppe: light.licht_eg_kueche
   mode: single
 - id: '1771268188341'
-  alias: Lichtschalter-EG-Esszimmer-Tuere-02 (Final Dim)
-  description: Toggle & Dimmen mit korrekten Subtypes
+  alias: Lichtschalter-EG-Esszimmer-Tuere-02
+  description: Küche Toggle/Neutral — Debounce wegen Schalter-Bounce nach Einbau
   triggers:
   - domain: mqtt
     device_id: f3f56a37a0a48b3897df52de23d30a29
     type: action
-    subtype: left_press
+    subtype: left_press_release
     trigger: device
-    id: klick
-  - domain: mqtt
-    device_id: f3f56a37a0a48b3897df52de23d30a29
-    type: action
-    subtype: left_hold
-    trigger: device
-    id: halten
-  - domain: mqtt
-    device_id: f3f56a37a0a48b3897df52de23d30a29
-    type: action
-    subtype: left_hold_release
-    trigger: device
-    id: loslassen
   conditions: []
   actions:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: klick
-      sequence:
-      - action: light.toggle
-        target:
-          entity_id: light.licht_eg_kueche
-    - conditions:
-      - condition: trigger
-        id: halten
-      sequence:
-      - repeat:
-          while:
-          - condition: template
-            value_template: '{{ true }}'
-          sequence:
-          - action: light.turn_on
-            target:
-              entity_id: light.licht_eg_kueche
-            data:
-              brightness_step_pct: 20
-              transition: 0.2
-          - delay:
-              milliseconds: 400
-    - conditions:
-      - condition: trigger
-        id: loslassen
-      sequence:
-      - stop: Dimmen beendet
+  - delay:
+      milliseconds: 400
+  - action: script.licht_eg_raum_toggle
+    data:
+      raum: kueche
+      ziel_gruppe: light.licht_eg_kueche
   mode: restart
 - id: '1771604553302'
   alias: 'Licht: Hue Dimmer Switch EG komplett'
@@ -1162,6 +1172,11 @@
       - condition: trigger
         id: power_hold
       sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.aktive_szene_eg
+        data:
+          option: —
       - target:
           entity_id: light.alle_lichter_erdgeschoss
         data:
@@ -1178,17 +1193,25 @@
         action: input_select.select_next
       - delay:
           milliseconds: 250
-      - target:
-          entity_id: '{% set szene = states(''input_select.szenen_zyklus_eg'') %}
-            {% if szene == ''Hell'' %} scene.hell {% elif szene == ''Gemütlich'' %}
-            scene.gemutlich {% elif szene == ''Kino'' %} scene.kino {% elif szene
-            == ''Sonnenuntergang'' %} scene.sonnenuntergang {% elif szene == ''Brettspiele''
-            %} scene.brettspiele {% else %} scene.gemutlich {% endif %} '
+      - variables:
+          szene: "{{ states('input_select.szenen_zyklus_eg') }}"
+          szene_entity: >
+            {% if szene == 'Hell' %} scene.hell
+            {% elif szene == 'Gemütlich' %} scene.gemutlich
+            {% elif szene == 'Kino' %} scene.kino
+            {% elif szene == 'Sonnenuntergang' %} scene.sonnenuntergang
+            {% elif szene == 'Kathi Gemütlich' %} scene.kathi_gemutlich
+            {% elif szene == 'Brettspiele' %} scene.brettspiele
+            {% else %} scene.gemutlich {% endif %}
+          szene_transition: >
+            {% if szene == 'Hell' %} 0
+            {% elif szene == 'Brettspiele' %} 5
+            {% else %} 2 {% endif %}
+      - action: script.licht_eg_szene_aktivieren
         data:
-          transition: '{% set szene = states(''input_select.szenen_zyklus_eg'') %}
-            {% if szene in [''Hell'', ''Brettspiele''] %} 5 {% else %} 2 {% endif
-            %} '
-        action: scene.turn_on
+          szene_name: "{{ szene }}"
+          szene_entity: "{{ szene_entity }}"
+          transition: "{{ szene_transition }}"
     - conditions:
       - condition: trigger
         id: dim_up
@@ -1384,34 +1407,47 @@
       - condition: trigger
         id: scene_1
       sequence:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.gemutlich
+      - action: script.licht_eg_szene_aktivieren
+        data:
+          szene_name: Gemütlich
+          szene_entity: scene.gemutlich
+          transition: 2
     - conditions:
       - condition: trigger
         id: scene_2
       sequence:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.hell
+      - action: script.licht_eg_szene_aktivieren
+        data:
+          szene_name: Hell
+          szene_entity: scene.hell
+          transition: 0
     - conditions:
       - condition: trigger
         id: scene_3
       sequence:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.kino
+      - action: script.licht_eg_szene_aktivieren
+        data:
+          szene_name: Brettspiele
+          szene_entity: scene.brettspiele
+          transition: 5
     - conditions:
       - condition: trigger
         id: scene_4
       sequence:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.sonnenuntergang
+      - action: script.licht_eg_szene_aktivieren
+        data:
+          szene_name: Kathi Gemütlich
+          szene_entity: scene.kathi_gemutlich
+          transition: 2
     - conditions:
       - condition: trigger
         id: off_all
       sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.aktive_szene_eg
+        data:
+          option: —
       - action: light.turn_off
         target:
           entity_id: light.alle_lichter_erdgeschoss
@@ -1465,6 +1501,66 @@
       sequence:
       - stop: Dimm-Vorgang durch Loslassen der Taste abgebrochen.
   mode: restart
+- id: licht_drehregler_esszimmer
+  alias: 'Licht: Drehregler Esszimmer'
+  description: Absolutes Dimmen und HA-basierter Klick-Toggle (docs/licht-drehregler-eg.md)
+  triggers:
+  - trigger: mqtt
+    topic: zigbee2mqtt/Schalter-EG-Licht-Drehregler-Esszimmer
+  conditions:
+  - condition: template
+    value_template: "{{ trigger.payload_json.action is defined }}"
+  actions:
+  - variables:
+      mqtt_action: "{{ trigger.payload_json.action }}"
+      mqtt_level: "{{ trigger.payload_json.action_level | default(none) }}"
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: "{{ mqtt_action == 'brightness_move_to_level' }}"
+      sequence:
+      - action: script.licht_ess_drehregler_helligkeit
+        data:
+          action_level: "{{ mqtt_level }}"
+    - conditions:
+      - condition: template
+        value_template: "{{ mqtt_action in ['on', 'off'] }}"
+      sequence:
+      - action: script.licht_ess_drehregler_klick
+        data:
+          action_level: "{{ mqtt_level }}"
+  mode: queued
+  max: 10
+- id: licht_drehregler_wohnzimmer
+  alias: 'Licht: Drehregler Wohnzimmer'
+  description: Decken an/dimmen, Klick aus = ganzes Wohnzimmer (docs/licht-drehregler-eg.md)
+  triggers:
+  - trigger: mqtt
+    topic: zigbee2mqtt/Schalter-EG-Licht-Drehregler-Wohnzimmer
+  conditions:
+  - condition: template
+    value_template: "{{ trigger.payload_json.action is defined }}"
+  actions:
+  - variables:
+      mqtt_action: "{{ trigger.payload_json.action }}"
+      mqtt_level: "{{ trigger.payload_json.action_level | default(none) }}"
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: "{{ mqtt_action == 'brightness_move_to_level' }}"
+      sequence:
+      - action: script.licht_wohn_drehregler_helligkeit
+        data:
+          action_level: "{{ mqtt_level }}"
+    - conditions:
+      - condition: template
+        value_template: "{{ mqtt_action in ['on', 'off'] }}"
+      sequence:
+      - action: script.licht_wohn_drehregler_klick
+        data:
+          action_level: "{{ mqtt_level }}"
+  mode: queued
+  max: 10
 - id: '1773005445626'
   alias: 'Assist: Sprachausgabe umleiten'
   description: Fängt das TTS-Audio vom ReSpeaker ab und spielt es auf einem echten

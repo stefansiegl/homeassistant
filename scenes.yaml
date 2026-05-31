@@ -22,27 +22,27 @@
     light.licht_eg_esszimmer_lang:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot1:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot2:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot3:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot4:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_schrank:
       state: "on"
@@ -107,27 +107,27 @@
     light.licht_eg_esszimmer_lang:
       state: "on"
       brightness: 50
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot1:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot2:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot3:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot4:
       state: "on"
       brightness: 255
-      color_temp: 250
+      color_temp_kelvin: 4000
       # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_schrank:
       state: "off"
@@ -192,28 +192,27 @@
     light.licht_eg_esszimmer_lang:
       state: "off"
       brightness: 40
-      color_temp: 250
-      rgb_color: [255, 255, 255]
+      color_temp_kelvin: 4000
+      # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot1:
       state: "on"
       brightness: 80
-      color_temp: 250
-      rgb_color: [255, 255, 255]
+      color_temp_kelvin: 4000
+      # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot2:
       state: "on"
       brightness: 80
-      color_temp: 250
-      rgb_color: [255, 255, 255]
+      color_temp_kelvin: 4000
+      # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot3:
       state: "on"
       brightness: 80
-      color_temp: 250
-      rgb_color: [255, 255, 255]
+      color_temp_kelvin: 4000
+      # rgb_color: [255, 255, 255]
     light.licht_eg_esszimmer_spot4:
       state: "on"
       brightness: 80
-      color_temp: 250
-      rgb_color: [255, 255, 255]
+      color_temp_kelvin: 4000
     light.licht_eg_esszimmer_schrank:
       state: "off"
       brightness: 150
@@ -731,6 +730,98 @@
       # color_temp_kelvin: 1800
       # color_temp: 555
       # rgb_color: [255, 137, 18]
+
+- id: eg_kathi_gemuetlich
+  name: "Kathi Gemütlich"
+  icon: mdi:lightbulb-on-outline
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "on"
+      brightness: 70
+      color_temp_kelvin: 2700
+    light.licht_eg_esszimmer_spot1:
+      state: "off"
+    light.licht_eg_esszimmer_spot2:
+      state: "off"
+    light.licht_eg_esszimmer_spot3:
+      state: "off"
+    light.licht_eg_esszimmer_spot4:
+      state: "off"
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "on"
+      brightness: 60
+      color_temp_kelvin: 2700
+    light.licht_eg_wohnzimmer_spot1:
+      state: "off"
+    light.licht_eg_wohnzimmer_spot2:
+      state: "off"
+    light.licht_eg_wohnzimmer_spot3:
+      state: "off"
+    light.licht_eg_wohnzimmer_iris:
+      state: "on"
+      brightness: 65
+      color_temp_kelvin: 2700
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
+
+- id: eg_kathi_ess
+  name: "Kathi Ess"
+  icon: mdi:silverware-fork-knife
+  entities:
+    # -- Küche --
+    light.licht_eg_kueche:
+      state: "off"
+
+    # -- Esszimmer --
+    light.licht_eg_esszimmer_lang:
+      state: "on"
+      brightness: 75
+      color_temp_kelvin: 2700
+    light.licht_eg_esszimmer_spot1:
+      state: "off"
+    light.licht_eg_esszimmer_spot2:
+      state: "on"
+      brightness: 55
+      color_temp_kelvin: 2700
+    light.licht_eg_esszimmer_spot3:
+      state: "on"
+      brightness: 55
+      color_temp_kelvin: 2700
+    light.licht_eg_esszimmer_spot4:
+      state: "off"
+    light.licht_eg_esszimmer_schrank:
+      state: "off"
+
+    # -- Wohnzimmer --
+    light.licht_eg_wohnzimmer_zentral:
+      state: "off"
+    light.licht_eg_wohnzimmer_spot1:
+      state: "off"
+    light.licht_eg_wohnzimmer_spot2:
+      state: "off"
+    light.licht_eg_wohnzimmer_spot3:
+      state: "off"
+    light.licht_eg_wohnzimmer_iris:
+      state: "off"
+    light.licht_eg_wohnzimmer_regal:
+      state: "off"
+    light.licht_eg_wohnzimmer_tv_led:
+      state: "off"
+    light.licht_eg_wohnzimmer_couch_led:
+      state: "off"
 
 # ==========================================
 # SZENEN OBERGESCHOSS - DAVID

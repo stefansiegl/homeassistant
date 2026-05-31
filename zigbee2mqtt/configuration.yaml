@@ -113,9 +113,13 @@ devices:
   '0xb4e3f9fffeec1c67':
     friendly_name: Schalter-EG-Esszimmer-Tuere-8fach
   '0x0015bc002200062b':
-    friendly_name: '0x0015bc002200062b'
+    friendly_name: 1OG RangeExtender
   '0x842e14fffee721e6':
     friendly_name: Schalter-EG-Licht-Drehregler-Esszimmer
+  '0x842e14fffee7220f':
+    friendly_name: Schalter-EG-Licht-Drehregler-Wohnzimmer
+  '0x001788010ba0c630':
+    friendly_name: Schalter-1OG-Adrian-klein
 groups:
   '1':
     friendly_name: Schlafzimmer

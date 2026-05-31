@@ -40,3 +40,539 @@ system_ausstehende_updates_installieren:
             target:
               entity_id: "{{ repeat.item }}"
           - delay: "00:00:05"
+
+# --- EG Licht: Drehregler & Raum-Schalter (docs/licht-eg-anforderungen.md) ---
+
+licht_ess_drehregler_helligkeit:
+  alias: Licht Ess Drehregler Helligkeit
+  description: Mappt action_level (1–249/null) auf dimmbare Ess-Lichter.
+  mode: queued
+  max: 10
+  fields:
+    action_level:
+      description: MQTT action_level vom Drehregler (null = Maximum)
+      example: 214
+  sequence:
+    - variables:
+        ess_dimmbar:
+          - light.licht_eg_esszimmer_lang
+          - light.licht_eg_esszimmer_spot1
+          - light.licht_eg_esszimmer_spot2
+          - light.licht_eg_esszimmer_spot3
+          - light.licht_eg_esszimmer_spot4
+        ziel_helligkeit: >
+          {% if action_level is none or action_level in ['null', 'None', ''] %}
+            255
+          {% else %}
+            {{ action_level | int(1) }}
+          {% endif %}
+        ziel_kelvin: >
+          {% set an = expand(ess_dimmbar) | selectattr('state', 'eq', 'on') | list %}
+          {% if an %}
+            {% set a = an[0].attributes %}
+            {% if a.color_temp_kelvin is number %}{{ a.color_temp_kelvin | int }}
+            {% elif a.color_temp is number %}{{ (1000000 / a.color_temp) | int }}
+            {% else %}4000{% endif %}
+          {% else %}4000{% endif %}
+    - action: light.turn_on
+      target:
+        entity_id: "{{ ess_dimmbar }}"
+      data:
+        brightness: "{{ ziel_helligkeit }}"
+        color_temp_kelvin: "{{ ziel_kelvin }}"
+        transition: 0.5
+
+licht_ess_drehregler_klick:
+  alias: Licht Ess Drehregler Klick
+  description: Toggle dimmbare Ess-Lichter nach HA-Zustand; action on/off ignorieren.
+  mode: single
+  fields:
+    action_level:
+      description: MQTT action_level als Helligkeit beim Einschalten
+      example: 240
+  sequence:
+    - variables:
+        ess_dimmbar:
+          - light.licht_eg_esszimmer_lang
+          - light.licht_eg_esszimmer_spot1
+          - light.licht_eg_esszimmer_spot2
+          - light.licht_eg_esszimmer_spot3
+          - light.licht_eg_esszimmer_spot4
+        ziel_helligkeit: >
+          {% if action_level is none or action_level in ['null', 'None', ''] %}
+            255
+          {% else %}
+            {{ action_level | int(1) }}
+          {% endif %}
+        irgendeins_an: >
+          {{ expand(ess_dimmbar) | selectattr('state', 'eq', 'on') | list | length > 0 }}
+        ziel_kelvin: >
+          {% set an = expand(ess_dimmbar) | selectattr('state', 'eq', 'on') | list %}
+          {% if an %}
+            {% set a = an[0].attributes %}
+            {% if a.color_temp_kelvin is number %}{{ a.color_temp_kelvin | int }}
+            {% elif a.color_temp is number %}{{ (1000000 / a.color_temp) | int }}
+            {% else %}4000{% endif %}
+          {% else %}4000{% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ irgendeins_an }}"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: "{{ ess_dimmbar }}"
+        - conditions: []
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: "{{ ess_dimmbar }}"
+              data:
+                brightness: "{{ ziel_helligkeit }}"
+                color_temp_kelvin: "{{ ziel_kelvin }}"
+                transition: 0.5
+
+licht_wohn_drehregler_helligkeit:
+  alias: Licht Wohn Drehregler Helligkeit
+  description: Deckenlampen Wohnzimmer (zentral + Spots) — docs/licht-drehregler-eg.md
+  mode: queued
+  max: 10
+  fields:
+    action_level:
+      description: MQTT action_level vom Drehregler (null = Maximum)
+      example: 214
+  sequence:
+    - variables:
+        wohn_decken:
+          - light.licht_eg_wohnzimmer_zentral
+          - light.licht_eg_wohnzimmer_spot1
+          - light.licht_eg_wohnzimmer_spot2
+          - light.licht_eg_wohnzimmer_spot3
+        ziel_helligkeit: >
+          {% if action_level is none or action_level in ['null', 'None', ''] %}
+            255
+          {% else %}
+            {{ action_level | int(1) }}
+          {% endif %}
+        ziel_kelvin: >
+          {% set an = expand(wohn_decken) | selectattr('state', 'eq', 'on') | list %}
+          {% if an %}
+            {% set a = an[0].attributes %}
+            {% if a.color_temp_kelvin is number %}{{ a.color_temp_kelvin | int }}
+            {% elif a.color_temp is number %}{{ (1000000 / a.color_temp) | int }}
+            {% else %}4000{% endif %}
+          {% else %}4000{% endif %}
+    - action: light.turn_on
+      target:
+        entity_id: "{{ wohn_decken }}"
+      data:
+        brightness: "{{ ziel_helligkeit }}"
+        color_temp_kelvin: "{{ ziel_kelvin }}"
+        transition: 0.5
+
+licht_wohn_drehregler_klick:
+  alias: Licht Wohn Drehregler Klick
+  description: Aus = ganzes Wohnzimmer; An = nur Deckenlampen.
+  mode: single
+  fields:
+    action_level:
+      description: MQTT action_level als Helligkeit beim Einschalten
+      example: 240
+  sequence:
+    - variables:
+        wohn_decken:
+          - light.licht_eg_wohnzimmer_zentral
+          - light.licht_eg_wohnzimmer_spot1
+          - light.licht_eg_wohnzimmer_spot2
+          - light.licht_eg_wohnzimmer_spot3
+        wohn_alle: light.alle_lichter_wohnzimmer
+        ziel_helligkeit: >
+          {% if action_level is none or action_level in ['null', 'None', ''] %}
+            255
+          {% else %}
+            {{ action_level | int(1) }}
+          {% endif %}
+        ziel_kelvin: >
+          {% set an = expand(wohn_decken) | selectattr('state', 'eq', 'on') | list %}
+          {% if an %}
+            {% set a = an[0].attributes %}
+            {% if a.color_temp_kelvin is number %}{{ a.color_temp_kelvin | int }}
+            {% elif a.color_temp is number %}{{ (1000000 / a.color_temp) | int }}
+            {% else %}4000{% endif %}
+          {% else %}4000{% endif %}
+        irgendeins_an: >
+          {{ expand(wohn_alle) | selectattr('state', 'eq', 'on') | list | length > 0 }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ irgendeins_an }}"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: "{{ wohn_alle }}"
+        - conditions: []
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: "{{ wohn_decken }}"
+              data:
+                brightness: "{{ ziel_helligkeit }}"
+                color_temp_kelvin: "{{ ziel_kelvin }}"
+                transition: 0.5
+
+licht_eg_raum_ein:
+  alias: Licht EG Raum Neutralwert
+  description: Schaltet Raum mit tageszeitabhängigem Neutralwert ein (docs/licht-eg-anforderungen.md).
+  mode: single
+  fields:
+    raum:
+      description: kueche, ess oder wohn
+      example: ess
+      required: true
+  sequence:
+    - variables:
+        abends: "{{ is_state('sun.sun', 'below_horizon') }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ raum == 'kueche' }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: light.licht_eg_kueche
+              data:
+                brightness: "{{ 102 if abends else 204 }}"
+                color_temp_kelvin: 2700
+                transition: 1
+        - conditions:
+            - condition: template
+              value_template: "{{ raum == 'ess' }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: light.licht_eg_esszimmer_lang
+              data:
+                brightness: "{{ 128 if abends else 179 }}"
+                color_temp_kelvin: 4000
+                transition: 1
+            - action: light.turn_on
+              target:
+                entity_id: light.licht_eg_esszimmer_schrank
+            - action: light.turn_off
+              target:
+                entity_id:
+                  - light.licht_eg_esszimmer_spot1
+                  - light.licht_eg_esszimmer_spot2
+                  - light.licht_eg_esszimmer_spot3
+                  - light.licht_eg_esszimmer_spot4
+        - conditions:
+            - condition: template
+              value_template: "{{ raum == 'wohn' }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: light.licht_eg_wohnzimmer_zentral
+              data:
+                brightness: "{{ 115 if abends else 153 }}"
+                color_temp_kelvin: 2700
+                transition: 1
+            - action: light.turn_on
+              target:
+                entity_id: light.licht_eg_wohnzimmer_iris
+              data:
+                brightness: "{{ 140 if abends else 179 }}"
+                color_temp_kelvin: 2700
+                transition: 1
+            - action: light.turn_off
+              target:
+                entity_id:
+                  - light.licht_eg_wohnzimmer_spot1
+                  - light.licht_eg_wohnzimmer_spot2
+                  - light.licht_eg_wohnzimmer_spot3
+                  - light.licht_eg_wohnzimmer_regal
+                  - light.licht_eg_wohnzimmer_tv_led
+                  - light.licht_eg_wohnzimmer_couch_led
+
+licht_eg_raum_toggle:
+  alias: Licht EG Raum Toggle
+  description: Raum aus oder Neutralwert; aktive Szene bleibt gespeichert.
+  mode: single
+  fields:
+    raum:
+      description: kueche, ess oder wohn
+      example: ess
+      required: true
+    ziel_gruppe:
+      description: light-Gruppe für Aus-Prüfung
+      example: light.alle_lichter_esszimmer
+      required: true
+  sequence:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ expand(ziel_gruppe) | selectattr('state', 'eq', 'on') | list | length > 0 }}
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: "{{ ziel_gruppe }}"
+        - conditions: []
+          sequence:
+            - action: script.licht_eg_raum_ein
+              data:
+                raum: "{{ raum }}"
+
+licht_eg_szene_aktivieren:
+  alias: Licht EG Szene aktivieren
+  description: Szene einschalten und aktive_szene_eg setzen.
+  mode: queued
+  max: 5
+  fields:
+    szene_name:
+      description: Anzeigename für input_select.aktive_szene_eg
+      example: Gemütlich
+      required: true
+    szene_entity:
+      description: scene.entity_id
+      example: scene.gemutlich
+      required: true
+    transition:
+      description: Übergangszeit in Sekunden
+      example: 2
+      default: 2
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.aktive_szene_eg
+      data:
+        option: "{{ szene_name }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ transition | int(2) > 0 }}"
+          sequence:
+            - action: scene.turn_on
+              target:
+                entity_id: "{{ szene_entity }}"
+              data:
+                transition: "{{ transition | int(2) }}"
+        - conditions: []
+          sequence:
+            - action: scene.turn_on
+              target:
+                entity_id: "{{ szene_entity }}"
+
+licht_aus_alle:
+  alias: Alle Lichter aus
+  description: Alle Haus-Lichter aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.aktive_szene_eg
+      data:
+        option: —
+    - action: light.turn_off
+      target:
+        entity_id:
+          - light.alle_lichter_erdgeschoss
+          - light.licht_1og_david
+          - light.licht_1og_adrian
+          - light.licht_2og_schlafzimmer
+      data:
+        transition: 3
+
+licht_aus_erdgeschoss:
+  alias: Licht aus Erdgeschoss
+  description: Alle Lichter EG aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.alle_lichter_erdgeschoss
+
+licht_aus_wohnzimmer:
+  alias: Licht aus Wohnzimmer
+  description: Alle Lichter Wohnzimmer aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.alle_lichter_wohnzimmer
+
+licht_aus_esszimmer:
+  alias: Licht aus Esszimmer
+  description: Alle Lichter Esszimmer aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.alle_lichter_esszimmer
+
+licht_aus_kueche:
+  alias: Licht aus Küche
+  description: Küchenlicht aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.licht_eg_kueche
+
+licht_ein_kueche:
+  alias: Licht Küche an
+  description: Küche mit Neutralwert an (Sprachsteuerung)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: script.licht_eg_raum_ein
+      data:
+        raum: kueche
+
+licht_ein_esszimmer:
+  alias: Licht Esszimmer an
+  description: Esszimmer mit Neutralwert an (Sprachsteuerung)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: script.licht_eg_raum_ein
+      data:
+        raum: ess
+
+licht_ein_wohnzimmer:
+  alias: Licht Wohnzimmer an
+  description: Wohnzimmer mit Neutralwert an (Sprachsteuerung)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: script.licht_eg_raum_ein
+      data:
+        raum: wohn
+
+szene_eg_hell:
+  alias: Szene Hell
+  description: EG-Szene Hell (setzt aktive_szene_eg)
+  icon: mdi:lightbulb-on
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Hell
+        szene_entity: scene.hell
+        transition: 0
+
+szene_eg_gemutlich:
+  alias: Szene Gemütlich
+  description: EG-Szene Gemütlich (setzt aktive_szene_eg)
+  icon: mdi:sofa
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Gemütlich
+        szene_entity: scene.gemutlich
+        transition: 2
+
+szene_eg_brettspiele:
+  alias: Szene Brettspiele
+  description: EG-Szene Brettspiele (setzt aktive_szene_eg)
+  icon: mdi:dice-multiple
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Brettspiele
+        szene_entity: scene.brettspiele
+        transition: 5
+
+szene_eg_kathi_gemutlich:
+  alias: Szene Kathi Gemütlich
+  description: EG-Szene Kathi Gemütlich (setzt aktive_szene_eg)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Kathi Gemütlich
+        szene_entity: scene.kathi_gemutlich
+        transition: 2
+
+szene_eg_kino:
+  alias: Szene Kino
+  description: EG-Szene Kino (setzt aktive_szene_eg)
+  icon: mdi:popcorn
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Kino
+        szene_entity: scene.kino
+        transition: 2
+
+szene_eg_sonnenuntergang:
+  alias: Szene Sonnenuntergang
+  description: EG-Szene Sonnenuntergang (setzt aktive_szene_eg)
+  icon: mdi:weather-sunset
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Sonnenuntergang
+        szene_entity: scene.sonnenuntergang
+        transition: 2
+
+szene_eg_kathi_ess:
+  alias: Szene Kathi Ess
+  description: EG-Szene Kathi Ess (setzt aktive_szene_eg)
+  icon: mdi:silverware-fork-knife
+  mode: single
+  sequence:
+    - action: script.licht_eg_szene_aktivieren
+      data:
+        szene_name: Kathi Ess
+        szene_entity: scene.kathi_ess
+        transition: 2
+
+szene_david_hell:
+  alias: Szene David Hell
+  description: David Zimmer Szene Hell
+  icon: mdi:lightbulb-on
+  mode: single
+  sequence:
+    - action: scene.turn_on
+      target:
+        entity_id: scene.david_hell
+
+szene_david_gemutlich:
+  alias: Szene David Gemütlich
+  description: David Zimmer Szene Gemütlich
+  icon: mdi:sofa
+  mode: single
+  sequence:
+    - action: scene.turn_on
+      target:
+        entity_id: scene.david_gemutlich
+
+szene_adrian_hell:
+  alias: Szene Adrian Hell
+  description: Adrian Zimmer Szene Hell
+  icon: mdi:lightbulb-on
+  mode: single
+  sequence:
+    - action: scene.turn_on
+      target:
+        entity_id: scene.adrian_hell
+
+szene_adrian_gemutlich:
+  alias: Szene Adrian Gemütlich
+  description: Adrian Zimmer Szene Gemütlich
+  icon: mdi:sofa
+  mode: single
+  sequence:
+    - action: scene.turn_on
+      target:
+        entity_id: scene.adrian_gemutlich

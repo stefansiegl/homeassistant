@@ -110,8 +110,22 @@ input_select:
       - Gemütlich
       - Kino
       - Sonnenuntergang
+      - Kathi Gemütlich
     icon: mdi:car-light-dimmed
     initial: Kino
+  aktive_szene_eg:
+    name: Aktive Szene EG
+    options:
+      - —
+      - Hell
+      - Gemütlich
+      - Brettspiele
+      - Kino
+      - Sonnenuntergang
+      - Kathi Gemütlich
+      - Kathi Ess
+    icon: mdi:palette
+    initial: —
 
 input_text:
   placeholder:

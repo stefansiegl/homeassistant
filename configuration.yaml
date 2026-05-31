@@ -39,6 +39,16 @@ homeassistant:
     sensor.waste_bio_display:
       entity_picture: /local/images/waste/waste-gruen.png
 
+    # Sprachsteuerung (Google/Assist) — siehe docs/sprachsteuerung-licht-eg.md
+    light.alle_lichter_erdgeschoss:
+      friendly_name: Alle Lichter Erdgeschoss
+    light.alle_lichter_wohnzimmer:
+      friendly_name: Alle Lichter Wohnzimmer
+    light.alle_lichter_esszimmer:
+      friendly_name: Alle Lichter Esszimmer
+    light.licht_eg_kueche:
+      friendly_name: Licht Küche
+
   packages:
     helpers: !include helpers.yaml
 
