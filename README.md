@@ -13,6 +13,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Konfigurations-Strategie**](./docs/konfigurations-strategie.md) – Was in YAML/Git liegt vs. was in der UI bleibt (inkl. Migrations-Backlog).
 - [**Dashboard Tablett (EG)**](./docs/dashboard-tablett.md) – Kiosk-Tablet: Touch-UI, Design-Prinzipien, Backlog.
 - [**Dashboard Übersicht**](./docs/dashboard-uebersicht.md) – Haupt-Dashboard: Lüftung, Klima, Haushalt, Backlog.
+- [**Haushalt: Waschmaschine**](./docs/haushalt-waschmaschine.md) – Leistungs-Schwellen, Neustart-Logik, Push bei fertig.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
 - [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
