@@ -59,15 +59,10 @@ homeassistant:
 
     sensor.helios_luftung_energy:
       friendly_name: Helios Lüftung
-    sensor.vitovalor_strom:
-      friendly_name: Vitovalor Strom
-      device_class: energy
-      state_class: total_increasing
-      unit_of_measurement: kWh
     sensor.vicare_energy_consumption_today:
       friendly_name: Vitovalor Strom heute (ViCare)
     sensor.vicare_energy_consumption_this_month:
-      friendly_name: Vitovalor Strom Monat (ViCare)
+      friendly_name: Vitovalor Strom
 
   packages:
     helpers: !include helpers.yaml
@@ -677,7 +672,7 @@ template:
 
 # Diese Dateien müssen als (leere) Dateien im /config/ Ordner existieren!
 shell_command:
-  repair_energie_dashboard: /config/bin/repair-energie-dashboard-auto.sh
+  repair_energie_dashboard: sh /config/bin/repair-energie-dashboard-auto.sh
 
 automation: !include automations.yaml
 script: !include scripts.yaml

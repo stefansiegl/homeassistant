@@ -10,7 +10,7 @@ Bei unrealistischen Verbrauchs-/Kostenwerten im **Energie-Dashboard** (Live-Enti
 
 **Standard:** `repair-energie-dashboard.sh` (Strom + Gas + Wasser stabil + Kosten-Purge). Vorher/nachher: `check-energie-statistik.sh`. Automatik: `shell_command.repair_energie_dashboard` (04:00 + 20 Min nach Start).
 
-**Minus-Kosten:** Ursache = HA `*_cost`-Recorder-Statistik — Entities in `recorder.exclude`; Kosten nur Verbrauch × Preis.
+**Minus-Kosten:** Ursache = HA `*_cost`-Recorder-Statistik — Entities in `recorder.exclude`; Kosten nur Verbrauch × Preis. UI-Hinweis „Entität nicht nachverfolgt“ bei `_cost`/`_compensation` ist **gewollt** (siehe `docs/energie-statistik-wartung.md`).
 
 Einzeln nur bei Debug: `repair-grid-statistics.sh`, `repair-gasmeter-statistics.sh`, `repair-watermeter-statistics.sh` (Wasser: `META_ID_VALUE=1266`, `META_ID_COST=1268`), `sync-gasmeter-cost.sh`.
 

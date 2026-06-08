@@ -126,11 +126,13 @@ Brennstoffzelle (0,75 kW<sub>el</sub>) + Spitzenlast-Gasbrenner + Pumpen/Steueru
 
 Die ViCare-Sensoren sind **echte Verbrauchswerte**, keine Watt-Schätzung. Problem: **Tages-/Monatszähler setzen sich zurück** → `statistics.sum` kann wie bei Gas/Wasser springen, wenn man den Roh-Sensor ungefiltert nutzt.
 
-**Vorschlag für Energie-Dashboard:**
+**Energie-Dashboard:**
 
-1. **Template-Sensor** `sensor.vitovalor_strom` spiegelt `sensor.vicare_energy_consumption_this_month` mit `device_class: energy` (Energie-Dashboard-Picker).
-2. Fallback im Picker: **`sensor.vicare_energy_consumption_this_month`** (Friendly Name: „Vitovalor Strom Monat (ViCare)“).
-3. Keine Doppelzählung mit Gas-Energie-Sensoren (`vicare_heating_gas_*` = Gas m³/kWh, anderes Medium).
+1. **`sensor.vicare_energy_consumption_this_month`** direkt (Friendly Name: „Vitovalor Strom“) — ViCare-Integration, `device_class: energy`, funktionierende `statistics.sum`.
+2. **Kein** Template-Spiegel (`sensor.vitovalor_strom` entfernt): gleicher Live-Wert, aber `sum`-Statistik im Dashboard wertlos.
+3. **Monats-Reset:** Wert fällt am Monatsanfang auf 0 — mit `state_class: total_increasing` normales HA-Verhalten; Historie des Vormonats bleibt in der Statistik (nach Monatswechsel kurz prüfen).
+4. **`_today` nicht** fürs Dashboard — nur Tageswert, mehr Reset-Punkte; `_this_month` passt zur Monatsansicht.
+5. Keine Doppelzählung mit Gas-Energie-Sensoren (`vicare_heating_gas_*` = Gas m³/kWh, anderes Medium).
 
 **Option B — Powercalc `composite` (Schätzung)**
 
@@ -175,9 +177,9 @@ powercalc:
 
 ### Energie-Dashboard
 
-**Umsetzung:** `helpers.yaml` → Template `sensor.vitovalor_strom` (Quelle `sensor.vicare_energy_consumption_this_month`, `device_class: energy`).
+**Umsetzung:** `sensor.vicare_energy_consumption_this_month` unter **Einstellungen → Energie → Einzelgeräte** (Friendly Name über `configuration.yaml` → „Vitovalor Strom“). Zusätzlich: `sensor.helios_luftung_energy` — **UI**, nicht `.storage` editieren.
 
-Nach Neustart: **Einstellungen → Energie → Einzelgeräte** → `sensor.vitovalor_strom` und `sensor.helios_luftung_energy` — **UI**, nicht `.storage` editieren.
+Falls noch `sensor.vitovalor_strom` eingetragen: in der UI **entfernen** und durch `sensor.vicare_energy_consumption_this_month` ersetzen.
 
 ---
 
@@ -241,21 +243,21 @@ Nur sinnvoll, wenn im Dashboard getrennte Balken gewünscht — sonst reicht Opt
 | Schritt | Status |
 |---------|--------|
 | Helios Powercalc in `configuration.yaml` | ✅ |
-| Vitovalor Template `sensor.vitovalor_strom` in `helpers.yaml` | ✅ |
+| Vitovalor: `sensor.vicare_energy_consumption_this_month` im Dashboard | ✅ (YAML); UI ggf. tauschen |
 | Energie-Dashboard UI (Einzelgeräte) | **Nutzer** — siehe unten |
 | Licht-Gruppen (Option B/C) | offen |
 
 **Dein Test nach Neustart / YAML-Reload:**
 
-1. Entwicklerwerkzeuge → `sensor.helios_luftung_power` / `_energy` und `sensor.vitovalor_strom` prüfen.
-2. Einstellungen → Energie → Einzelgeräte: `sensor.helios_luftung_energy`, `sensor.vitovalor_strom` hinzufügen.
-3. Plausibilität: Vitovalor-Monat ≈ `sensor.vicare_energy_consumption_this_month`.
+1. Entwicklerwerkzeuge → `sensor.helios_luftung_power` / `_energy` und `sensor.vicare_energy_consumption_this_month` prüfen.
+2. Einstellungen → Energie → Einzelgeräte: `sensor.helios_luftung_energy`, `sensor.vicare_energy_consumption_this_month` („Vitovalor Strom“).
+3. Alten Eintrag `sensor.vitovalor_strom` entfernen, falls noch vorhanden.
 
 ---
 
 ## Offen
 
 - [x] Helios: Powercalc (kein 3EM)
-- [x] Vitovalor: ViCare via Template → `sensor.vitovalor_strom`
+- [x] Vitovalor: ViCare direkt → `sensor.vicare_energy_consumption_this_month`
 - [ ] Energie-Dashboard UI: beide Sensoren unter Einzelgeräte
 - [ ] Welche Licht-Option (A/B/C) im Dashboard?

@@ -4,16 +4,43 @@ Recorder-**Statistik** (`statistics` / `statistics_short_term`) kann durch Gerä
 
 ## Quellen im Dashboard
 
-| Medium | Entity (Verbrauch) | Kosten-Entity | Preis |
-|--------|-------------------|---------------|-------|
-| Strom Bezug | `sensor.tasmota_mt691_total_in` | `sensor.tasmota_mt691_total_in_cost` | 0,33376 €/kWh (`.storage/energy`) |
-| Strom Einspeisung | `sensor.tasmota_mt691_total_out` | `sensor.tasmota_mt691_total_out_compensation` | 0,23 €/kWh |
-| Gas | `sensor.gasmeter_value_stabil` | — (Preis in UI) | `input_number.gaspreis_pro_m3` (1,32) |
-| Wasser | `sensor.watermeter_value_stabil` | — (Preis in UI) | 3,52 €/m³ |
+| Medium | Entity (Verbrauch) | Kosten im Dashboard | Preis (UI) |
+|--------|-------------------|---------------------|------------|
+| Strom Bezug | `sensor.tasmota_mt691_total_in` | Verbrauch × Preis | 0,33376 €/kWh |
+| Strom Einspeisung | `sensor.tasmota_mt691_total_out` | Einspeisung × Vergütung | 0,23 €/kWh |
+| Gas | `sensor.gasmeter_value_stabil` | Verbrauch × Preis | `input_number.gaspreis_pro_m3` (1,32) |
+| Wasser | `sensor.watermeter_value_stabil` | Verbrauch × Preis | 3,52 €/m³ |
 
-Kosten im Dashboard = **Verbrauchs-Deltas × Preis** (`.storage/energy`: `stat_cost: null`). Die HA-Kosten-Sensoren (`*_cost`) sind **aus dem Recorder ausgeschlossen** — HA schreibt deren `sum` falsch zurück und erzeugt Minus-Tageswerte.
+In `.storage/energy` sind `stat_cost` / `stat_compensation` für Netz, Gas und Wasser **`null`** — es werden **keine** HA-Kosten-Sensoren verknüpft, nur feste Preise bzw. `input_number.gaspreis_pro_m3`.
 
 Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.
+
+## Kosten-Sensoren & Recorder (absichtlich ausgeschlossen)
+
+Home Assistant legt zu Verbrauchs-Entities automatisch **`sensor.*_cost`** / **`sensor.*_compensation`** an. Deren Recorder-**Statistik** (`statistics.sum`) hat bei uns wiederholt **falsche Sprünge** erzeugt → Minus-Tageswerte und **absurde Kosten** (z. B. Strom in 100.000en €).
+
+**Lösung:** Diese Entitäten in `configuration.yaml` → `recorder.exclude` — sie werden **nicht** historisiert. Kosten im Energie-Dashboard = **Verbrauchs-Delta × Preis** (siehe Tabelle oben).
+
+| Entity (ausgeschlossen) | Medium |
+|-------------------------|--------|
+| `sensor.tasmota_mt691_total_in_cost` | Strom Bezug |
+| `sensor.tasmota_mt691_total_out_compensation` | Strom Einspeisung |
+| `sensor.gasmeter_value_cost` | Gas (Roh) |
+| `sensor.gasmeter_value_stabil_cost` | Gas (stabil) |
+| `sensor.watermeter_value_cost` | Wasser (Roh) |
+| `sensor.watermeter_value_stabil_cost` | Wasser (stabil) |
+
+### Meldung in der HA-UI: „Entität nicht nachverfolgt“
+
+Wenn du z. B. `sensor.tasmota_mt691_total_in_cost` in **Entwicklerwerkzeuge → Zustände** öffnest, zeigt HA:
+
+> *Home Assistant Recorder wurde so konfiguriert, dass er diese konfigurierten Entitäten ausschließt*
+
+Das ist **gewollt** — kein Fehler, nichts reparieren. Die **Verbrauchs-Entities** (`total_in`, `total_out`, `gasmeter_value_stabil`, …) werden normal aufgezeichnet.
+
+**Nicht tun:** `_cost` / `_compensation` aus `recorder.exclude` entfernen, um die Meldung loszuwerden — das holt das Kosten-Minus-Problem zurück.
+
+**Bei kaputten Kosten trotzdem:** `repair-energie-dashboard.sh` (bereinigt alte Kosten-Statistik-Zeilen via `purge-energie-cost-statistics.sh`) + Dashboard **Strg+F5** — nicht die Exclude-Liste aufweichen.
 
 ## Standard-Workflow (immer zusammen)
 
@@ -53,7 +80,7 @@ Das Master-Skript **entfernt** am Ende Kosten-Statistik (`purge-energie-cost-sta
 **Reparatur:** bevorzugt `repair-energie-dashboard.sh` (siehe oben); nur Strom: `repair-grid-statistics.sh`.
 
 - Sprung-Filter: max. **+35 kWh/h**, Artefakt **`state` &lt; 5000** bei Zähler &gt; 5000 wird verworfen
-- setzt `sum` neu; synchronisiert Kosten-/Vergütungs-Statistik via `sync-gasmeter-cost.sh`
+- setzt `sum` neu für **Verbrauch**; optional Kosten-Meta via `sync-gasmeter-cost.sh` (nur für Reparatur-Historie — laufender Betrieb ohne `*_cost`-Recorder)
 
 **Nach dem Lauf:** Energie-Dashboard **Strg+F5**.
 

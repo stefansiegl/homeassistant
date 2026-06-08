@@ -207,7 +207,7 @@ Das Skript:
 
 **Prävention (seit 2026-06-08):** `sensor.watermeter_value_stabil` filtert OCR-Ausreißer live; `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle: **stabil**.
 
-**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben falsche `sum`-Werte → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Dashboard nutzt festen Preis × Verbrauch. `purge-energie-cost-statistics.sh` entfernt alte Kosten-Zeilen.
+**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben falsche `sum`-Werte → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Dashboard nutzt festen Preis × Verbrauch. `purge-energie-cost-statistics.sh` entfernt alte Kosten-Zeilen. Vollständige Liste, Strom `_compensation` und UI-Hinweis „Entität nicht nachverfolgt“: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) → Abschnitt *Kosten-Sensoren & Recorder*.
 
 **Historie übernehmen (einmalig nach Umstellung):** `DB_PASS='…' /config/bin/seed-watermeter-stabil-statistics.sh` — kopiert reparierte Statistik von `sensor.watermeter_value` (metadata 1083) nach `sensor.watermeter_value_stabil` (1266) inkl. Kosten-Sync.
 
