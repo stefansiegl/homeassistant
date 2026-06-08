@@ -1,0 +1,17 @@
+---
+description: Wartung Gas/Wasser Recorder-Statistik bei OCR-Ausreißern (Energie-Dashboard)
+alwaysApply: false
+globs: bin/repair-*meter*.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md
+---
+
+# AIoT Statistik-Wartung (Gas/Wasser)
+
+Bei unrealistischen m³/Kosten im **Energie-Dashboard** (nicht Live-Entity):
+
+1. **Verschlimmert?** → MariaDB-Restore aus Backup, `ha core restart` — siehe `docs/ai-on-the-edge.md`
+2. **Werte reparieren (einmal):** `repair-gasmeter-statistics.sh` / `repair-watermeter-statistics.sh` (`DB_PASS` aus `secrets.yaml`)
+3. **Nur Kosten** (m³ plausibel, Kosten 0/falsch): `sync-gasmeter-cost.sh` (Wasser: Meta 1083/1082, Preis 3.52)
+4. **Nicht** Reparatur auf bereits reparierte DB wiederholen
+5. Nutzer: Energie-Dashboard **Strg+F5**
+
+Spec: `docs/ai-on-the-edge.md` (Abschnitte Statistik-Reparatur Gas/Wasser, DB-Restore).
