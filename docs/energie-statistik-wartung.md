@@ -8,10 +8,41 @@ Recorder-**Statistik** (`statistics` / `statistics_short_term`) kann durch Gerä
 |--------|-------------------|---------------|-------|
 | Strom Bezug | `sensor.tasmota_mt691_total_in` | `sensor.tasmota_mt691_total_in_cost` | 0,33376 €/kWh (`.storage/energy`) |
 | Strom Einspeisung | `sensor.tasmota_mt691_total_out` | `sensor.tasmota_mt691_total_out_compensation` | 0,23 €/kWh |
-| Gas | `sensor.gasmeter_value` | `sensor.gasmeter_value_cost` | `input_number.gaspreis_pro_m3` (1,32) |
-| Wasser | `sensor.watermeter_value` | `sensor.watermeter_value_cost` | 3,52 €/m³ |
+| Gas | `sensor.gasmeter_value_stabil` | — (Preis in UI) | `input_number.gaspreis_pro_m3` (1,32) |
+| Wasser | `sensor.watermeter_value_stabil` | — (Preis in UI) | 3,52 €/m³ |
 
-Kosten = **`val.sum` × Preis**; Perioden = **Deltas** der `sum`-Spalte.
+Kosten im Dashboard = **Verbrauchs-Deltas × Preis** (`.storage/energy`: `stat_cost: null`). Die HA-Kosten-Sensoren (`*_cost`) sind **aus dem Recorder ausgeschlossen** — HA schreibt deren `sum` falsch zurück und erzeugt Minus-Tageswerte.
+
+Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.
+
+## Standard-Workflow (immer zusammen)
+
+Nach **Entity-Umstellung**, **Seed**, **Core-Neustart** oder **komischen Kosten/Verbräuchen** (ein oder mehrere Medien):
+
+```bash
+# optional: nur prüfen
+DB_PASS='…' /config/bin/check-energie-statistik.sh
+
+# Reparatur Strom + Gas + Wasser in einem Lauf
+DB_PASS='…' /config/bin/repair-energie-dashboard.sh
+```
+
+Danach Energie-Dashboard **Strg+F5**. Einzel-Skripte nur bei gezieltem Debugging.
+
+Das Master-Skript **entfernt** am Ende Kosten-Statistik (`purge-energie-cost-statistics.sh`) — Kosten kommen nur noch aus Verbrauch × Preis.
+
+**Automatik:** Automationen `Energie: Statistik-Wartung` (20 Min nach Neustart + täglich 04:00) via `shell_command.repair_energie_dashboard`.
+
+**Warum zusammen?** HA kann bei Neustart/Seed die `sum`-Spalte neu kompilieren (`Compiling initial sum statistics`) — das betrifft oft mehrere Quellen gleichzeitig; nur Wasser zu fixen lässt Strom/Gas weiter falsch.
+
+| Schritt | Skript |
+|---------|--------|
+| Diagnose | `check-energie-statistik.sh` |
+| Alles reparieren | `repair-energie-dashboard.sh` |
+| Nur Strom | `repair-grid-statistics.sh` |
+| Nur Gas | `repair-gasmeter-statistics.sh` |
+| Nur Wasser | `repair-watermeter-statistics.sh` (`META_ID_VALUE=1266`, `META_ID_COST=1268`) |
+| Nur Kosten | `sync-gasmeter-cost.sh` |
 
 ## Strom (Tasmota MT691)
 
@@ -19,11 +50,7 @@ Kosten = **`val.sum` × Preis**; Perioden = **Deltas** der `sum`-Spalte.
 
 **Ursache:** `sum` in der Statistik springt durch fehlerhafte `state`-Werte (z. B. **1000** statt ~17.000) und akkumuliert falsche kWh.
 
-**Reparatur:**
-
-```bash
-DB_PASS='…' /config/bin/repair-grid-statistics.sh
-```
+**Reparatur:** bevorzugt `repair-energie-dashboard.sh` (siehe oben); nur Strom: `repair-grid-statistics.sh`.
 
 - Sprung-Filter: max. **+35 kWh/h**, Artefakt **`state` &lt; 5000** bei Zähler &gt; 5000 wird verworfen
 - setzt `sum` neu; synchronisiert Kosten-/Vergütungs-Statistik via `sync-gasmeter-cost.sh`
@@ -33,6 +60,8 @@ DB_PASS='…' /config/bin/repair-grid-statistics.sh
 ## Gas / Wasser (AI-on-the-Edge)
 
 Siehe [`ai-on-the-edge.md`](./ai-on-the-edge.md) — Abschnitte Statistik-Reparatur, DB-Restore, `sync-gasmeter-cost.sh`.
+
+**Wasser — Prävention:** `sensor.watermeter_value_stabil` (Trigger-Template) filtert OCR-Ausreißer vor der Recorder-Statistik; Roh-Entity `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle in der UI auf **stabil** stellen. Reparatur-Skript nur noch für **historische** Daten nötig.
 
 ## Nur Kosten (ohne Werte-Reparatur)
 

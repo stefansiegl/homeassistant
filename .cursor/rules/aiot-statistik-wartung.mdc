@@ -1,19 +1,18 @@
 ---
 description: Wartung Energie-Dashboard Recorder-Statistik (Strom/Gas/Wasser)
 alwaysApply: false
-globs: bin/repair-*.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md,docs/energie-statistik-wartung.md
+globs: bin/repair-*.sh,bin/check-energie-statistik.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md,docs/energie-statistik-wartung.md
 ---
 
 # Energie-Statistik-Wartung
 
 Bei unrealistischen Verbrauchs-/Kostenwerten im **Energie-Dashboard** (Live-Entity oft ok):
 
-| Medium | Skript |
-|--------|--------|
-| **Strom** (100k€, sum-Sprünge) | `repair-grid-statistics.sh` |
-| **Gas** | `repair-gasmeter-statistics.sh` |
-| **Wasser** | `repair-watermeter-statistics.sh` |
-| **Nur Kosten** | `sync-gasmeter-cost.sh` (Meta/Preis je Quelle) |
+**Standard:** `repair-energie-dashboard.sh` (Strom + Gas + Wasser stabil + Kosten-Purge). Vorher/nachher: `check-energie-statistik.sh`. Automatik: `shell_command.repair_energie_dashboard` (04:00 + 20 Min nach Start).
+
+**Minus-Kosten:** Ursache = HA `*_cost`-Recorder-Statistik — Entities in `recorder.exclude`; Kosten nur Verbrauch × Preis.
+
+Einzeln nur bei Debug: `repair-grid-statistics.sh`, `repair-gasmeter-statistics.sh`, `repair-watermeter-statistics.sh` (Wasser: `META_ID_VALUE=1266`, `META_ID_COST=1268`), `sync-gasmeter-cost.sh`.
 
 1. **Verschlimmert?** → MariaDB-Restore, `ha core restart` (Gas/Wasser: `docs/ai-on-the-edge.md`)
 2. Reparatur **einmal** (`DB_PASS` aus `secrets.yaml`) — nicht auf bereits reparierte DB wiederholen

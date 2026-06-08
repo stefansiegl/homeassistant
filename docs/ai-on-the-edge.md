@@ -104,19 +104,28 @@ Bei erneutem Offline: [Web-UI Wasserzähler](http://192.168.188.121/) → MQTT-T
 
 | Entity | Rolle | Recorder |
 |--------|--------|----------|
-| `sensor.watermeter_value` | **Hauptwert** m³, `device_class: water` | ✅ (wenn online) |
+| `sensor.watermeter_value` | **Rohwert** m³ (MQTT/OCR) | ❌ Recorder (nur Live-State für Warnungen) |
+| `sensor.watermeter_value_stabil` | **Gefilterter Zählerstand** für Energie/Statistik | ✅ |
 | `binary_sensor.watermeter_problem` | Problem-Flag | ✅ |
 | `sensor.watermeter_error` | Text-Fehler | excluded |
-| `sensor.watermeter_in_l` | **Template** m³ → Liter (× 1000) | ✅ (wenn Quelle online) |
+| `sensor.watermeter_in_l` | **Template** stabil m³ → Liter (× 1000) | ✅ (wenn Quelle online) |
 | Diagnose (`_uptime`, `_ip`, …) | wie Gas | excluded |
 
-Template in [`configuration.yaml`](../configuration.yaml):
+Templates in [`configuration.yaml`](../configuration.yaml):
+
+**Stabil** (`sensor.watermeter_value_stabil`) — Trigger-Template bei jeder Änderung von `sensor.watermeter_value`:
+
+- Sprung-Filter wie `bin/repair-watermeter-statistics.sh`: max. **+2 m³/h** (zeitlich skaliert), max. **−0,2 m³**, nach **>48 h** Pause bis **+15 m³**
+- OCR-Spike: Wert **>3× letzter Stand** und **>500 m³** → verwerfen, letzten stabilen Wert halten
+- Attribute `raw_value`, `filtered` (true = Ausreißer verworfen)
+
+**Liter:**
 
 ```yaml
 - name: "Watermeter in l"
   unique_id: watermeter_in_l
-  state: "{{ states('sensor.watermeter_value')|float(default=0) * 1000 }}"
-  availability: "{{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none'] }}"
+  state: "{{ states('sensor.watermeter_value_stabil')|float(default=0) * 1000 }}"
+  availability: "{{ states('sensor.watermeter_value_stabil') not in ['unknown', 'unavailable', 'none'] }}"
 ```
 
 **Abweichung Google-Doc-Archiv:** dort teils `water_meter_liters` — in HA heißt die Entity **`sensor.watermeter_in_l`**.
@@ -136,7 +145,7 @@ Template in [`configuration.yaml`](../configuration.yaml):
 
 - AIoT sendet in konfiguriertem Intervall MQTT → HA aktualisiert `*_value`
 - Gas: Energie-Dashboard nutzt `sensor.gasmeter_value` (Gas, monoton steigend)
-- Wasser: Energie-Dashboard nutzt `sensor.watermeter_value` oder `sensor.watermeter_in_l` (Wasser)
+- Wasser: Energie-Dashboard nutzt **`sensor.watermeter_value_stabil`** (nicht den OCR-Rohwert)
 
 ### Fehler & Offline
 
@@ -160,7 +169,7 @@ Template in [`configuration.yaml`](../configuration.yaml):
 | Medium | Empfohlene Entity | Bemerkung |
 |--------|-------------------|-----------|
 | Gas | `sensor.gasmeter_value` | `device_class: gas` via customize |
-| Wasser | `sensor.watermeter_value` | m³; alternativ Liter-Template für Anzeige |
+| Wasser | `sensor.watermeter_value_stabil` | m³; Liter-Anzeige via `sensor.watermeter_in_l` |
 
 Nach Wiederherstellung Wasserzähler: in **Einstellungen → Energie** prüfen, ob Wasser-Quelle noch verknüpft ist und Historie weiterläuft.
 
@@ -196,9 +205,15 @@ Das Skript:
 
 **Nach dem Lauf:** Energie-Dashboard im Browser neu laden (ggf. Cache leeren). Live-Zählerstand unverändert.
 
-**Backlog:** Gefilterter Sensor (`sensor.watermeter_value_stabil`) für künftige Ausreißer — siehe Chat 2026-06-08.
+**Prävention (seit 2026-06-08):** `sensor.watermeter_value_stabil` filtert OCR-Ausreißer live; `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle: **stabil**.
+
+**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben falsche `sum`-Werte → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Dashboard nutzt festen Preis × Verbrauch. `purge-energie-cost-statistics.sh` entfernt alte Kosten-Zeilen.
+
+**Historie übernehmen (einmalig nach Umstellung):** `DB_PASS='…' /config/bin/seed-watermeter-stabil-statistics.sh` — kopiert reparierte Statistik von `sensor.watermeter_value` (metadata 1083) nach `sensor.watermeter_value_stabil` (1266) inkl. Kosten-Sync.
 
 ### Statistik-Reparatur Gas (MariaDB, 2026-06-08)
+
+**Prävention (seit 2026-06-08):** `sensor.gasmeter_value_stabil` (wie Wasser); `sensor.gasmeter_value` aus Recorder exclude. Energie-Dashboard: **stabil**. Historie: `seed-gasmeter-stabil-statistics.sh` nach erstem Core-Neustart.
 
 **Präventiv geprüft** — aktuelle Werte (Mai/Juni 2026) sauber (~0,1–2 m³/Tag), Live-Zähler ~9983 m³.
 
@@ -257,7 +272,9 @@ InfluxDB-`include` listet AIoT-Entities **nicht** — Langzeit speichert MariaDB
 - [ ] Gas: `sensor.gasmeter_value` numerisch, steigt bei Verbrauch
 - [ ] Gas: `sensor.gasmeter_error` = `no error`, `binary_sensor.gasmeter_problem` = `off`
 - [x] Wasser: `sensor.watermeter_value` ≠ `unavailable` (seit 2026-06-08)
-- [ ] Wasser: `sensor.watermeter_in_l` folgt Wert × 1000
+- [ ] Wasser: `sensor.watermeter_value_stabil` ≈ Rohwert bei normalem Betrieb; `filtered: false`
+- [ ] Wasser: `sensor.watermeter_in_l` folgt stabil × 1000
+- [ ] Energie-Dashboard: Wasser-Quelle = `sensor.watermeter_value_stabil` (UI: Einstellungen → Energie → Wasser)
 - [ ] Energie-Dashboard: Gas + Wasser mit korrekter Einheit
 - [ ] (Backlog) Push bei Problem / Offline
 

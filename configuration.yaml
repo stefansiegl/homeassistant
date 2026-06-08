@@ -15,6 +15,14 @@ homeassistant:
       device_class: gas
       state_class: total_increasing
 
+    sensor.gasmeter_value_stabil:
+      device_class: gas
+      state_class: total_increasing
+
+    sensor.watermeter_value_stabil:
+      device_class: water
+      state_class: total_increasing
+
     # Stromzähler (Tasmota MT691)
     sensor.tasmota_mt691_power_cur:
       device_class: power
@@ -49,6 +57,18 @@ homeassistant:
     light.licht_eg_kueche:
       friendly_name: Licht Küche
 
+    sensor.helios_luftung_energy:
+      friendly_name: Helios Lüftung
+    sensor.vitovalor_strom:
+      friendly_name: Vitovalor Strom
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    sensor.vicare_energy_consumption_today:
+      friendly_name: Vitovalor Strom heute (ViCare)
+    sensor.vicare_energy_consumption_this_month:
+      friendly_name: Vitovalor Strom Monat (ViCare)
+
   packages:
     helpers: !include helpers.yaml
 
@@ -82,6 +102,13 @@ recorder:
       - sensor.gasmeter_error_2
       - sensor.gasmeter_uptime_2
       - sensor.gasmeter_in_kwh2
+      - sensor.gasmeter_value
+      - sensor.gasmeter_value_cost
+      - sensor.gasmeter_value_stabil_cost
+      - sensor.watermeter_value_cost
+      - sensor.watermeter_value_stabil_cost
+      - sensor.tasmota_mt691_total_in_cost
+      - sensor.tasmota_mt691_total_out_compensation
       - sensor.watermeter_uptime
       - sensor.watermeter_mac
       - sensor.watermeter_fwversion
@@ -98,6 +125,7 @@ recorder:
       - sensor.watermeter_rate_per_digitalization_round
       - sensor.watermeter_timestamp
       - sensor.watermeter_json
+      - sensor.watermeter_value
       - sensor.watermeter_value_2
       - sensor.watermeter_error_2
       - sensor.watermeter_uptime_2
@@ -146,14 +174,180 @@ group:
       - binary_sensor.watermeter_warnung
 
 template:
+  # Wasserzähler: OCR-Ausreißer filtern (siehe docs/ai-on-the-edge.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id: sensor.watermeter_value
+      - trigger: time_pattern
+        minutes: "/5"
+    sensor:
+      - name: "Watermeter Value Stabil"
+        unique_id: watermeter_value_stabil
+        icon: mdi:water-pump
+        device_class: water
+        state_class: total_increasing
+        unit_of_measurement: m³
+        availability: >
+          {{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none']
+             or this.state not in ['unknown', 'unavailable', 'none', ''] }}
+        state: >
+          {% set raw = states('sensor.watermeter_value') | float(none)
+             if trigger.platform != 'state'
+             else trigger.to_state.state | float(none) %}
+          {% if raw is none %}
+            {{ this.state }}
+          {% else %}
+            {% set last = this.state | float(none) %}
+            {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' else as_timestamp(now()) %}
+            {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ raw }}
+            {% else %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+              {% set accepted = raw %}
+              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) %}
+                {% set accepted = last %}
+              {% endif %}
+              {{ accepted }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          source: sensor.watermeter_value
+          raw_value: >
+            {{ states('sensor.watermeter_value') if trigger.platform != 'state'
+               else trigger.to_state.state }}
+          filtered: >
+            {% set raw = states('sensor.watermeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              false
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+                 if trigger.platform == 'state' else as_timestamp(now()) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+              {{ raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) }}
+            {% endif %}
+          last_accepted_ts: >
+            {% set raw = states('sensor.watermeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' else as_timestamp(now()) %}
+            {% if raw is none %}
+              {{ this.attributes.get('last_accepted_ts', now_ts) }}
+            {% elif last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ now_ts }}
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) %}
+                {{ last_ts }}
+              {% else %}
+                {{ now_ts }}
+              {% endif %}
+            {% endif %}
+
+  # Gaszähler: OCR-Ausreißer filtern (siehe docs/ai-on-the-edge.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id: sensor.gasmeter_value
+      - trigger: time_pattern
+        minutes: "/5"
+    sensor:
+      - name: "Gasmeter Value Stabil"
+        unique_id: gasmeter_value_stabil
+        icon: mdi:gas-cylinder
+        device_class: gas
+        state_class: total_increasing
+        unit_of_measurement: m³
+        availability: >
+          {{ states('sensor.gasmeter_value') not in ['unknown', 'unavailable', 'none']
+             or this.state not in ['unknown', 'unavailable', 'none', ''] }}
+        state: >
+          {% set raw = states('sensor.gasmeter_value') | float(none)
+             if trigger.platform != 'state'
+             else trigger.to_state.state | float(none) %}
+          {% if raw is none %}
+            {{ this.state }}
+          {% else %}
+            {% set last = this.state | float(none) %}
+            {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' else as_timestamp(now()) %}
+            {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ raw }}
+            {% else %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 30.0 if hours > 48 else [3.0 * hours, 0.1] | max %}
+              {% set accepted = raw %}
+              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 5000) %}
+                {% set accepted = last %}
+              {% endif %}
+              {{ accepted }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          source: sensor.gasmeter_value
+          raw_value: >
+            {{ states('sensor.gasmeter_value') if trigger.platform != 'state'
+               else trigger.to_state.state }}
+          filtered: >
+            {% set raw = states('sensor.gasmeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              false
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+                 if trigger.platform == 'state' else as_timestamp(now()) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 30.0 if hours > 48 else [3.0 * hours, 0.1] | max %}
+              {{ raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 5000) }}
+            {% endif %}
+          last_accepted_ts: >
+            {% set raw = states('sensor.gasmeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' else as_timestamp(now()) %}
+            {% if raw is none %}
+              {{ this.attributes.get('last_accepted_ts', now_ts) }}
+            {% elif last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ now_ts }}
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 30.0 if hours > 48 else [3.0 * hours, 0.1] | max %}
+              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 5000) %}
+                {{ last_ts }}
+              {% else %}
+                {{ now_ts }}
+              {% endif %}
+            {% endif %}
+
   - sensor:
-      # Wassermesser Umrechnung
+      # Wassermesser Umrechnung (Quelle: stabil)
       - name: "Watermeter in l"
         unique_id: watermeter_in_l
         icon: "mdi:gauge"
-        state: "{{ states('sensor.watermeter_value')|float(default=0) * 1000 }}"
+        state: "{{ states('sensor.watermeter_value_stabil')|float(default=0) * 1000 }}"
         unit_of_measurement: "l"
-        availability: "{{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none'] }}"
+        availability: "{{ states('sensor.watermeter_value_stabil') not in ['unknown', 'unavailable', 'none'] }}"
 
       # Müll-Logik: Restmüll
       - name: "Waste Rest Days"
@@ -482,6 +676,9 @@ template:
 # ---------------------------------------------------------
 
 # Diese Dateien müssen als (leere) Dateien im /config/ Ordner existieren!
+shell_command:
+  repair_energie_dashboard: /config/bin/repair-energie-dashboard-auto.sh
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
@@ -569,6 +766,16 @@ powercalc:
   create_energy_sensors: true
   create_domain_groups:
     - light
+  sensors:
+    - entity_id: fan.helios
+      name: Helios Lüftung
+      linear:
+        calibrate:
+          - 0 -> 3
+          - 10 -> 35
+          - 50 -> 70
+          - 75 -> 100
+          - 100 -> 125
 
 logger:
   default: info

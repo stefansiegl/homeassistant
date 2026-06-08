@@ -1601,3 +1601,23 @@
         metadata: {}
     action: media_player.play_media
   mode: single
+- id: energie_statistik_wartung_start
+  alias: 'Energie: Statistik-Wartung nach Neustart'
+  description: Repariert Recorder-Statistik 20 Min nach Core-Start (OCR/HA-sum-Korruption).
+  triggers:
+  - trigger: homeassistant
+    event: start
+  actions:
+  - delay:
+      minutes: 20
+  - action: shell_command.repair_energie_dashboard
+  mode: single
+- id: energie_statistik_wartung_taeglich
+  alias: 'Energie: Statistik-Wartung täglich'
+  description: Nachts Recorder-Statistik prüfen/reparieren falls HA sum überschreibt.
+  triggers:
+  - trigger: time
+    at: 04:00:00
+  actions:
+  - action: shell_command.repair_energie_dashboard
+  mode: single

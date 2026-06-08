@@ -76,7 +76,9 @@ UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separate
 | ID | Check-Entity | Quellen | `on` wenn | Push | UI |
 |----|--------------|---------|-----------|------|-----|
 | gasmeter | `binary_sensor.gasmeter_warnung` | `sensor.gasmeter_value`, `sensor.gasmeter_error`, `binary_sensor.gasmeter_problem` | offline, stale oder Gerätefehler | ja | Tablett |
-| watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_value`, `sensor.watermeter_error`, `binary_sensor.watermeter_problem` | offline, stale oder Gerätefehler | ja | Tablett |
+| watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_value`, … | offline, stale oder Gerätefehler | ja | Tablett |
+
+**Gas und Wasser:** beide Checks dauerhaft aktiv (seit 2026-06-07 wieder für Wasser — zuvor temporär per Helper abgeschaltet).
 
 ### Fehlerarten pro Zähler (Schicht 1)
 

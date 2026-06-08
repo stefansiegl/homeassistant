@@ -9,8 +9,8 @@ DB_USER="${DB_USER:-homeassistant}"
 DB_PASS="${DB_PASS:?DB_PASS required}"
 DB_NAME="${DB_NAME:-homeassistant}"
 WATER_PRICE="${WATER_PRICE:-3.52}"
-META_ID_VALUE=1083
-META_ID_COST=1082
+META_ID_VALUE="${META_ID_VALUE:-1083}"
+META_ID_COST="${META_ID_COST:-1082}"
 MAX_JUMP="${MAX_JUMP:-2.0}"
 MAX_DROP="${MAX_DROP:-0.2}"
 GAP_HOURS="${GAP_HOURS:-48}"
@@ -96,7 +96,24 @@ recalc_sum() {
 }
 
 recalc_sum statistics
-recalc_sum statistics_short_term
+
+# short_term-sum an hourly koppeln (gleiche kumulative Basis — sonst leere Tage / negative Deltas)
+mariadb --ssl=OFF -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+UPDATE statistics_short_term st
+JOIN (
+  SELECT st2.id,
+    (SELECT h.sum FROM statistics h WHERE h.metadata_id=$META_ID_VALUE
+       AND h.start_ts <= FLOOR(st2.start_ts / 3600) * 3600
+     ORDER BY h.start_ts DESC LIMIT 1) AS h_sum,
+    (SELECT h.state FROM statistics h WHERE h.metadata_id=$META_ID_VALUE
+       AND h.start_ts <= FLOOR(st2.start_ts / 3600) * 3600
+     ORDER BY h.start_ts DESC LIMIT 1) AS h_state,
+    st2.state AS st_state
+  FROM statistics_short_term st2
+  WHERE st2.metadata_id = $META_ID_VALUE
+) c ON st.id = c.id
+SET st.sum = ROUND(IFNULL(c.h_sum, 0) + GREATEST(0, c.st_state - IFNULL(c.h_state, c.st_state)), 6);
+"
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 DB_PASS="$DB_PASS" DB_HOST="$DB_HOST" DB_USER="$DB_USER" DB_NAME="$DB_NAME" \

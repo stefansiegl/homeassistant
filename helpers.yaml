@@ -1,6 +1,7 @@
 # Helfer & abgeleitete Helper-Entities (YAML)
 # - input_*: Keys = entity_id-Suffix (wie in automations.yaml)
 # - sensor/binary_sensor: UI-Helfer migriert (min_max, template)
+# - template: Vitovalor-Strom aus ViCare-Monatszähler (siehe docs/energie-dashboard-erweiterung.md)
 #
 # initial: Fallback beim ersten Anlegen / wenn kein restore_state existiert.
 
@@ -13,7 +14,6 @@ input_boolean:
     name: Radon Lüfter Logik aktivieren
     icon: mdi:shield-check
     initial: false
-
 input_number:
   ziel_luftfeuchtigkeit:
     name: Ziel Luftfeuchtigkeit
@@ -159,6 +159,19 @@ input_datetime:
 # Kombinationssensor: max CO2 aller Aranet-Sensoren im Haus
 template:
   - sensor:
+      - name: Vitovalor Strom
+        unique_id: vitovalor_strom
+        device_class: energy
+        state_class: total_increasing
+        unit_of_measurement: kWh
+        icon: mdi:lightning-bolt
+        state: >
+          {% set v = states('sensor.vicare_energy_consumption_this_month') %}
+          {% if v in ['unknown', 'unavailable', 'none', ''] %}
+            0
+          {% else %}
+            {{ v | float(0) }}
+          {% endif %}
       - name: House Max CO2
         unique_id: house_max_co2
         icon: mdi:calculator
