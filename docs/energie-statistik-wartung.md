@@ -42,7 +42,28 @@ DB_PASS='…' /config/bin/sync-gasmeter-cost.sh
 
 Parameter: `GAS_PRICE`, `META_ID_VALUE`, `META_ID_COST` (Strom Import: `475`/`466`, Preis `0.33376`).
 
+## Geräte vs. Netzbezug („fehlender“ Strom)
+
+Das Energie-Dashboard zeigt unter **Einzelgeräten** nur die in `.storage/energy` → `device_consumption` eingetragenen Sensoren. Der **Netzbezug** (`sensor.tasmota_mt691_total_in`) misst **alles** am Hauszähler; die Differenz erscheint als **nicht zugeordnet** — das ist kein Recorder-Fehler.
+
+**Typische Abweichung (Beispiel Mai 2026, nach Reparatur):**
+
+| | kWh |
+|--|-----|
+| Netzbezug | ~281 |
+| Summe 17 Geräte (Shelly/powercalc) | ~154 (~55 %) |
+| Nicht zugeordnet | ~127 (~45 %) |
+
+**Warum die Lücke groß wirkt:**
+
+1. **Historie:** Viele Küchen-/Herd-Sensoren erst ab **02/2026** im Dashboard — ältere Monate zeigen nur ~20 % zugeordnet.
+2. **Nicht im Dashboard, aber in HA vorhanden:** z. B. `sensor.helios_luftung_energy` (Lüftung), `sensor.all_standby_energy`, Powercalc-Räume (`kuche_energy`, `badezimmer_energy`).
+3. **Am Zähler, ohne Submessung:** Heizungs-/Hausverteiler-Strom (Viessmann Vitovalor, Pumpen, Steuerung), fest verdrahtete Licht-/Steckdosenkreise OG/EG, Netzwerk, Router, Relais — alles läuft über den MT691, nur Steckdosen mit Shelly sind einzeln sichtbar.
+4. **PV:** Solar (`sensor.fritz_dect_210_1_energie`) reduziert Netzbezug; Einspeisung ist separat — ersetzt keine Geräte-Zuordnung.
+
+**Sinnvolle Erweiterungen (UI):** Einstellungen → Energie → Einzelgeräte: Helios Lüftung, ggf. weitere Shelly/3EM-Kreise. Keine Doppelzählung (z. B. nicht zusätzlich `kuche_energy`, wenn Küchen-Steckdosen schon einzeln drin sind).
+
 ## Wichtig
 
 - Reparatur **einmal** auf sauberer DB; bei Verschlimmerung zuerst **MariaDB-Restore** (Gas/Wasser: `ai-on-the-edge.md`)
-- Cursor-Regel: `.cursor/rules/aiot-statistik-wartung.mdc` (Gas/Wasser; Strom analog)
+- Cursor-Regel: `.cursor/rules/aiot-statistik-wartung.mdc` (Strom/Gas/Wasser)
