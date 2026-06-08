@@ -14,6 +14,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Dashboard Tablett (EG)**](./docs/dashboard-tablett.md) – Kiosk-Tablet: Touch-UI, Design-Prinzipien, Backlog.
 - [**Dashboard Übersicht**](./docs/dashboard-uebersicht.md) – Haupt-Dashboard: Lüftung, Klima, Haushalt, Backlog.
 - [**Haushalt: Waschmaschine**](./docs/haushalt-waschmaschine.md) – Leistungs-Schwellen, Neustart-Logik, Push bei fertig.
+- [**Haushalt: Trockner**](./docs/haushalt-trockner.md) – wie Waschmaschine, Fertig 3 Min / <6 W.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
 - [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.

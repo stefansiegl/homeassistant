@@ -192,7 +192,7 @@
         language: de
 - id: trockner_status_mgmt
   alias: 'Haushalt: Trockner Status-Management'
-  description: 'V9: Separierte Start-Logik mit Template-Check für garantierte Ausführung'
+  description: 'V10: Neustart setzt läuft bei >10W; Fertig <6W/3Min (Ende typ. ~0W)'
   triggers:
   - trigger: numeric_state
     entity_id: sensor.shellyplug_4_trockner_power
@@ -201,7 +201,7 @@
     id: trigger_start
   - trigger: numeric_state
     entity_id: sensor.shellyplug_4_trockner_power
-    below: 4
+    below: 6
     for: 00:03:00
     id: trigger_fertig
   - trigger: numeric_state
@@ -218,16 +218,27 @@
       id: system_start
     then:
     - delay: 00:01:00
-    - if:
-      - condition: template
-        value_template: '{{ states(''sensor.shellyplug_4_trockner_power'') | float(0)
-          < 1.0 }}'
-      then:
-      - action: input_select.select_option
-        target:
-          entity_id: input_select.trockner_status_helper
-        data:
-          option: standby
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ states(''sensor.shellyplug_4_trockner_power'') | float(0)
+            > 10 }}'
+        sequence:
+        - action: input_select.select_option
+          target:
+            entity_id: input_select.trockner_status_helper
+          data:
+            option: läuft
+      - conditions:
+        - condition: template
+          value_template: '{{ states(''sensor.shellyplug_4_trockner_power'') | float(0)
+            < 1.0 }}'
+        sequence:
+        - action: input_select.select_option
+          target:
+            entity_id: input_select.trockner_status_helper
+          data:
+            option: standby
     - stop: Systemstart-Check abgeschlossen
   - choose:
     - conditions:
