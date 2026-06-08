@@ -1,17 +1,22 @@
 ---
-description: Wartung Gas/Wasser Recorder-Statistik bei OCR-Ausreißern (Energie-Dashboard)
+description: Wartung Energie-Dashboard Recorder-Statistik (Strom/Gas/Wasser)
 alwaysApply: false
-globs: bin/repair-*meter*.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md
+globs: bin/repair-*.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md,docs/energie-statistik-wartung.md
 ---
 
-# AIoT Statistik-Wartung (Gas/Wasser)
+# Energie-Statistik-Wartung
 
-Bei unrealistischen m³/Kosten im **Energie-Dashboard** (nicht Live-Entity):
+Bei unrealistischen Verbrauchs-/Kostenwerten im **Energie-Dashboard** (Live-Entity oft ok):
 
-1. **Verschlimmert?** → MariaDB-Restore aus Backup, `ha core restart` — siehe `docs/ai-on-the-edge.md`
-2. **Werte reparieren (einmal):** `repair-gasmeter-statistics.sh` / `repair-watermeter-statistics.sh` (`DB_PASS` aus `secrets.yaml`)
-3. **Nur Kosten** (m³ plausibel, Kosten 0/falsch): `sync-gasmeter-cost.sh` (Wasser: Meta 1083/1082, Preis 3.52)
-4. **Nicht** Reparatur auf bereits reparierte DB wiederholen
-5. Nutzer: Energie-Dashboard **Strg+F5**
+| Medium | Skript |
+|--------|--------|
+| **Strom** (100k€, sum-Sprünge) | `repair-grid-statistics.sh` |
+| **Gas** | `repair-gasmeter-statistics.sh` |
+| **Wasser** | `repair-watermeter-statistics.sh` |
+| **Nur Kosten** | `sync-gasmeter-cost.sh` (Meta/Preis je Quelle) |
 
-Spec: `docs/ai-on-the-edge.md` (Abschnitte Statistik-Reparatur Gas/Wasser, DB-Restore).
+1. **Verschlimmert?** → MariaDB-Restore, `ha core restart` (Gas/Wasser: `docs/ai-on-the-edge.md`)
+2. Reparatur **einmal** (`DB_PASS` aus `secrets.yaml`) — nicht auf bereits reparierte DB wiederholen
+3. Nutzer: Energie-Dashboard **Strg+F5**
+
+Spec: `docs/energie-statistik-wartung.md`, Gas/Wasser-Detail in `docs/ai-on-the-edge.md`.
