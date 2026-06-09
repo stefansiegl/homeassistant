@@ -46,6 +46,11 @@ homeassistant:
       device_class: energy
       state_class: total_increasing
 
+    sensor.mt691_power_cur_stabil:
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: "W"
+
     # Müllabfuhr Icons (Bilder-Pfade für Dashboard)
     sensor.waste_rest_display:
       entity_picture: /local/images/waste/waste-schwarz.png
@@ -114,6 +119,7 @@ recorder:
       - sensor.watermeter_value_stabil_cost
       - sensor.tasmota_mt691_total_in
       - sensor.tasmota_mt691_total_out
+      - sensor.tasmota_mt691_power_cur
       - sensor.tasmota_mt691_total_in_cost
       - sensor.tasmota_mt691_total_out_compensation
       - sensor.mt691_total_in_stabil_cost
@@ -502,6 +508,59 @@ template:
               {% set filtered = (last > 5000 and raw < 5000) or (raw - last > limit and not (hours > 48 and raw >= last))
                  or (last - raw > 2.0) or (raw > last * 1.05 and raw - last > 50) %}
               {{ last_ts if filtered else now_ts }}
+            {% endif %}
+
+  # MT691 Leistung: Tasmota-Artefakte (z. B. 999999 W) filtern — Stromquellen-Ansicht
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id: sensor.tasmota_mt691_power_cur
+      - trigger: time_pattern
+        minutes: "/5"
+    sensor:
+      - name: "MT691 Power Cur Stabil"
+        unique_id: mt691_power_cur_stabil
+        icon: mdi:flash
+        device_class: power
+        state_class: measurement
+        unit_of_measurement: W
+        availability: >
+          {{ states('sensor.tasmota_mt691_power_cur') not in ['unknown', 'unavailable', 'none']
+             or this.state not in ['unknown', 'unavailable', 'none', ''] }}
+        state: >
+          {% set raw = states('sensor.tasmota_mt691_power_cur') | float(none)
+             if trigger.platform != 'state'
+             else trigger.to_state.state | float(none) %}
+          {% if raw is none %}
+            {{ this.state }}
+          {% else %}
+            {% set last = this.state | float(none) %}
+            {% set max_w = 25000.0 %}
+            {% set accepted = raw %}
+            {% if raw < 0 or raw >= 999000 or raw > max_w %}
+              {% set accepted = last if last is not none else 0 %}
+            {% elif last is not none and this.state not in ['unknown', 'unavailable', 'none', ''] %}
+              {% if raw - last > 15000 %}
+                {% set accepted = last %}
+              {% endif %}
+            {% endif %}
+            {{ accepted }}
+          {% endif %}
+        attributes:
+          source: sensor.tasmota_mt691_power_cur
+          raw_value: >
+            {{ states('sensor.tasmota_mt691_power_cur') if trigger.platform != 'state'
+               else trigger.to_state.state }}
+          filtered: >
+            {% set raw = states('sensor.tasmota_mt691_power_cur') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              false
+            {% else %}
+              {{ raw < 0 or raw >= 999000 or raw > 25000 or raw - last > 15000 }}
             {% endif %}
 
   - sensor:

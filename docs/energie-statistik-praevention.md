@@ -24,6 +24,7 @@ Siehe auch: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) (No
 |--------|---------------|----------------------|
 | Strom Bezug | `sensor.tasmota_mt691_total_in` | `sensor.mt691_total_in_stabil` |
 | Strom Einspeisung | `sensor.tasmota_mt691_total_out` | `sensor.mt691_total_out_stabil` |
+| Strom Leistung (Stromquellen) | `sensor.tasmota_mt691_power_cur` | `sensor.mt691_power_cur_stabil` |
 | Gas | `sensor.gasmeter_value` | `sensor.gasmeter_value_stabil` |
 | Wasser | `sensor.watermeter_value` | `sensor.watermeter_value_stabil` |
 
@@ -51,6 +52,8 @@ Stabil-Sensoren haben Attribute `raw_value`, `filtered`, `last_accepted_ts`.
    - Netz Einspeisung: `sensor.mt691_total_out_stabil`
    - Gas/Wasser Preis: `input_number.gaspreis_pro_m3` / `input_number.wasserpreis_pro_m3` (falls noch feste Zahl)
    - Netz Preis: `input_number.strompreis_pro_kwh` / `input_number.einspeiseverguetung_pro_kwh`
+   - Netz Leistung (Stromquellen): `sensor.mt691_power_cur_stabil` statt `sensor.tasmota_mt691_power_cur`
+   - Backfill Leistung-Historie: `seed-mt691-power-stabil-statistics.sh` (einmalig)
 4. `DB_PASS='…' /config/bin/repair-mt691-stabil-statistics.sh` (Pflicht nach UI-Umstellung — behebt fehlende Tage durch `sum`-Sprung auf ~0)
 5. `DB_PASS='…' /config/bin/sync-energie-cost-all.sh`
 6. Energie-Dashboard **Strg+F5**; Mai/Juni Stichprobe
