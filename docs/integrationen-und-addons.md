@@ -65,9 +65,10 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
     - Add-on-UI (Benutzer `zigbee2mqtt`, Passwörter).
     - In Zigbee2MQTT (`zigbee2mqtt/configuration.yaml`) `mqtt:`-Block anpassen (Server, User, Passwort über Secret empfehlenswert).
 
-- **Rclone Backup** (läuft)
-  - Zweck: Backups zusätzlich zu Remote-Targets via rclone synchronisieren.
-  - Hinweis: Kann parallel zu Google Drive Backup laufen.
+- **Rclone Backup** (`19a172aa_rclone_backup`, v3.4.1 — **gestartet**, OAuth ausstehend)
+  - Zweck: `/backup` zusätzlich per rclone synchronisieren (Ordner `google:Backup/Home Assistant/rclone`).
+  - Parallel zu **Google Drive Backup** — siehe [`rclone-backup.md`](./rclone-backup.md).
+  - Boot: **manual** (kein `boot_fail` mehr). Jobs erst nach Remote `google` in Web UI.
 
 - **Samba share** (läuft)
   - Zweck: Zugriff auf `/config` per SMB.
