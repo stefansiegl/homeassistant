@@ -1,125 +1,61 @@
 # Energie-Dashboard — Statistik-Wartung
 
-Recorder-**Statistik** (`statistics` / `statistics_short_term`) kann durch Geräte-Ausreißer verfälscht sein, während Live-Entities plausibel bleiben. Symptome: unrealistische **Tages-/Monatswerte** oder **Kosten** im Energie-Dashboard.
+**Architektur (Prävention):** [`energie-statistik-praevention.md`](./energie-statistik-praevention.md) — Stabil-Templates, keine nächtliche Auto-Reparatur.
+
+Recorder-**Statistik** kann durch Geräte-Ausreißer verfälscht sein. Symptome: unrealistische **Tages-/Monatswerte** oder **Kosten** im Energie-Dashboard.
 
 ## Quellen im Dashboard
 
-| Medium | Entity (Verbrauch) | Kosten im Dashboard | Preis (UI) |
-|--------|-------------------|---------------------|------------|
-| Strom Bezug | `sensor.tasmota_mt691_total_in` | Verbrauch × Preis | 0,33376 €/kWh |
-| Strom Einspeisung | `sensor.tasmota_mt691_total_out` | Einspeisung × Vergütung | 0,23 €/kWh |
-| Gas | `sensor.gasmeter_value_stabil` | Verbrauch × Preis | `input_number.gaspreis_pro_m3` (1,32) |
-| Wasser | `sensor.watermeter_value_stabil` | Verbrauch × Preis | 3,52 €/m³ |
+| Medium | Entity (Verbrauch) | Preis (UI) |
+|--------|-------------------|------------|
+| Strom Bezug | `sensor.mt691_total_in_stabil` | `input_number.strompreis_pro_kwh` |
+| Strom Einspeisung | `sensor.mt691_total_out_stabil` | `input_number.einspeiseverguetung_pro_kwh` |
+| Gas | `sensor.gasmeter_value_stabil` | `input_number.gaspreis_pro_m3` |
+| Wasser | `sensor.watermeter_value_stabil` | `input_number.wasserpreis_pro_m3` |
 
-In `.storage/energy` sind `stat_cost` / `stat_compensation` für Netz, Gas und Wasser **`null`** — es werden **keine** HA-Kosten-Sensoren verknüpft, nur feste Preise bzw. `input_number.gaspreis_pro_m3`.
+In `.storage/energy`: `stat_cost` / `stat_compensation` = **`null`** — HA legt `sensor.*_cost` an; das Frontend liest Kosten aus deren **Recorder-Statistik** (`energy/info` → `cost_sensors`).
 
-Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.
+Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.  
+Kosten = **Deltas** der `sum`-Spalte der `*_cost`-Statistik (gefüllt per `sync-energie-cost-all.sh` aus Verbrauch × Preis-Helfer).
 
-## Kosten-Sensoren & Recorder (absichtlich ausgeschlossen)
+## Kosten-Sensoren & Recorder
 
-Home Assistant legt zu Verbrauchs-Entities automatisch **`sensor.*_cost`** / **`sensor.*_compensation`** an. Deren Recorder-**Statistik** (`statistics.sum`) hat bei uns wiederholt **falsche Sprünge** erzeugt → Minus-Tageswerte und **absurde Kosten** (z. B. Strom in 100.000en €).
+`**_cost` / `*_compensation`** in `recorder.exclude` — keine fehlerhaften Live-States. Kosten-Statistik per **`sync-energie-cost-all.sh`** (liest Preise aus `input_number.*`).
 
-**Lösung:** Diese Entitäten in `configuration.yaml` → `recorder.exclude` — sie werden **nicht** historisiert. Kosten im Energie-Dashboard = **Verbrauchs-Delta × Preis** (siehe Tabelle oben).
+**Nicht tun:** `purge-energie-cost-statistics.sh` ohne anschließenden Sync — Dashboard zeigt **0 € trotz Verbrauch**.
 
-| Entity (ausgeschlossen) | Medium |
-|-------------------------|--------|
-| `sensor.tasmota_mt691_total_in_cost` | Strom Bezug |
-| `sensor.tasmota_mt691_total_out_compensation` | Strom Einspeisung |
-| `sensor.gasmeter_value_cost` | Gas (Roh) |
-| `sensor.gasmeter_value_stabil_cost` | Gas (stabil) |
-| `sensor.watermeter_value_cost` | Wasser (Roh) |
-| `sensor.watermeter_value_stabil_cost` | Wasser (stabil) |
+### „Entität nicht nachverfolgt“ bei `*_cost`
 
-### Meldung in der HA-UI: „Entität nicht nachverfolgt“
+Gewollt — Verbrauchs-Entities (`*_stabil`) werden normal aufgezeichnet.
 
-Wenn du z. B. `sensor.tasmota_mt691_total_in_cost` in **Entwicklerwerkzeuge → Zustände** öffnest, zeigt HA:
+## Workflow
 
-> *Home Assistant Recorder wurde so konfiguriert, dass er diese konfigurierten Entitäten ausschließt*
+| Situation | Aktion |
+|-----------|--------|
+| **Einmalige Umstellung** | `migrate-energie-statistik.sh` + Energie-UI + Strg+F5 |
+| **Preis geändert** | Automation synchronisiert Kosten; oder `sync-energie-cost-all.sh` |
+| **Anomalie (Monitoring)** | `notify.haus_warnungen` — manuell `repair-energie-dashboard.sh` |
+| **Diagnose** | `check-energie-statistik.sh` / `check-energie-statistik-anomaly.sh` |
 
-Das ist **gewollt** — kein Fehler, nichts reparieren. Die **Verbrauchs-Entities** (`total_in`, `total_out`, `gasmeter_value_stabil`, …) werden normal aufgezeichnet.
-
-**Nicht tun:** `_cost` / `_compensation` aus `recorder.exclude` entfernen, um die Meldung loszuwerden — das holt das Kosten-Minus-Problem zurück.
-
-**Bei kaputten Kosten trotzdem:** `repair-energie-dashboard.sh` (bereinigt alte Kosten-Statistik-Zeilen via `purge-energie-cost-statistics.sh`) + Dashboard **Strg+F5** — nicht die Exclude-Liste aufweichen.
-
-## Standard-Workflow (immer zusammen)
-
-Nach **Entity-Umstellung**, **Seed**, **Core-Neustart** oder **komischen Kosten/Verbräuchen** (ein oder mehrere Medien):
+**Keine Automation** repariert nachts mehr automatisch (`energie_statistik_wartung_*` entfernt).
 
 ```bash
-# optional: nur prüfen
 DB_PASS='…' /config/bin/check-energie-statistik.sh
-
-# Reparatur Strom + Gas + Wasser in einem Lauf
-DB_PASS='…' /config/bin/repair-energie-dashboard.sh
+DB_PASS='…' /config/bin/migrate-energie-statistik.sh      # einmalig
+DB_PASS='…' /config/bin/repair-energie-dashboard.sh       # Notfall, manuell
+DB_PASS='…' /config/bin/sync-energie-cost-all.sh
 ```
 
-Danach Energie-Dashboard **Strg+F5**. Einzel-Skripte nur bei gezieltem Debugging.
+## Strom (MT691)
 
-Das Master-Skript **entfernt** am Ende Kosten-Statistik (`purge-energie-cost-statistics.sh`) — Kosten kommen nur noch aus Verbrauch × Preis.
+**Prävention:** `sensor.mt691_total_in_stabil` / `_out_stabil` filtern Tasmota-Spikes; Roh-Entities `recorder.exclude`.
 
-**Automatik:** Automationen `Energie: Statistik-Wartung` (20 Min nach Neustart + täglich 04:00) via `shell_command.repair_energie_dashboard`.
-
-**Warum zusammen?** HA kann bei Neustart/Seed die `sum`-Spalte neu kompilieren (`Compiling initial sum statistics`) — das betrifft oft mehrere Quellen gleichzeitig; nur Wasser zu fixen lässt Strom/Gas weiter falsch.
-
-| Schritt | Skript |
-|---------|--------|
-| Diagnose | `check-energie-statistik.sh` |
-| Alles reparieren | `repair-energie-dashboard.sh` |
-| Nur Strom | `repair-grid-statistics.sh` |
-| Nur Gas | `repair-gasmeter-statistics.sh` |
-| Nur Wasser | `repair-watermeter-statistics.sh` (`META_ID_VALUE=1266`, `META_ID_COST=1268`) |
-| Nur Kosten | `sync-gasmeter-cost.sh` |
-
-## Strom (Tasmota MT691)
-
-**Symptom:** Stromkosten in **100.000en** (z. B. Mai/Juni 2026), obwohl Zählerstand (`state`) ~17.000 kWh plausibel.
-
-**Ursache:** `sum` in der Statistik springt durch fehlerhafte `state`-Werte (z. B. **1000** statt ~17.000) und akkumuliert falsche kWh.
-
-**Reparatur:** bevorzugt `repair-energie-dashboard.sh` (siehe oben); nur Strom: `repair-grid-statistics.sh`.
-
-- Sprung-Filter: max. **+35 kWh/h**, Artefakt **`state` &lt; 5000** bei Zähler &gt; 5000 wird verworfen
-- setzt `sum` neu für **Verbrauch**; optional Kosten-Meta via `sync-gasmeter-cost.sh` (nur für Reparatur-Historie — laufender Betrieb ohne `*_cost`-Recorder)
-
-**Nach dem Lauf:** Energie-Dashboard **Strg+F5**.
+**Notfall-Reparatur Roh-Historie:** `repair-grid-statistics.sh` → `seed-mt691-stabil-statistics.sh` (einmalig).
 
 ## Gas / Wasser (AI-on-the-Edge)
 
-Siehe [`ai-on-the-edge.md`](./ai-on-the-edge.md) — Abschnitte Statistik-Reparatur, DB-Restore, `sync-gasmeter-cost.sh`.
+Siehe [`ai-on-the-edge.md`](./ai-on-the-edge.md). Stabil-Templates + Roh exclude. `seed-gasmeter-stabil-statistics.sh` nur **einmal** bei Migration.
 
-**Wasser — Prävention:** `sensor.watermeter_value_stabil` (Trigger-Template) filtert OCR-Ausreißer vor der Recorder-Statistik; Roh-Entity `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle in der UI auf **stabil** stellen. Reparatur-Skript nur noch für **historische** Daten nötig.
+## Geräte vs. Netzbezug
 
-## Nur Kosten (ohne Werte-Reparatur)
-
-```bash
-DB_PASS='…' /config/bin/sync-gasmeter-cost.sh
-```
-
-Parameter: `GAS_PRICE`, `META_ID_VALUE`, `META_ID_COST` (Strom Import: `475`/`466`, Preis `0.33376`).
-
-## Geräte vs. Netzbezug („fehlender“ Strom)
-
-Das Energie-Dashboard zeigt unter **Einzelgeräten** nur die in `.storage/energy` → `device_consumption` eingetragenen Sensoren. Der **Netzbezug** (`sensor.tasmota_mt691_total_in`) misst **alles** am Hauszähler; die Differenz erscheint als **nicht zugeordnet** — das ist kein Recorder-Fehler.
-
-**Typische Abweichung (Beispiel Mai 2026, nach Reparatur):**
-
-| | kWh |
-|--|-----|
-| Netzbezug | ~281 |
-| Summe 17 Geräte (Shelly/powercalc) | ~154 (~55 %) |
-| Nicht zugeordnet | ~127 (~45 %) |
-
-**Warum die Lücke groß wirkt:**
-
-1. **Historie:** Viele Küchen-/Herd-Sensoren erst ab **02/2026** im Dashboard — ältere Monate zeigen nur ~20 % zugeordnet.
-2. **Nicht im Dashboard, aber in HA vorhanden:** z. B. `sensor.helios_luftung_energy` (Lüftung), `sensor.all_standby_energy`, Powercalc-Räume (`kuche_energy`, `badezimmer_energy`).
-3. **Am Zähler, ohne Submessung:** Heizungs-/Hausverteiler-Strom (Viessmann Vitovalor, Pumpen, Steuerung), fest verdrahtete Licht-/Steckdosenkreise OG/EG, Netzwerk, Router, Relais — alles läuft über den MT691, nur Steckdosen mit Shelly sind einzeln sichtbar.
-4. **PV:** Solar (`sensor.fritz_dect_210_1_energie`) reduziert Netzbezug; Einspeisung ist separat — ersetzt keine Geräte-Zuordnung.
-
-**Sinnvolle Erweiterungen (UI):** Einstellungen → Energie → Einzelgeräte: Helios Lüftung, ggf. weitere Shelly/3EM-Kreise. Keine Doppelzählung (z. B. nicht zusätzlich `kuche_energy`, wenn Küchen-Steckdosen schon einzeln drin sind).
-
-## Wichtig
-
-- Reparatur **einmal** auf sauberer DB; bei Verschlimmerung zuerst **MariaDB-Restore** (Gas/Wasser: `ai-on-the-edge.md`)
-- Cursor-Regel: `.cursor/rules/aiot-statistik-wartung.mdc` (Strom/Gas/Wasser)
+Netzbezug misst alles am Hauszähler; Differenz zu Einzelgeräten = **nicht zugeordnet** (kein Recorder-Fehler). Siehe [`energie-dashboard-erweiterung.md`](./energie-dashboard-erweiterung.md).

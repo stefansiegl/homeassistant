@@ -144,7 +144,7 @@ Templates in [`configuration.yaml`](../configuration.yaml):
 ### Normalbetrieb
 
 - AIoT sendet in konfiguriertem Intervall MQTT → HA aktualisiert `*_value`
-- Gas: Energie-Dashboard nutzt `sensor.gasmeter_value` (Gas, monoton steigend)
+- Gas: Energie-Dashboard nutzt **`sensor.gasmeter_value_stabil`** (nicht den OCR-Rohwert)
 - Wasser: Energie-Dashboard nutzt **`sensor.watermeter_value_stabil`** (nicht den OCR-Rohwert)
 
 ### Fehler & Offline
@@ -168,8 +168,8 @@ Templates in [`configuration.yaml`](../configuration.yaml):
 
 | Medium | Empfohlene Entity | Bemerkung |
 |--------|-------------------|-----------|
-| Gas | `sensor.gasmeter_value` | `device_class: gas` via customize |
-| Wasser | `sensor.watermeter_value_stabil` | m³; Liter-Anzeige via `sensor.watermeter_in_l` |
+| Gas | `sensor.gasmeter_value_stabil` | Preis: `input_number.gaspreis_pro_m3` |
+| Wasser | `sensor.watermeter_value_stabil` | m³; Preis: `input_number.wasserpreis_pro_m3`; Liter via `sensor.watermeter_in_l` |
 
 Nach Wiederherstellung Wasserzähler: in **Einstellungen → Energie** prüfen, ob Wasser-Quelle noch verknüpft ist und Historie weiterläuft.
 
@@ -207,7 +207,7 @@ Das Skript:
 
 **Prävention (seit 2026-06-08):** `sensor.watermeter_value_stabil` filtert OCR-Ausreißer live; `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle: **stabil**.
 
-**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben falsche `sum`-Werte → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Dashboard nutzt festen Preis × Verbrauch. `purge-energie-cost-statistics.sh` entfernt alte Kosten-Zeilen. Vollständige Liste, Strom `_compensation` und UI-Hinweis „Entität nicht nachverfolgt“: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) → Abschnitt *Kosten-Sensoren & Recorder*.
+**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben fehlerhafte Live-States → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Kosten-**Statistik** per `sync-gasmeter-cost.sh` (nicht purgen ohne Sync). Details: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) → Abschnitt *Kosten-Sensoren & Recorder*.
 
 **Historie übernehmen (einmalig nach Umstellung):** `DB_PASS='…' /config/bin/seed-watermeter-stabil-statistics.sh` — kopiert reparierte Statistik von `sensor.watermeter_value` (metadata 1083) nach `sensor.watermeter_value_stabil` (1266) inkl. Kosten-Sync.
 

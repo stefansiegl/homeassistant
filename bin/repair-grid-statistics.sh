@@ -154,7 +154,8 @@ repair_stream() {
   rm -rf "$WORKDIR"
 }
 
-repair_stream 475 466 0.33376 "Netzbezug (total_in)"
-repair_stream 476 477 0.23 "Einspeisung (total_out)"
+. "$SCRIPT_DIR/energie-preise.sh"
+repair_stream 475 466 "$GRID_IMPORT_PRICE" "Netzbezug (total_in)"
+repair_stream 476 477 "$GRID_EXPORT_PRICE" "Einspeisung (total_out)"
 
 echo "Grid-Reparatur abgeschlossen."

@@ -37,6 +37,15 @@ homeassistant:
       device_class: energy
       state_class: total_increasing
 
+    sensor.mt691_total_in_stabil:
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+    sensor.mt691_total_out_stabil:
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
     # Müllabfuhr Icons (Bilder-Pfade für Dashboard)
     sensor.waste_rest_display:
       entity_picture: /local/images/waste/waste-schwarz.png
@@ -100,10 +109,15 @@ recorder:
       - sensor.gasmeter_value
       - sensor.gasmeter_value_cost
       - sensor.gasmeter_value_stabil_cost
+      - sensor.gasmeter_value_stabil_cost_2
       - sensor.watermeter_value_cost
       - sensor.watermeter_value_stabil_cost
+      - sensor.tasmota_mt691_total_in
+      - sensor.tasmota_mt691_total_out
       - sensor.tasmota_mt691_total_in_cost
       - sensor.tasmota_mt691_total_out_compensation
+      - sensor.mt691_total_in_stabil_cost
+      - sensor.mt691_total_out_stabil_compensation
       - sensor.watermeter_uptime
       - sensor.watermeter_mac
       - sensor.watermeter_fwversion
@@ -333,6 +347,161 @@ template:
               {% else %}
                 {{ now_ts }}
               {% endif %}
+            {% endif %}
+
+  # Stromzähler MT691: Tasmota-Ausreißer filtern (siehe docs/energie-statistik-praevention.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id:
+          - sensor.tasmota_mt691_total_in
+          - sensor.tasmota_mt691_total_out
+      - trigger: time_pattern
+        minutes: "/5"
+    sensor:
+      - name: "MT691 Total In Stabil"
+        unique_id: mt691_total_in_stabil
+        icon: mdi:transmission-tower
+        device_class: energy
+        state_class: total_increasing
+        unit_of_measurement: kWh
+        availability: >
+          {{ states('sensor.tasmota_mt691_total_in') not in ['unknown', 'unavailable', 'none']
+             or this.state not in ['unknown', 'unavailable', 'none', ''] }}
+        state: >
+          {% set source = 'sensor.tasmota_mt691_total_in' %}
+          {% set raw = states(source) | float(none)
+             if trigger.platform != 'state'
+             else (trigger.to_state.state | float(none) if trigger.entity_id == source else states(source) | float(none)) %}
+          {% if raw is none %}
+            {{ this.state }}
+          {% else %}
+            {% set last = this.state | float(none) %}
+            {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' and trigger.entity_id == source else as_timestamp(now()) %}
+            {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ raw }}
+            {% else %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {% set accepted = raw %}
+              {% if last > 5000 and raw < 5000 %}
+                {% set accepted = last %}
+              {% elif raw - last > limit %}
+                {% if hours > 48 and raw >= last %}{% set accepted = raw %}{% else %}{% set accepted = last %}{% endif %}
+              {% elif last - raw > 2.0 %}
+                {% set accepted = last %}
+              {% elif raw > last * 1.05 and raw - last > 50 %}
+                {% set accepted = last %}
+              {% endif %}
+              {{ accepted }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          source: sensor.tasmota_mt691_total_in
+          raw_value: "{{ states('sensor.tasmota_mt691_total_in') }}"
+          filtered: >
+            {% set raw = states('sensor.tasmota_mt691_total_in') | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              false
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (as_timestamp(now()) - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {{ (last > 5000 and raw < 5000) or (raw - last > limit and not (hours > 48 and raw >= last))
+                 or (last - raw > 2.0) or (raw > last * 1.05 and raw - last > 50) }}
+            {% endif %}
+          last_accepted_ts: >
+            {% set source = 'sensor.tasmota_mt691_total_in' %}
+            {% set raw = states(source) | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% set now_ts = as_timestamp(now()) %}
+            {% if raw is none %}
+              {{ this.attributes.get('last_accepted_ts', now_ts) }}
+            {% elif last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ now_ts }}
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {% set filtered = (last > 5000 and raw < 5000) or (raw - last > limit and not (hours > 48 and raw >= last))
+                 or (last - raw > 2.0) or (raw > last * 1.05 and raw - last > 50) %}
+              {{ last_ts if filtered else now_ts }}
+            {% endif %}
+
+      - name: "MT691 Total Out Stabil"
+        unique_id: mt691_total_out_stabil
+        icon: mdi:solar-power
+        device_class: energy
+        state_class: total_increasing
+        unit_of_measurement: kWh
+        availability: >
+          {{ states('sensor.tasmota_mt691_total_out') not in ['unknown', 'unavailable', 'none']
+             or this.state not in ['unknown', 'unavailable', 'none', ''] }}
+        state: >
+          {% set source = 'sensor.tasmota_mt691_total_out' %}
+          {% set raw = states(source) | float(none)
+             if trigger.platform != 'state'
+             else (trigger.to_state.state | float(none) if trigger.entity_id == source else states(source) | float(none)) %}
+          {% if raw is none %}
+            {{ this.state }}
+          {% else %}
+            {% set last = this.state | float(none) %}
+            {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' and trigger.entity_id == source else as_timestamp(now()) %}
+            {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ raw }}
+            {% else %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {% set accepted = raw %}
+              {% if last > 5000 and raw < 5000 %}
+                {% set accepted = last %}
+              {% elif raw - last > limit %}
+                {% if hours > 48 and raw >= last %}{% set accepted = raw %}{% else %}{% set accepted = last %}{% endif %}
+              {% elif last - raw > 2.0 %}
+                {% set accepted = last %}
+              {% elif raw > last * 1.05 and raw - last > 50 %}
+                {% set accepted = last %}
+              {% endif %}
+              {{ accepted }}
+            {% endif %}
+          {% endif %}
+        attributes:
+          source: sensor.tasmota_mt691_total_out
+          raw_value: "{{ states('sensor.tasmota_mt691_total_out') }}"
+          filtered: >
+            {% set raw = states('sensor.tasmota_mt691_total_out') | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              false
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (as_timestamp(now()) - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {{ (last > 5000 and raw < 5000) or (raw - last > limit and not (hours > 48 and raw >= last))
+                 or (last - raw > 2.0) or (raw > last * 1.05 and raw - last > 50) }}
+            {% endif %}
+          last_accepted_ts: >
+            {% set source = 'sensor.tasmota_mt691_total_out' %}
+            {% set raw = states(source) | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% set now_ts = as_timestamp(now()) %}
+            {% if raw is none %}
+              {{ this.attributes.get('last_accepted_ts', now_ts) }}
+            {% elif last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+              {{ now_ts }}
+            {% else %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set hours = (now_ts - last_ts) / 3600 %}
+              {% set limit = 500.0 if hours > 48 else [35.0 * hours, 0.1] | max %}
+              {% set filtered = (last > 5000 and raw < 5000) or (raw - last > limit and not (hours > 48 and raw >= last))
+                 or (last - raw > 2.0) or (raw > last * 1.05 and raw - last > 50) %}
+              {{ last_ts if filtered else now_ts }}
             {% endif %}
 
   - sensor:
@@ -671,8 +840,26 @@ template:
 # ---------------------------------------------------------
 
 # Diese Dateien müssen als (leere) Dateien im /config/ Ordner existieren!
+command_line:
+  - sensor:
+      name: Energie Statistik Anomalie Anzahl
+      unique_id: energie_statistik_anomalie_anzahl
+      command: "sh /config/bin/check-energie-statistik-anomaly.sh --count"
+      scan_interval: 3600
+      value_template: "{{ value | int(0) }}"
+  - sensor:
+      name: Energie Statistik Anomalie Text
+      unique_id: energie_statistik_anomalie_text
+      command: "sh /config/bin/check-energie-statistik-anomaly.sh --message 2>/dev/null || true"
+      scan_interval: 3600
+      value_template: "{{ value | default('', true) }}"
+
 shell_command:
   repair_energie_dashboard: sh /config/bin/repair-energie-dashboard-auto.sh
+  migrate_energie_statistik: sh /config/bin/migrate-energie-statistik-auto.sh
+  sync_energie_cost_all: sh /config/bin/sync-energie-cost-all-auto.sh
+  check_energie_statistik_anomaly: sh /config/bin/check-energie-statistik-anomaly-notify.sh
+  repair_mt691_stabil: sh /config/bin/repair-mt691-stabil-statistics-auto.sh
 
 automation: !include automations.yaml
 script: !include scripts.yaml

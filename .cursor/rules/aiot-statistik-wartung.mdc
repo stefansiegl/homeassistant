@@ -1,21 +1,22 @@
 ---
 description: Wartung Energie-Dashboard Recorder-Statistik (Strom/Gas/Wasser)
 alwaysApply: false
-globs: bin/repair-*.sh,bin/check-energie-statistik.sh,bin/sync-gasmeter-cost.sh,docs/ai-on-the-edge.md,docs/energie-statistik-wartung.md
+globs: bin/repair-*.sh,bin/check-energie-statistik*.sh,bin/sync-*.sh,bin/migrate-energie-statistik.sh,bin/energie-preise.sh,docs/ai-on-the-edge.md,docs/energie-statistik-wartung.md,docs/energie-statistik-praevention.md
 ---
 
 # Energie-Statistik-Wartung
 
-Bei unrealistischen Verbrauchs-/Kostenwerten im **Energie-Dashboard** (Live-Entity oft ok):
+**Architektur:** Prävention via Stabil-Templates — `docs/energie-statistik-praevention.md`.
 
-**Standard:** `repair-energie-dashboard.sh` (Strom + Gas + Wasser stabil + Kosten-Purge). Vorher/nachher: `check-energie-statistik.sh`. Automatik: `shell_command.repair_energie_dashboard` (04:00 + 20 Min nach Start).
+Bei unrealistischen Verbrauchs-/Kostenwerten:
 
-**Minus-Kosten:** Ursache = HA `*_cost`-Recorder-Statistik — Entities in `recorder.exclude`; Kosten nur Verbrauch × Preis. UI-Hinweis „Entität nicht nachverfolgt“ bei `_cost`/`_compensation` ist **gewollt** (siehe `docs/energie-statistik-wartung.md`).
+1. `check-energie-statistik.sh` / `check-energie-statistik-anomaly.sh`
+2. **Notfall manuell:** `repair-energie-dashboard.sh` oder `migrate-energie-statistik.sh` (einmalig)
+3. **Kosten:** `sync-energie-cost-all.sh` (Preise aus `input_number.*`)
+4. Nutzer: Energie-Dashboard **Strg+F5**
 
-Einzeln nur bei Debug: `repair-grid-statistics.sh`, `repair-gasmeter-statistics.sh`, `repair-watermeter-statistics.sh` (Wasser: `META_ID_VALUE=1266`, `META_ID_COST=1268`), `sync-gasmeter-cost.sh`.
+**Keine nächtliche Auto-Reparatur.** Monitoring: Automation `Energie: Statistik-Anomalie-Check` → `notify.haus_warnungen`.
 
-1. **Verschlimmert?** → MariaDB-Restore, `ha core restart` (Gas/Wasser: `docs/ai-on-the-edge.md`)
-2. Reparatur **einmal** (`DB_PASS` aus `secrets.yaml`) — nicht auf bereits reparierte DB wiederholen
-3. Nutzer: Energie-Dashboard **Strg+F5**
+**Minus-Kosten / 0 €:** `*_cost` in `recorder.exclude`; Kosten-Statistik per Sync. Purge ohne Sync vermeiden.
 
-Spec: `docs/energie-statistik-wartung.md`, Gas/Wasser-Detail in `docs/ai-on-the-edge.md`.
+Spec: `docs/energie-statistik-praevention.md`, Detail: `docs/energie-statistik-wartung.md`, Gas/Wasser: `docs/ai-on-the-edge.md`.

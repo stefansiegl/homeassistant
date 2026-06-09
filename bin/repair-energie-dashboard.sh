@@ -1,11 +1,9 @@
 #!/bin/sh
-# Einheitliche Reparatur aller Energie-Dashboard-Quellen (Strom/Gas/Wasser).
-# Nach Entity-Umstellung, Seed, Core-Neustart oder komischen Kosten immer dieses Skript —
-# nicht einzelne Medien raten.
+# Manuelle Reparatur Energie-Dashboard (Notfall / Migration) — NICHT per Cron.
+# Standard-Migration: migrate-energie-statistik.sh
 #
 # Nutzung:
 #   DB_PASS='…' /config/bin/repair-energie-dashboard.sh
-# Optional: GAS_PRICE=1.32 WATER_PRICE=3.52 (Defaults wie Energie-Dashboard)
 
 set -eu
 
@@ -14,8 +12,6 @@ DB_HOST="${DB_HOST:-core-mariadb}"
 DB_USER="${DB_USER:-homeassistant}"
 DB_PASS="${DB_PASS:?DB_PASS required}"
 DB_NAME="${DB_NAME:-homeassistant}"
-GAS_PRICE="${GAS_PRICE:-1.32}"
-WATER_PRICE="${WATER_PRICE:-3.52}"
 
 export DB_HOST DB_USER DB_PASS DB_NAME
 
@@ -27,46 +23,46 @@ meta_id() {
   statistic_id="$1"
   fallback="$2"
   id="$(mariadb_cmd -N -e "SELECT id FROM statistics_meta WHERE statistic_id='$statistic_id' LIMIT 1;" 2>/dev/null || true)"
-  if [ -n "$id" ]; then
-    echo "$id"
-  else
-    echo "$fallback"
-  fi
+  if [ -n "$id" ]; then echo "$id"; else echo "$fallback"; fi
 }
 
 echo "========== Diagnose (vorher) =========="
 sh "$SCRIPT_DIR/check-energie-statistik.sh" || true
 
 echo ""
-echo "========== Strom (MT691 Import/Export) =========="
-sh "$SCRIPT_DIR/repair-grid-statistics.sh"
-
-echo ""
-echo "========== Gas (Roh-Statistik bereinigen) =========="
-GAS_PRICE="$GAS_PRICE" META_ID_VALUE=848 META_ID_COST=1080 \
-  sh "$SCRIPT_DIR/repair-gasmeter-statistics.sh"
-
-GAS_STABIL_META="$(meta_id sensor.gasmeter_value_stabil '')"
-if [ -n "$GAS_STABIL_META" ]; then
-  echo ""
-  echo "========== Gas (Historie → stabil, meta $GAS_STABIL_META) =========="
-  META_DST="$GAS_STABIL_META" sh "$SCRIPT_DIR/seed-gasmeter-stabil-statistics.sh"
+echo "========== Strom (Stabil, falls vorhanden) =========="
+IN_META="$(meta_id sensor.mt691_total_in_stabil '')"
+if [ -n "$IN_META" ]; then
+  sh "$SCRIPT_DIR/repair-mt691-stabil-statistics.sh"
+else
+  sh "$SCRIPT_DIR/repair-grid-statistics.sh"
 fi
 
 WATER_META="$(meta_id sensor.watermeter_value_stabil 1266)"
+GAS_META="$(meta_id sensor.gasmeter_value_stabil '')"
+GAS_COST_META="$(meta_id sensor.gasmeter_value_stabil_cost_2 '')"
+[ -n "$GAS_COST_META" ] || GAS_COST_META="$(meta_id sensor.gasmeter_value_stabil_cost 1278)"
 
 echo ""
 echo "========== Wasser (stabil, meta $WATER_META) =========="
+. "$SCRIPT_DIR/energie-preise.sh"
 WATER_PRICE="$WATER_PRICE" META_ID_VALUE="$WATER_META" META_ID_COST=1268 \
   sh "$SCRIPT_DIR/repair-watermeter-statistics.sh"
+
+if [ -n "$GAS_META" ]; then
+  echo ""
+  echo "========== Gas (stabil, meta $GAS_META) =========="
+  GAS_PRICE="$GAS_PRICE" META_ID_VALUE="$GAS_META" META_ID_COST="$GAS_COST_META" \
+    sh "$SCRIPT_DIR/repair-gasmeter-statistics.sh"
+fi
 
 echo ""
 echo "========== Helios Lüftung (Powercalc-Reset) =========="
 sh "$SCRIPT_DIR/repair-helios-energy-statistics.sh" || true
 
 echo ""
-echo "========== Kosten-Statistik entfernen (Dashboard: Verbrauch × Preis) =========="
-sh "$SCRIPT_DIR/purge-energie-cost-statistics.sh"
+echo "========== Kosten aller Medien =========="
+sh "$SCRIPT_DIR/sync-energie-cost-all.sh"
 
 echo ""
 echo "========== Diagnose (nachher) =========="

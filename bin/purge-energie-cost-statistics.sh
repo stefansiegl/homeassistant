@@ -1,7 +1,9 @@
 #!/bin/sh
 # Entfernt Recorder-Statistik der HA-Kosten-Sensoren (*_cost).
-# Das Energie-Dashboard berechnet Kosten aus Verbrauch × Preis (stat_cost: null).
-# HA schreibt diese Kosten-Entities falsch zurück → Minus-Tageswerte.
+# WARNUNG: Das Energie-Dashboard liest Kosten aus diesen Statistik-Entities
+# (energy/info → cost_sensors). Nach Purge sind Kosten = 0 bis sync-gasmeter-cost.sh
+# erneut läuft. Nicht mehr automatisch aus repair-energie-dashboard.sh aufrufen.
+# HA schreibt Live-Kosten oft falsch → Minus-Tageswerte; daher recorder.exclude.
 
 set -eu
 
@@ -21,6 +23,7 @@ WHERE statistic_id IN (
   'sensor.tasmota_mt691_total_out_compensation',
   'sensor.gasmeter_value_cost',
   'sensor.gasmeter_value_stabil_cost',
+  'sensor.gasmeter_value_stabil_cost_2',
   'sensor.watermeter_value_cost',
   'sensor.watermeter_value_stabil_cost'
 );

@@ -1601,23 +1601,46 @@
         metadata: {}
     action: media_player.play_media
   mode: single
-- id: energie_statistik_wartung_start
-  alias: 'Energie: Statistik-Wartung nach Neustart'
-  description: Repariert Recorder-Statistik 20 Min nach Core-Start (OCR/HA-sum-Korruption).
-  triggers:
-  - trigger: homeassistant
-    event: start
-  actions:
-  - delay:
-      minutes: 20
-  - action: shell_command.repair_energie_dashboard
-  mode: single
-- id: energie_statistik_wartung_taeglich
-  alias: 'Energie: Statistik-Wartung täglich'
-  description: Nachts Recorder-Statistik prüfen/reparieren falls HA sum überschreibt.
+- id: energie_statistik_monitoring
+  alias: 'Energie: Statistik-Anomalie-Check'
+  description: Prüft Verbrauchs-statistik auf Sprünge; benachrichtigt ohne Auto-Reparatur.
   triggers:
   - trigger: time
-    at: 04:00:00
+    at: 08:00:00
+  - trigger: time
+    at: '20:00:00'
   actions:
-  - action: shell_command.repair_energie_dashboard
+  - action: shell_command.check_energie_statistik_anomaly
+  - action: homeassistant.update_entity
+    target:
+      entity_id:
+      - sensor.energie_statistik_anomalie_anzahl
+      - sensor.energie_statistik_anomalie_text
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.energie_statistik_anomalie_anzahl
+        above: 0
+      sequence:
+      - action: notify.haus_warnungen
+        data:
+          title: Energie-Statistik
+          message: >-
+            {{ states('sensor.energie_statistik_anomalie_text')
+            | default('Auffällige Verbrauchssprünge — check-energie-statistik.sh', true) }}
+  mode: single
+- id: energie_kosten_nach_preisaenderung
+  alias: 'Energie: Kosten nach Preisänderung'
+  description: Einmaliger Kosten-Sync wenn ein Preis-Helfer geändert wird.
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_number.gaspreis_pro_m3
+    - input_number.wasserpreis_pro_m3
+    - input_number.strompreis_pro_kwh
+    - input_number.einspeiseverguetung_pro_kwh
+  actions:
+  - delay:
+      seconds: 5
+  - action: shell_command.sync_energie_cost_all
   mode: single

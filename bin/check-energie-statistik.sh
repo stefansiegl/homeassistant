@@ -20,7 +20,8 @@ FROM (
   SELECT 'Strom Bezug kWh' AS quelle,
     v.sum - LAG(v.sum) OVER (ORDER BY v.start_ts) AS d_verbrauch
   FROM statistics v
-  WHERE v.metadata_id=475
+  WHERE v.metadata_id=COALESCE(
+    (SELECT id FROM statistics_meta WHERE statistic_id='sensor.mt691_total_in_stabil' LIMIT 1), 475)
     AND v.start_ts >= UNIX_TIMESTAMP(DATE_FORMAT(NOW(), '%Y-%m-01'))
     AND v.start_ts < UNIX_TIMESTAMP(DATE_FORMAT(NOW() + INTERVAL 1 MONTH, '%Y-%m-01'))
   UNION ALL
@@ -49,7 +50,8 @@ SELECT quelle, ts, d_sum FROM (
   SELECT 'Strom Bezug' AS quelle, FROM_UNIXTIME(v.start_ts) AS ts,
     ROUND(v.sum-LAG(v.sum) OVER (ORDER BY v.start_ts),2) AS d_sum
   FROM statistics v
-  WHERE v.metadata_id=475
+  WHERE v.metadata_id=COALESCE(
+    (SELECT id FROM statistics_meta WHERE statistic_id='sensor.mt691_total_in_stabil' LIMIT 1), 475)
     AND v.start_ts >= UNIX_TIMESTAMP(NOW() - INTERVAL 7 DAY)
 ) strom WHERE ABS(IFNULL(d_sum,0)) > 50
 UNION ALL

@@ -24,13 +24,40 @@ input_number:
     initial: 41
   gaspreis_pro_m3:
     name: Gaspreis pro m3
-    min: 0
+    min: 0.01
     max: 100
-    step: 1
+    step: 0.01
     mode: box
     icon: mdi:currency-eur
     unit_of_measurement: "EUR/m³"
     initial: 1.32
+  wasserpreis_pro_m3:
+    name: Wasserpreis pro m3
+    min: 0.01
+    max: 100
+    step: 0.01
+    mode: box
+    icon: mdi:currency-eur
+    unit_of_measurement: "EUR/m³"
+    initial: 3.52
+  strompreis_pro_kwh:
+    name: Strompreis pro kWh
+    min: 0.01
+    max: 10
+    step: 0.01
+    mode: box
+    icon: mdi:currency-eur
+    unit_of_measurement: "EUR/kWh"
+    initial: 0.33376
+  einspeiseverguetung_pro_kwh:
+    name: Einspeisevergütung pro kWh
+    min: 0.01
+    max: 10
+    step: 0.01
+    mode: box
+    icon: mdi:currency-eur
+    unit_of_measurement: "EUR/kWh"
+    initial: 0.23
   radon_threshold_helper:
     name: Radon Schwellwert
     min: 0
