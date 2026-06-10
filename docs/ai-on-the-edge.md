@@ -157,8 +157,9 @@ Templates in [`configuration.yaml`](../configuration.yaml):
 
 | Situation | Erkennung | Reaktion |
 |-----------|-----------|----------|
-| Erkennungsfehler | `sensor.*_error` ≠ `no error` oder `binary_sensor.*_problem` = `on` | [`haus-warnungen.md`](./haus-warnungen.md) |
-| Gerät offline / stale | `sensor.*_value` offline oder kein Update > 45 Min | [`haus-warnungen.md`](./haus-warnungen.md) |
+| Erkennungsfehler (transient) | Einzelzyklus OCR-Fehler (`Neg. Rate`, kurz `problem` = `on`) | **keine** Warnung — nächster Zyklus oft ok |
+| Erkennungsfehler (anhaltend) | `problem` oder `error` **≥ 30 Min** ununterbrochen (`input_number.zaehler_fehler_minuten`) | [`haus-warnungen.md`](./haus-warnungen.md) |
+| Gerät offline / stale | kein MQTT-Lebenszeichen (`*_uptime`) > 45 Min | [`haus-warnungen.md`](./haus-warnungen.md) |
 
 **Ist:** umgesetzt via [`haus-warnungen.md`](./haus-warnungen.md) (`binary_sensor.*_warnung`, Tablett, `notify.haus_warnungen`).
 

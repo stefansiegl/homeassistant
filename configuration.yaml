@@ -745,6 +745,7 @@ template:
           - sensor.watermeter_error
           - binary_sensor.watermeter_problem
           - input_number.zaehler_stale_minuten
+          - input_number.zaehler_fehler_minuten
           - sensor.ha_start_timestamp
     binary_sensor:
       - name: Gasmeter Warnung
@@ -753,6 +754,7 @@ template:
         icon: mdi:gas-cylinder
         state: >
           {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+          {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
           {% set offline_min = 5 %}
           {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
           {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -768,9 +770,11 @@ template:
             true
           {% elif val in ['unavailable', 'unknown', 'none'] %}
             false
-          {% elif is_state('binary_sensor.gasmeter_problem', 'on') %}
+          {% elif is_state('binary_sensor.gasmeter_problem', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.binary_sensor.gasmeter_problem.last_changed)) / 60 >= fehler_min %}
             true
-          {% elif states('sensor.gasmeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
+          {% elif states('sensor.gasmeter_error') not in ['no error', 'unavailable', 'unknown', 'none', '']
+             and (as_timestamp(now()) - as_timestamp(states.sensor.gasmeter_error.last_changed)) / 60 >= fehler_min %}
             true
           {% else %}
             false
@@ -778,6 +782,7 @@ template:
         attributes:
           grund: >
             {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+            {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
             {% set offline_min = 5 %}
             {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
             {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -795,9 +800,15 @@ template:
               {% if age > stale_min %}
                 Gaszähler: kein MQTT-Lebenszeichen seit {{ age }} Min
               {% elif is_state('binary_sensor.gasmeter_problem', 'on') %}
-                Gaszähler: Geräteproblem
+                {% set p_min = ((as_timestamp(now()) - as_timestamp(states.binary_sensor.gasmeter_problem.last_changed)) / 60) | int %}
+                {% if p_min >= fehler_min %}
+                  Gaszähler: Geräteproblem seit {{ p_min }} Min
+                {% endif %}
               {% elif states('sensor.gasmeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
-                Gaszähler: {{ states('sensor.gasmeter_error') }}
+                {% set e_min = ((as_timestamp(now()) - as_timestamp(states.sensor.gasmeter_error.last_changed)) / 60) | int %}
+                {% if e_min >= fehler_min %}
+                  Gaszähler: {{ states('sensor.gasmeter_error') }}
+                {% endif %}
               {% endif %}
             {% endif %}
       - name: Watermeter Warnung
@@ -806,6 +817,7 @@ template:
         icon: mdi:water-alert
         state: >
           {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+          {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
           {% set offline_min = 5 %}
           {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
           {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -821,16 +833,19 @@ template:
             true
           {% elif val in ['unavailable', 'unknown', 'none'] %}
             false
-          {% elif is_state('binary_sensor.watermeter_problem', 'on') %}
+          {% elif is_state('binary_sensor.watermeter_problem', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.binary_sensor.watermeter_problem.last_changed)) / 60 >= fehler_min %}
             true
           {% elif states('sensor.watermeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
-            true
+            {% set e_min = (as_timestamp(now()) - as_timestamp(states.sensor.watermeter_error.last_changed)) / 60 %}
+            {{ e_min >= fehler_min }}
           {% else %}
             false
           {% endif %}
         attributes:
           grund: >
             {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
+            {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
             {% set offline_min = 5 %}
             {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
             {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -848,9 +863,15 @@ template:
               {% if age > stale_min %}
                 Wasserzähler: kein MQTT-Lebenszeichen seit {{ age }} Min
               {% elif is_state('binary_sensor.watermeter_problem', 'on') %}
-                Wasserzähler: Geräteproblem
+                {% set p_min = ((as_timestamp(now()) - as_timestamp(states.binary_sensor.watermeter_problem.last_changed)) / 60) | int %}
+                {% if p_min >= fehler_min %}
+                  Wasserzähler: Geräteproblem seit {{ p_min }} Min
+                {% endif %}
               {% elif states('sensor.watermeter_error') not in ['no error', 'unavailable', 'unknown', 'none', ''] %}
-                Wasserzähler: {{ states('sensor.watermeter_error') }}
+                {% set e_min = ((as_timestamp(now()) - as_timestamp(states.sensor.watermeter_error.last_changed)) / 60) | int %}
+                {% if e_min >= fehler_min %}
+                  Wasserzähler: {{ states('sensor.watermeter_error') }}
+                {% endif %}
               {% endif %}
             {% endif %}
 
@@ -865,6 +886,7 @@ template:
           - binary_sensor.gasmeter_warnung
           - binary_sensor.watermeter_warnung
           - input_number.zaehler_stale_minuten
+          - input_number.zaehler_fehler_minuten
     sensor:
       - name: Haus Warnungen
         unique_id: haus_warnungen

@@ -103,6 +103,15 @@ input_number:
     icon: mdi:timer-sand
     unit_of_measurement: min
     initial: 45
+  zaehler_fehler_minuten:
+    name: Zähler Fehler Minuten
+    min: 10
+    max: 120
+    step: 5
+    mode: box
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: min
+    initial: 30
 
 input_select:
   waschmaschine_status_helper:

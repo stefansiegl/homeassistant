@@ -86,11 +86,13 @@ UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separate
 |-----|-----------|
 | **Boot-Toleranz** | Erste **5 Min** nach HA-Neustart: keine Warnung |
 | **Kein Lebenszeichen** | `sensor.*_uptime` (Fallback: `*_value`) — `last_updated` älter als `input_number.zaehler_stale_minuten` (Start **45**) |
-| **Gerätefehler** | `binary_sensor.*_problem` = `on` **oder** `sensor.*_error` ≠ `no error` (nur wenn Lebenszeichen ok) |
+| **Gerätefehler (anhaltend)** | `binary_sensor.*_problem` = `on` **oder** `sensor.*_error` ≠ `no error` — jeweils nur wenn der Zustand **ununterbrochen** ≥ `input_number.zaehler_fehler_minuten` (Start **30**) und Lebenszeichen ok |
 
 **Hintergrund (2026-06-09):** AI-on-the-Edge sendet **Uptime/Status** regelmäßig per MQTT, den **Zählerstand** (`*_value`) aber nur bei neuer Erkennung. Stale-Check auf `*_value.last_updated` erzeugte Fehlalarme („keine Werte seit 94 Min“), obwohl das Gerät online war.
 
-Attribut **`grund`** (Beispiele): `Gaszähler: kein MQTT-Lebenszeichen seit 52 Min`, `Wasserzähler: Geräteproblem`, `Gaszähler: Rate too high`.
+**Hintergrund (2026-06-10):** OCR-Ausreißer (z. B. einmalig `09985.40N`) setzen `*_problem` kurz auf `on` und springen nach dem nächsten Zyklus zurück. Dauer-Check über `last_changed` — flatternde Fehler lösen **keine** Warnung/Push aus.
+
+Attribut **`grund`** (Beispiele): `Gaszähler: kein MQTT-Lebenszeichen seit 52 Min`, `Wasserzähler: Geräteproblem seit 35 Min`, `Gaszähler: Neg. Rate …` (nur bei anhaltendem Fehlertext).
 
 Geräte-Web-UI: [`ai-on-the-edge.md`](./ai-on-the-edge.md) (Wasser `.121`, Gas `.122`).
 
@@ -108,6 +110,7 @@ Stale hängt an der **Uhr**, nicht an MQTT-Events. Der Aggregat-Block (Schicht 3
 | Entity | Typ | Rolle |
 |--------|-----|--------|
 | `input_number.zaehler_stale_minuten` | helper | Schwellwert Stale (45 min, 15–180) |
+| `input_number.zaehler_fehler_minuten` | helper | OCR/Problem erst warnen ab Dauer (30 min, 10–120) |
 | `binary_sensor.gasmeter_warnung` | template | Einzelcheck Gas |
 | `binary_sensor.watermeter_warnung` | template | Einzelcheck Wasser |
 | `group.haus_warnungen_checks` | group | Registry aller Check-Entities |
@@ -134,8 +137,8 @@ Stale hängt an der **Uhr**, nicht an MQTT-Events. Der Aggregat-Block (Schicht 3
 
 ### Push-Spam vermeiden
 
-- Automation **`mode: single`**
-- Optional: Trigger `for: 00:05:00` auf `haus_hat_warnungen` (kurze MQTT-Glitches ignorieren)
+- Automation **`mode: single`**, Trigger `for: 00:05:00` auf `haus_hat_warnungen`
+- Zähler: transient OCR/`problem`-Flattern wird in Schicht 1 durch **`zaehler_fehler_minuten`** gefiltert (kein `on` bei Einzelzyklus-Fehler)
 
 ### Randfälle
 
