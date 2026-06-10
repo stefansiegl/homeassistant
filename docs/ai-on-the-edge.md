@@ -54,6 +54,12 @@ Typische Aufgaben in der Web-UI: Live-Bild / ROI, Digitizer-Status, MQTT-Broker 
 
 ---
 
+## Haus-Warnungen (Monitoring)
+
+Stale/Offline-Checks nutzen **`sensor.*_uptime`** als MQTT-Lebenszeichen — nicht `*_value.last_updated` (Zählerstand ändert sich selten). Siehe [`haus-warnungen.md`](./haus-warnungen.md).
+
+---
+
 ## Live-Status (Abgleich 2026-05-27)
 
 Prüfung über `.storage/core.restore_state` (letzte persistierte HA-States).

@@ -75,8 +75,8 @@ UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separate
 
 | ID | Check-Entity | Quellen | `on` wenn | Push | UI |
 |----|--------------|---------|-----------|------|-----|
-| gasmeter | `binary_sensor.gasmeter_warnung` | `sensor.gasmeter_value`, `sensor.gasmeter_error`, `binary_sensor.gasmeter_problem` | offline, stale oder Gerätefehler | ja | Tablett |
-| watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_value`, … | offline, stale oder Gerätefehler | ja | Tablett |
+| gasmeter | `binary_sensor.gasmeter_warnung` | `sensor.gasmeter_uptime`, `sensor.gasmeter_value`, `sensor.gasmeter_error`, `binary_sensor.gasmeter_problem` | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
+| watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_uptime`, `sensor.watermeter_value`, … | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
 
 **Gas und Wasser:** beide Checks dauerhaft aktiv (seit 2026-06-07 wieder für Wasser — zuvor temporär per Helper abgeschaltet).
 
@@ -84,11 +84,13 @@ UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separate
 
 | Art | Bedingung |
 |-----|-----------|
-| **Offline** | `sensor.*_value` ≥ 5 Min `unavailable` **und** HA ≥ 5 Min nach Neustart (MQTT-Toleranz) |
-| **Stale** | `last_updated` älter als `input_number.zaehler_stale_minuten` (Start **45**) |
-| **Gerätefehler** | `binary_sensor.*_problem` = `on` **oder** `sensor.*_error` ≠ `no error` |
+| **Boot-Toleranz** | Erste **5 Min** nach HA-Neustart: keine Warnung |
+| **Kein Lebenszeichen** | `sensor.*_uptime` (Fallback: `*_value`) — `last_updated` älter als `input_number.zaehler_stale_minuten` (Start **45**) |
+| **Gerätefehler** | `binary_sensor.*_problem` = `on` **oder** `sensor.*_error` ≠ `no error` (nur wenn Lebenszeichen ok) |
 
-Attribut **`grund`** (Beispiele): `Gaszähler: Gerät offline`, `Wasserzähler: keine Werte seit 52 Min`, `Gaszähler: Erkennungsfehler`.
+**Hintergrund (2026-06-09):** AI-on-the-Edge sendet **Uptime/Status** regelmäßig per MQTT, den **Zählerstand** (`*_value`) aber nur bei neuer Erkennung. Stale-Check auf `*_value.last_updated` erzeugte Fehlalarme („keine Werte seit 94 Min“), obwohl das Gerät online war.
+
+Attribut **`grund`** (Beispiele): `Gaszähler: kein MQTT-Lebenszeichen seit 52 Min`, `Wasserzähler: Geräteproblem`, `Gaszähler: Rate too high`.
 
 Geräte-Web-UI: [`ai-on-the-edge.md`](./ai-on-the-edge.md) (Wasser `.121`, Gas `.122`).
 

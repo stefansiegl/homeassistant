@@ -659,13 +659,16 @@
   mode: single
 - id: haus_warnungen_benachrichtigen
   alias: 'System: Haus-Warnungen benachrichtigen'
-  description: Push wenn mindestens ein Haus-Warnung-Check aktiv ist.
+  description: Push wenn mindestens ein Haus-Warnung-Check aktiv ist (mit Text in liste).
   triggers:
   - trigger: state
     entity_id: binary_sensor.haus_hat_warnungen
     from: 'off'
     to: 'on'
     for: '00:05:00'
+  conditions:
+  - condition: template
+    value_template: "{{ state_attr('sensor.haus_warnungen', 'liste') | trim | length > 0 }}"
   actions:
   - action: notify.haus_warnungen
     data:
@@ -797,6 +800,81 @@
       data:
         message: Geschirr ist fertig.
         language: de
+- id: hebeanlage_status_mgmt
+  alias: 'Haushalt: Hebeanlage Status-Management'
+  description: 'Leistung Nous A1Z; läuft >40W, standby <15W (kein fertig-Status)'
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.steckdose_keller_hebeanlage_power
+    above: 40
+    for: 00:00:20
+    id: trigger_start
+  - trigger: numeric_state
+    entity_id: sensor.steckdose_keller_hebeanlage_power
+    below: 15
+    for: 00:01:00
+    id: trigger_standby
+  - trigger: homeassistant
+    event: start
+    id: system_start
+  actions:
+  - if:
+    - condition: trigger
+      id: system_start
+    then:
+    - delay: 00:01:00
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ states(''sensor.steckdose_keller_hebeanlage_power'') |
+            float(0) > 40 }}'
+        sequence:
+        - action: input_select.select_option
+          target:
+            entity_id: input_select.hebeanlage_status_helper
+          data:
+            option: läuft
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.hebeanlage_letzter_lauf
+          data:
+            datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+      - conditions:
+        - condition: template
+          value_template: '{{ states(''sensor.steckdose_keller_hebeanlage_power'') |
+            float(0) < 10 }}'
+        sequence:
+        - action: input_select.select_option
+          target:
+            entity_id: input_select.hebeanlage_status_helper
+          data:
+            option: standby
+    - stop: Systemstart-Check abgeschlossen
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: trigger_start
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.hebeanlage_status_helper
+        data:
+          option: läuft
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.hebeanlage_letzter_lauf
+        data:
+          datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+    - conditions:
+      - condition: trigger
+        id: trigger_standby
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.hebeanlage_status_helper
+        data:
+          option: standby
+  mode: restart
 - id: '1770731967147'
   alias: 'Sicherheit: Radon Alarm (Kritisch)'
   description: Warnt wiederkehrend bei Radon-Gefahr, bis aktiv am Handy bestätigt

@@ -129,6 +129,13 @@ input_select:
       - fertig
     icon: mdi:dishwasher
     initial: standby
+  hebeanlage_status_helper:
+    name: Hebeanlage Status Helper
+    options:
+      - standby
+      - läuft
+    icon: mdi:water-pump
+    initial: standby
   szenen_zyklus_eg:
     name: Szenen Zyklus EG
     options:
@@ -181,6 +188,11 @@ input_datetime:
     has_date: true
     has_time: false
     initial: "2026-02-08"
+  hebeanlage_letzter_lauf:
+    name: Hebeanlage letzter Lauf
+    has_date: true
+    has_time: true
+    icon: mdi:water-pump
 
 # Kombinationssensor: max CO2 aller Aranet-Sensoren im Haus
 template:

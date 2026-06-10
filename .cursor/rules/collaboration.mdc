@@ -31,6 +31,12 @@ Neue Logik/Helfer/Dashboards → YAML (siehe Strategie-Doc). Geräte-Pairing, In
 
 Bei Widerspruch: **nicht raten** — Nutzer fragen oder Spec anpassen.
 
+## HA-Neustart nach YAML-Änderungen
+
+Nach Änderungen an `configuration.yaml` (Template, Powercalc, Gruppen), `helpers.yaml` oder `automations.yaml`, die **laufendes Verhalten** betreffen: **`ha core restart` selbst ausführen**, auf HA-Start warten, dann **Logs/States prüfen** und dem Nutzer das Ergebnis mitteilen — nicht nur „bitte neu laden/neustarten“ schreiben.
+
+Ausnahmen (kein Restart nötig): reine Doc-Änderungen, reine Dashboard-YAML wenn nur Browser-Reload reicht (siehe jeweilige Spec).
+
 ## Diagnose (Logs selbst prüfen)
 
 Bei Fehlern, Warnungen nach Neustart oder „funktioniert nicht“-Meldungen **zuerst selbst** nachsehen — den Nutzer nicht um Copy-Paste aus den HA-Logs bitten.

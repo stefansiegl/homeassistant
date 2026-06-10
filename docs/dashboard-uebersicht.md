@@ -12,7 +12,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 
 1. **Lüftungszentrale** — Helios-Stufe, Max-CO₂, Effizienz, Sommer/Winter-Bypass, Kill-Switch
 2. **Raumklima** — 4 Zeilen: EG Küche, 1. OG, 2. OG Büro, 2. OG Schlafen (Temp, Feuchte, CO₂, Befeuchter, Wasser leer)
-3. **Haushalt** — Waschmaschine, Trockner, Spülmaschine (Status-Helper + Leistung)
+3. **Haushalt** — Waschmaschine, Trockner, Spülmaschine, Hebeanlage (Status-Helper + Leistung)
 4. **Radon Debug** — `sensor.radon_meter_radon` (entities-Karte)
 5. **Radon Logik** — `input_boolean.radon_logic_enabled`
 6. **Abfallentsorgung** — Übersicht + 4 Müll-Sensoren
@@ -26,7 +26,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 
 ## Entity-Audit (Stand Migration)
 
-Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchter, Waste-Sensoren, Haushalt-Helper, Spülmaschine `sensor.spuelmaschine_shellypro3em_leistung`, Trockner `sensor.shellyplug_4_trockner_power`, Wartungs-`input_datetime`/`input_number`, Skripte `script.wartung_befeuchter_reinigung_vermerken` / `script.wartung_luefterfilter_vermerken`.
+Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchter, Waste-Sensoren, Haushalt-Helper, Spülmaschine `sensor.spuelmaschine_shellypro3em_leistung`, Trockner `sensor.shellyplug_4_trockner_power`, Hebeanlage `sensor.steckdose_keller_hebeanlage_power`, Wartungs-`input_datetime`/`input_number`, Skripte `script.wartung_befeuchter_reinigung_vermerken` / `script.wartung_luefterfilter_vermerken`.
 
 ## Backlog (inhaltlich)
 

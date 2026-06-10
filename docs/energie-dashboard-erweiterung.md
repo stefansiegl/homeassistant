@@ -1,6 +1,6 @@
 # Energie-Dashboard — Erweiterung (Helios + Vitovalor + Beleuchtung)
 
-Stand: 2026-06-08 · Bezug: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md)
+Stand: 2026-06-09 · Bezug: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) · Haushalt Hebeanlage: [`haushalt-hebeanlage.md`](./haushalt-hebeanlage.md)
 
 ## Ausgangslage
 
@@ -10,6 +10,53 @@ Stand: 2026-06-08 · Bezug: [`energie-statistik-wartung.md`](./energie-statistik
 - **Mai 2026 (nach Grid-Reparatur):** Netz ~281 kWh, Geräte-Summe ~154 kWh → **~127 kWh** am Zähler ohne eigenen Messpunkt (Heizungs-/Lüftungs-Stromkreis, feste Lichtkreise an Wand-Schaltern, OG/Technik).
 
 ` sensor.helios_luftung_energy` liefert **keine Recorder-Statistik** (0 kWh) — vermutlich verwaister/alter Powercalc-Eintrag (nur in `homeassistant.exposed_entities`, nicht in Entity-Registry).
+
+---
+
+## FI-Matrix UV „Am Oberfeld 48“ (Messstand)
+
+| SK / Kreis | Verbraucher | Messung | Entity / Quelle | Status |
+|------------|-------------|---------|-----------------|--------|
+| **Zählerkette** | Netzbezug VNB | ISKRA MT691 + Tasmota IR | `sensor.mt691_total_in_stabil` | ✅ |
+| **Küche 3PH** | Herd, Spülmaschine, Kochfeld | Shelly Pro 3EM | `sensor.*_shellypro3em_*` | ✅ |
+| **SK 16** | Helios KWL EC 370W R (fest verdrahtet) | Powercalc | `sensor.helios_luftung_energy` | ✅ geschätzt |
+| **SK 16** | (optional) | **Shelly Pro EM-50** am Lüftungs-FI | — | 📋 Phase 3b nach Bilanz |
+| **SK 18** | FBH-Pumpen (fest verdrahtet) | — | — | ❌ ungemessen |
+| **SK 20/21** | Vitovalor + Nebenverbrauch | ViCare API | `sensor.vicare_energy_consumption_this_month` | ✅ (nur Anlage) |
+| **SK 20/21** | Hebeanlage (Schuko) | Nous A1Z | `sensor.steckdose_keller_hebeanlage_energy` | ✅ seit 09.06.2026 |
+| **SK 20/21** | Grünbeck Enthärtung (Schuko) | Nous A1Z (2. Steckdose) | `sensor.steckdose_keller_gruenbeck_energy` (nach Pairing) | ⏳ Nutzer |
+| **Steckdosen** | Küche, Multimedia, Technikraum, Haushalt | Nous A1Z / Shelly Plug | siehe `.storage/energy` | ✅ |
+| **Licht** | Hue + Powercalc | Domain-Group | `sensor.all_light_energy` | ✅ geschätzt |
+| **Garage** | leer | — | — | — |
+
+**Regel:** Steckdose misst nur **diese Dose**; FI-Kreise (Lüftung, FBH) brauchen **Shelly Pro EM-50** (Hutschiene) — siehe Hardware-Abschnitt unten.
+
+---
+
+## Hardware-Einkauf (Nous / Shelly)
+
+| Produkt | Modell | Einsatz | Beschaffung (ca. Juni 2026) |
+|---------|--------|---------|----------------------------|
+| **Nous A1Z** | Zigbee 16 A, Messung | Schuko (Hebeanlage, Grünbeck, Küche) | BerryBase 2er ~29 € |
+| **Shelly Plus Plug S** | SNPL-00112EU, 12 A | WiFi-Steckdosen (Alternative) | reichelt ~21 € |
+| **Shelly Pro EM-50** | SPEM-002CEBEU50 | SK 16 Lüftung, optional SK 18 FBH | Amazon ~67 € |
+| **Shelly Pro 3EM** | SPEM-003CEBEU | nur 3 Phasen (Küche, bereits) | — |
+
+Nachkauf Zigbee: gleicher Chip `a4c138` / [Z2M A1Z](https://www.zigbee2mqtt.io/devices/A1Z.html). Z2M-Friendly-Name für Grünbeck: **`Steckdose-Keller-Gruenbeck`** → HA-Entities `sensor.steckdose_keller_gruenbeck_*`.
+
+---
+
+## Juni-Bilanz 2026 (Phase 1, Stand 09.06.)
+
+| Kennzahl | Wert |
+|----------|------|
+| Netzbezug Juni (MT691 stabil) | **50,75 kWh** (Monatsanfang bis 09.06.) |
+| Summe Einzelgeräte (Dashboard-Liste) | **~29,5 kWh** |
+| **Nicht zugeordnet (geschätzt)** | **~21 kWh** (~41 % des Netzbezugs) |
+
+Größte ungemessene Verdächtige (weiterhin): **Lüftung SK 16** (nur Powercalc), **FBH SK 18**, feste Licht-/Technik-Kreise.
+
+**Entscheidung Phase 3b:** Nach vollständigem Juni-Monat Bilanz wiederholen (`DB_PASS=… /config/bin/check-energie-statistik.sh` + Geräte-Summe aus DB). Bei anhaltender Lücke **>15–20 %**: **Shelly Pro EM-50** am **SK 16** (Elektriker oder DIY spannungsfrei, siehe Montage in Einkaufsplan). Dann **Helios Powercalc aus Dashboard entfernen** (keine Doppelzählung).
 
 ---
 
@@ -235,6 +282,28 @@ Nur sinnvoll, wenn im Dashboard getrennte Balken gewünscht — sonst reicht Opt
 | Vitovalor ViCare **und** Powercalc | Nur **eine** Quelle (ViCare bevorzugt) |
 | Vitovalor-Strom + Gas-Sensoren ViCare | Strom ≠ Gas — beides ok, verschiedene Medien |
 | Heizungs-FI misst Vitovalor + Helios gemeinsam | Dann **ein** EM-Messpunkt oder Aufteilung über ViCare/Powercalc |
+| Hebeanlage Steckdose + Vitovalor ViCare | Kein Doppel — unterschiedliche Lasten (Pumpe vs. Anlage) |
+
+---
+
+## Shelly Pro EM-50 — Montage SK 16 (Kurzreferenz)
+
+1. **UV-Zuleitung aus**, FI SK 16 aus, spannungsfrei prüfen (zweipolig).
+2. Pro EM auf Hutschiene; **L und N** des Lüftungskreises **nach FI** durch EM (Durchgang).
+3. Shelly-Versorgung L+N vom Busbar (eigener B10A-LS).
+4. WLAN in UV testen; HA Shelly-Integration → `sensor.*_energy` ins Dashboard.
+5. **Helios Powercalc** aus `device_consumption` entfernen.
+
+Details + Sicherheit: Einkaufsplan Strom-Hardware (Montage-Abschnitt).
+
+---
+
+## Grünbeck — zweite Nous A1Z (ausstehend)
+
+1. Steckdose zwischen Wanddose und Grünbeck-Stecker (wie Hebeanlage).
+2. Z2M pairen → Friendly Name **`Steckdose-Keller-Gruenbeck`**.
+3. `power_outage_memory` → **on**.
+4. Energie-Dashboard: `sensor.steckdose_keller_gruenbeck_energy` + `_power` hinzufügen (UI oder `.storage/energy`).
 
 ---
 
@@ -243,21 +312,25 @@ Nur sinnvoll, wenn im Dashboard getrennte Balken gewünscht — sonst reicht Opt
 | Schritt | Status |
 |---------|--------|
 | Helios Powercalc in `configuration.yaml` | ✅ |
-| Vitovalor: `sensor.vicare_energy_consumption_this_month` im Dashboard | ✅ (YAML); UI ggf. tauschen |
-| Energie-Dashboard UI (Einzelgeräte) | **Nutzer** — siehe unten |
+| Vitovalor: `sensor.vicare_energy_consumption_this_month` im Dashboard | ✅ (`.storage/energy`, 09.06.) |
+| Hebeanlage: Nous A1Z + Energie-Dashboard | ✅ |
+| Grünbeck: Nous A1Z #2 | ⏳ Nutzer (Pairing + Dashboard) |
+| Phase 3b: Shelly Pro EM-50 SK 16 | 📋 nach Juni-Vollbilanz |
 | Licht-Gruppen (Option B/C) | offen |
 
-**Dein Test nach Neustart / YAML-Reload:**
+**Dein Test:**
 
-1. Entwicklerwerkzeuge → `sensor.helios_luftung_power` / `_energy` und `sensor.vicare_energy_consumption_this_month` prüfen.
-2. Einstellungen → Energie → Einzelgeräte: `sensor.helios_luftung_energy`, `sensor.vicare_energy_consumption_this_month` („Vitovalor Strom“).
-3. Alten Eintrag `sensor.vitovalor_strom` entfernen, falls noch vorhanden.
+1. Entwicklerwerkzeuge → `sensor.steckdose_keller_hebeanlage_power` / `_energy` (Hebeanlage).
+2. Energie-Dashboard: Hebeanlage, Vitovalor (`_this_month`), Helios sichtbar; „nicht zugeordnet“ beobachten.
+3. Nach Grünbeck-Pairing: `sensor.steckdose_keller_gruenbeck_energy` ergänzen.
 
 ---
 
 ## Offen
 
-- [x] Helios: Powercalc (kein 3EM)
-- [x] Vitovalor: ViCare direkt → `sensor.vicare_energy_consumption_this_month`
-- [ ] Energie-Dashboard UI: beide Sensoren unter Einzelgeräte
+- [x] Helios: Powercalc (kein 3EM vorerst)
+- [x] Vitovalor: ViCare `_this_month` im Dashboard (nicht `_today`)
+- [x] Hebeanlage: `sensor.steckdose_keller_hebeanlage_energy` im Dashboard
+- [ ] Grünbeck: zweite Nous A1Z pairen + Dashboard
+- [ ] Juni-Vollbilanz Ende Juni → Entscheid Pro EM SK 16
 - [ ] Welche Licht-Option (A/B/C) im Dashboard?
