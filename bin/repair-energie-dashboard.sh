@@ -40,7 +40,8 @@ fi
 
 WATER_META="$(meta_id sensor.watermeter_value_stabil 1266)"
 GAS_META="$(meta_id sensor.gasmeter_value_stabil '')"
-GAS_COST_META="$(meta_id sensor.gasmeter_value_stabil_cost_2 '')"
+GAS_COST_META="$(meta_id sensor.gasmeter_stabil_kosten '')"
+[ -n "$GAS_COST_META" ] || GAS_COST_META="$(meta_id sensor.gasmeter_value_stabil_cost_2 '')"
 [ -n "$GAS_COST_META" ] || GAS_COST_META="$(meta_id sensor.gasmeter_value_stabil_cost 1278)"
 
 echo ""

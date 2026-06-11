@@ -11,7 +11,7 @@ Siehe auch: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) (No
 | **Stabil-Template** | Ausreißer filtern, bevor sie in den Recorder gelangen |
 | **recorder.exclude (Roh)** | Keine korrupte Roh-Historie; Neustart kompiliert `sum` nicht aus Spikes |
 | **Energie-Dashboard** | Nur `*_stabil`-Entities + `input_number`-Preis-Helfer |
-| **Kosten** | `sync-energie-cost-all.sh` aus Verbrauchs-`sum` × Preis-Helfer; bei Preisänderung einmalig |
+| **Kosten** | Template `sensor.*_stabil_kosten` (= Verbrauch stabil × `input_number`-Preis), Recorder — **kein** Sync-Skript |
 | **Monitoring** | `check-energie-statistik-anomaly.sh` 2×/Tag → `notify.haus_warnungen` (kein Auto-Repair) |
 
 **Nicht mehr:** tägliche Automation `repair_energie_dashboard` (04:00 / nach Neustart).
@@ -55,10 +55,9 @@ Stabil-Sensoren haben Attribute `raw_value`, `filtered`, `last_accepted_ts`.
    - Netz Leistung (Stromquellen): `sensor.mt691_power_cur_stabil` statt `sensor.tasmota_mt691_power_cur`
    - Backfill Leistung-Historie: `seed-mt691-power-stabil-statistics.sh` (einmalig)
 4. `DB_PASS='…' /config/bin/repair-mt691-stabil-statistics.sh` (Pflicht nach UI-Umstellung — behebt fehlende Tage durch `sum`-Sprung auf ~0)
-5. `DB_PASS='…' /config/bin/sync-energie-cost-all.sh`
-6. Energie-Dashboard **Strg+F5**; Mai/Juni Stichprobe
+5. Energie-Dashboard **Strg+F5**; Mai/Juni Stichprobe (Kosten über Recorder)
 
-**Skript-Ablauf intern:** Roh-Strom reparieren → Seed Strom stabil → Wasser/Gas stabil reparieren (falls nötig) → Kosten-Sync aller Medien.
+**Skript-Ablauf intern (Migration):** Roh-Strom reparieren → Seed Strom stabil → Wasser/Gas stabil reparieren (falls nötig). Kosten-Sync nur bei Lücken/Notfall.
 
 `seed-gasmeter-stabil-statistics.sh` nur **einmal** in der Migration — nie im Cron.
 
@@ -76,10 +75,23 @@ Danach Strg+F5. Nicht auf bereits migrierte Daten wiederholt laufen lassen.
 - **08:00 / 20:00:** `shell_command.check_energie_statistik_anomaly` → bei Befund `notify.haus_warnungen`
 - **Stabil `filtered: true`:** optional Automation auf `sensor.*_stabil` (OCR/Tasmota abgefangen)
 
-## Kosten-Recorder (späterer Test)
+## Kosten-Recorder (seit 2026-06-11)
 
-Nach 1–2 Wochen stabiler Verbrauchs-Statistik: `*_cost` aus `recorder.exclude` entfernen testen. Bei Minus-Sprüngen: Exclude behalten, nur `sync-energie-cost-all.sh` bei Preisänderung.
+**Template-Kosten** (YAML, `configuration.yaml`) — Recorder schreibt stündlich in MariaDB:
+
+| Medium | Entity | Formel |
+|--------|--------|--------|
+| Gas | `sensor.gasmeter_stabil_kosten` | `gasmeter_value_stabil` × `gaspreis_pro_m3` |
+| Wasser | `sensor.watermeter_stabil_kosten` | `watermeter_value_stabil` × `wasserpreis_pro_m3` |
+| Strom Bezug | `sensor.strom_bezug_stabil_kosten` | `mt691_total_in_stabil` × `strompreis_pro_kwh` |
+| Einspeisung | `sensor.strom_einspeisung_stabil_verguetung` | `mt691_total_out_stabil` × `einspeiseverguetung_pro_kwh` |
+
+Energie-Dashboard (`.storage/energy`): `stat_cost` / `stat_compensation` zeigen auf diese Entities.
+
+**Nicht aufzeichnen:** HA-Auto-Kosten der Energy-Integration (`sensor.gasmeter_value_stabil_cost_2`, …) — andere Semantik, erzeugte Fehlalarme.
+
+**Notfall** (Minus-Tageskosten): betroffene Template-Entity prüfen; einmalig `repair-energie-dashboard.sh` — **kein** Dauer-Sync.
 
 ## Preisänderung
 
-Automation `Energie: Kosten nach Preisänderung` → `shell_command.sync_energie_cost_all` (einmalig, kein Cron).
+Template rechnet live mit aktuellem `input_number`-Preis → Recorder-Statistik ab der Änderung mit neuem Preis. Keine Automation, kein Sync.

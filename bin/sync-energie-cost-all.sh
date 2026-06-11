@@ -29,13 +29,16 @@ cost_meta_for_value() {
   id=""
   case "$value_stat" in
     sensor.mt691_total_in_stabil)
-      id="$(meta_id sensor.mt691_total_in_stabil_cost)"
+      id="$(meta_id sensor.strom_bezug_stabil_kosten)"
+      [ -n "$id" ] || id="$(meta_id sensor.mt691_total_in_stabil_cost)"
       ;;
     sensor.mt691_total_out_stabil)
-      id="$(meta_id sensor.mt691_total_out_stabil_compensation)"
+      id="$(meta_id sensor.strom_einspeisung_stabil_vergutung)"
+      [ -n "$id" ] || id="$(meta_id sensor.mt691_total_out_stabil_compensation)"
       ;;
     sensor.gasmeter_value_stabil)
-      id="$(meta_id sensor.gasmeter_value_stabil_cost_2)"
+      id="$(meta_id sensor.gasmeter_stabil_kosten)"
+      [ -n "$id" ] || id="$(meta_id sensor.gasmeter_value_stabil_cost_2)"
       [ -n "$id" ] || id="$(meta_id sensor.gasmeter_value_stabil_cost)"
       ;;
     sensor.tasmota_mt691_total_in)
@@ -45,7 +48,8 @@ cost_meta_for_value() {
       id="$(meta_id sensor.tasmota_mt691_total_out_compensation)"
       ;;
     sensor.watermeter_value_stabil)
-      id="$(meta_id sensor.watermeter_value_stabil_cost)"
+      id="$(meta_id sensor.watermeter_stabil_kosten)"
+      [ -n "$id" ] || id="$(meta_id sensor.watermeter_value_stabil_cost)"
       ;;
     *)
       id="$(meta_id "${value_stat}_cost")"

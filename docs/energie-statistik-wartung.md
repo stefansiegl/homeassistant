@@ -16,24 +16,22 @@ Recorder-**Statistik** kann durch Geräte-Ausreißer verfälscht sein. Symptome:
 In `.storage/energy`: `stat_cost` / `stat_compensation` = **`null`** — HA legt `sensor.*_cost` an; das Frontend liest Kosten aus deren **Recorder-Statistik** (`energy/info` → `cost_sensors`).
 
 Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.  
-Kosten = **Deltas** der `sum`-Spalte der `*_cost`-Statistik (gefüllt per `sync-energie-cost-all.sh` aus Verbrauch × Preis-Helfer).
+Kosten = **Deltas** der `sum`-Spalte der Template-Kosten-Statistik (`sensor.gasmeter_stabil_kosten`, …).
 
 ## Kosten-Sensoren & Recorder
 
-`**_cost` / `*_compensation`** in `recorder.exclude` — keine fehlerhaften Live-States. Kosten-Statistik per **`sync-energie-cost-all.sh`** (liest Preise aus `input_number.*`).
+**Template-Kosten** (`sensor.*_stabil_kosten`, `sensor.strom_einspeisung_stabil_verguetung`) werden vom **Recorder** aufgezeichnet — Formel: Verbrauch stabil × Preis-Helfer.
 
-**Nicht tun:** `purge-energie-cost-statistics.sh` ohne anschließenden Sync — Dashboard zeigt **0 € trotz Verbrauch**.
+HA-Auto-Kosten (`sensor.gasmeter_value_stabil_cost_2`, …) und Roh-Kosten bleiben in `recorder.exclude`.
 
-### „Entität nicht nachverfolgt“ bei `*_cost`
-
-Gewollt — Verbrauchs-Entities (`*_stabil`) werden normal aufgezeichnet.
+**Notfall / Migration:** `repair-energie-dashboard.sh` oder einmalig `sync-energie-cost-all.sh` (füllt stündliche `statistics` für Template-`stat_cost`-Entities aus Verbrauch × Preis — nötig nach Umstellung, solange Recorder noch keine Stunden-Historie hat). **Nicht** `purge-energie-cost-statistics.sh` ohne Nachpflege.
 
 ## Workflow
 
 | Situation | Aktion |
 |-----------|--------|
 | **Einmalige Umstellung** | `migrate-energie-statistik.sh` + Energie-UI + Strg+F5 |
-| **Preis geändert** | Automation synchronisiert Kosten; oder `sync-energie-cost-all.sh` |
+| **Preis geändert** | Neue Stunden mit neuem Preis automatisch; Historie nur bei Bedarf `sync-energie-cost-all.sh` |
 | **Anomalie (Monitoring)** | `notify.haus_warnungen` — manuell `repair-energie-dashboard.sh` |
 | **Diagnose** | `check-energie-statistik.sh` / `check-energie-statistik-anomaly.sh` |
 

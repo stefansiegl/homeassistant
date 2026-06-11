@@ -1707,18 +1707,3 @@
             {{ states('sensor.energie_statistik_anomalie_text')
             | default('Auffällige Verbrauchssprünge — check-energie-statistik.sh', true) }}
   mode: single
-- id: energie_kosten_nach_preisaenderung
-  alias: 'Energie: Kosten nach Preisänderung'
-  description: Einmaliger Kosten-Sync wenn ein Preis-Helfer geändert wird.
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_number.gaspreis_pro_m3
-    - input_number.wasserpreis_pro_m3
-    - input_number.strompreis_pro_kwh
-    - input_number.einspeiseverguetung_pro_kwh
-  actions:
-  - delay:
-      seconds: 5
-  - action: shell_command.sync_energie_cost_all
-  mode: single

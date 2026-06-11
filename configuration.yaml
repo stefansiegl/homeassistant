@@ -19,6 +19,22 @@ homeassistant:
       device_class: gas
       state_class: total_increasing
 
+    sensor.gasmeter_stabil_kosten:
+      device_class: monetary
+      state_class: total
+
+    sensor.watermeter_stabil_kosten:
+      device_class: monetary
+      state_class: total
+
+    sensor.strom_bezug_stabil_kosten:
+      device_class: monetary
+      state_class: total
+
+    sensor.strom_einspeisung_stabil_verguetung:
+      device_class: monetary
+      state_class: total
+
     sensor.watermeter_value_stabil:
       device_class: water
       state_class: total_increasing
@@ -355,6 +371,58 @@ template:
                 {{ now_ts }}
               {% endif %}
             {% endif %}
+
+  # Energie-Kosten: Verbrauch stabil × Preis-Helfer (Recorder, kein Sync-Skript)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: state
+        entity_id:
+          - sensor.gasmeter_value_stabil
+          - sensor.watermeter_value_stabil
+          - sensor.mt691_total_in_stabil
+          - sensor.mt691_total_out_stabil
+          - input_number.gaspreis_pro_m3
+          - input_number.wasserpreis_pro_m3
+          - input_number.strompreis_pro_kwh
+          - input_number.einspeiseverguetung_pro_kwh
+    sensor:
+      - name: Gasmeter Stabil Kosten
+        unique_id: gasmeter_stabil_kosten
+        unit_of_measurement: EUR
+        device_class: monetary
+        state_class: total
+        icon: mdi:cash
+        state: >
+          {{ (states('sensor.gasmeter_value_stabil') | float(0)
+             * states('input_number.gaspreis_pro_m3') | float(0)) | round(2) }}
+      - name: Watermeter Stabil Kosten
+        unique_id: watermeter_stabil_kosten
+        unit_of_measurement: EUR
+        device_class: monetary
+        state_class: total
+        icon: mdi:cash
+        state: >
+          {{ (states('sensor.watermeter_value_stabil') | float(0)
+             * states('input_number.wasserpreis_pro_m3') | float(0)) | round(2) }}
+      - name: Strom Bezug Stabil Kosten
+        unique_id: strom_bezug_stabil_kosten
+        unit_of_measurement: EUR
+        device_class: monetary
+        state_class: total
+        icon: mdi:cash
+        state: >
+          {{ (states('sensor.mt691_total_in_stabil') | float(0)
+             * states('input_number.strompreis_pro_kwh') | float(0)) | round(2) }}
+      - name: Strom Einspeisung Stabil Vergütung
+        unique_id: strom_einspeisung_stabil_verguetung
+        unit_of_measurement: EUR
+        device_class: monetary
+        state_class: total
+        icon: mdi:cash
+        state: >
+          {{ (states('sensor.mt691_total_out_stabil') | float(0)
+             * states('input_number.einspeiseverguetung_pro_kwh') | float(0)) | round(2) }}
 
   # Stromzähler MT691: Tasmota-Ausreißer filtern (siehe docs/energie-statistik-praevention.md)
   - trigger:
@@ -941,6 +1009,7 @@ command_line:
 shell_command:
   repair_energie_dashboard: sh /config/bin/repair-energie-dashboard-auto.sh
   migrate_energie_statistik: sh /config/bin/migrate-energie-statistik-auto.sh
+  # Notfall/Migration: Kosten-Statistik manuell nachpflegen (kein Dauerbetrieb)
   sync_energie_cost_all: sh /config/bin/sync-energie-cost-all-auto.sh
   check_energie_statistik_anomaly: sh /config/bin/check-energie-statistik-anomaly-notify.sh
   repair_mt691_stabil: sh /config/bin/repair-mt691-stabil-statistics-auto.sh

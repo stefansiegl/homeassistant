@@ -214,7 +214,7 @@ Das Skript:
 
 **Prävention (seit 2026-06-08):** `sensor.watermeter_value_stabil` filtert OCR-Ausreißer live; `sensor.watermeter_value` ist aus dem Recorder ausgeschlossen. Energie-Dashboard-Quelle: **stabil**.
 
-**Kosten-Minus (seit 2026-06-08):** HA-Kosten-Sensoren (`*_cost`) schreiben fehlerhafte Live-States → Minus im Dashboard. Lösung: `*_cost` aus Recorder **exclude**; Kosten-**Statistik** per `sync-gasmeter-cost.sh` (nicht purgen ohne Sync). Details: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) → Abschnitt *Kosten-Sensoren & Recorder*.
+**Kosten (seit 2026-06-11):** `sensor.gasmeter_stabil_kosten` (Template: Stabil × `gaspreis_pro_m3`), Recorder. HA-Auto-`gasmeter_value_stabil_cost_2` bleibt excluded. Notfall: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md).
 
 **Historie übernehmen (einmalig nach Umstellung):** `DB_PASS='…' /config/bin/seed-watermeter-stabil-statistics.sh` — kopiert reparierte Statistik von `sensor.watermeter_value` (metadata 1083) nach `sensor.watermeter_value_stabil` (1266) inkl. Kosten-Sync.
 
