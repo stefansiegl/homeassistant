@@ -44,9 +44,10 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
   - Status: **deprecated bei uns**.
   - TODO: Optional deaktivieren/entfernen, wenn du sicher bist, dass keine Daten/Automationen mehr daran hängen.
 
-- **Home Assistant Google Drive Backup** (läuft)
-  - Zweck: Backups nach Google Drive.
-  - Hinweis: Ergänzt die „Snapshot vor großen Änderungen“-Regel.
+- **Home Assistant Google Drive Backup** (`cebe7a76`, läuft — **redundant**)
+  - Zweck: älteres Add-on für Backups nach Google Drive.
+  - **Aktuell:** native **Google-Drive-Integration** + System-Backups (06/2026) — siehe [`backup-strategie.md`](./backup-strategie.md).
+  - Optional stoppen, wenn nur noch die Integration genutzt wird.
 
 - **InfluxDB** (Update verfügbar)
   - Zweck: Zeitreihen-Datenbank für Metriken (z. B. für Grafana).
@@ -65,10 +66,9 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
     - Add-on-UI (Benutzer `zigbee2mqtt`, Passwörter).
     - In Zigbee2MQTT (`zigbee2mqtt/configuration.yaml`) `mqtt:`-Block anpassen (Server, User, Passwort über Secret empfehlenswert).
 
-- **Rclone Backup** (`19a172aa_rclone_backup`, v3.4.1 — **gestartet**, OAuth ausstehend)
-  - Zweck: `/backup` zusätzlich per rclone synchronisieren (Ordner `google:Backup/Home Assistant/rclone`).
-  - Parallel zu **Google Drive Backup** — siehe [`rclone-backup.md`](./rclone-backup.md).
-  - Boot: **manual** (kein `boot_fail` mehr). Jobs erst nach Remote `google` in Web UI.
+- **Rclone Backup** (`19a172aa_rclone_backup` — **nicht genutzt**)
+  - Bewusst nicht eingerichtet (kein Mehrwert neben Google-Drive-Integration).
+  - Siehe [`rclone-backup.md`](./rclone-backup.md) falls später doch gewünscht.
 
 - **Samba share** (läuft)
   - Zweck: Zugriff auf `/config` per SMB.
@@ -154,6 +154,12 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
     - In der Konfiguration `Update Service` aktivieren, sonst bleiben Listen read-only.
   - Sprachassistent:
     - Relevante To-Do-Listen in `Einstellungen → Sprachassistenten → Freilegen` freigeben.
+
+- **Google Drive** (native Integration, aktiv 06/2026)
+  - Zweck: Offsite-Backups (Einstellungen → System → Backups).
+  - OAuth: eigener Google-Cloud-Client; Anmeldedaten unter Einstellungen → Geräte & Dienste → **Anwendungs-Anmeldedaten**.
+  - Verschlüsselungscode: Passwort-Manager + Notfallset (nicht im Repo).
+  - Gesamtstrategie: [`backup-strategie.md`](./backup-strategie.md).
 
 - **AI-on-the-Edge (Gas & Wasser)**
   - Zweck: Auslesen analoger Zähler per ESP32-CAM + MQTT.

@@ -6,22 +6,44 @@ Zweites Cloud-Backup neben **Home Assistant Google Drive Backup** — synchronis
 
 | Punkt | Wert |
 |-------|------|
-| Add-on | `19a172aa_rclone_backup` v3.4.1 |
-| Config | `/config/rclone.conf` |
-| Boot | **manual** (kein Autostart bis Google-Remote steht) |
-| Jobs | **leer** (bis Remote `google` existiert) |
-| `dry_run` | **true** (erst nach Test auf false) |
+| Entscheidung | **Nicht aktiv** — Backup über native Google-Drive-Integration (06/2026), siehe [`backup-strategie.md`](./backup-strategie.md) |
+| Add-on | `19a172aa_rclone_backup` v3.4.1 (kann gestoppt bleiben) |
+| Config | `/config/rclone.conf` (unvollständig / ohne OAuth-Token) |
 
-## Einrichtung Google Drive (einmalig, UI)
+## Einrichtung Google Drive (einmalig, OAuth)
 
-1. **Einstellungen → Add-ons → Rclone Backup → Starten** (läuft)
-2. **Open Web UI** → Login (ohne Passwort)
-3. **Configs → Create new config**
-   - Name: `google`
-   - Storage: **Google Drive**
-   - OAuth im Browser abschließen
-   - `use_trash`: false (empfohlen)
-4. Prüfen: `/config/rclone.conf` enthält `[google]`-Block
+Die **Web UI** (Ingress) zeigt bei manchen Setups einen schwarzen Bildschirm — dann **Remote-Auth** (empfohlen):
+
+### Variante A: Remote-Auth (PC mit Browser)
+
+1. Auf dem **PC** (Windows/macOS/Linux) rclone installieren, falls noch nicht vorhanden.
+2. Im Terminal ausführen:
+
+```bash
+rclone authorize "drive" "eyJ1c2VfdHJhc2giOiJmYWxzZSJ9"
+```
+
+3. Google-Login im Browser abschließen.
+4. Den ausgegebenen JSON-Block (beginnt mit `{"access_token":…}`) auf HA anwenden:
+
+```bash
+sh /config/bin/rclone-finish-google.sh '<JSON-Token hier>'
+```
+
+5. Prüfen: `/config/rclone.conf` enthält `[google]`; `rclone lsd google:` listet Ordner.
+
+### Variante B: Web UI (wenn Ingress lädt)
+
+1. **Einstellungen → Add-ons → Rclone Backup → Open Web UI**
+2. **Configs → Create new config** → Name `google`, Storage **Google Drive**
+3. OAuth im Browser abschließen, `use_trash`: false
+
+### Variante C: SSH-Tunnel (ohne rclone auf dem PC)
+
+1. Auf dem PC: `ssh -L 53682:127.0.0.1:53682 root@<HA-IP> -p <SSH-Port>`
+2. In der SSH-Session: `/config/bin/rclone authorize "drive" "eyJ1c2VfdHJhc2giOiJmYWxzZSJ9"`
+3. Den angezeigten Link `http://127.0.0.1:53682/auth?…` im **lokalen** Browser öffnen (Tunnel leitet auf HA weiter)
+4. Token aus der Ausgabe mit `rclone-finish-google.sh` eintragen (falls nötig)
 
 ## Jobs aktivieren (nach OAuth)
 
