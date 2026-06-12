@@ -1,8 +1,9 @@
 #!/bin/sh
-# Synchronisiert sensor.gasmeter_value_cost-Statistik (metadata 1080) aus val.sum (848).
+# Synchronisiert Kosten-Statistik aus Verbrauchs-statistics.state × Preis.
 # Legt fehlende Kosten-Zeilen an (Energie-Dashboard: vor Sensor-Start 2026 oft 0 € trotz m³).
-# Kosten = val.sum × Preis (kumulativer Verbrauch seit Statistikbeginn, sum startet bei 0).
-# Perioden im Dashboard = Deltas der sum-Spalte (nicht absoluter cost.state).
+# Kosten = val.state × Preis (absoluter Zählerstand wie Template-Kostensensoren).
+# NICHT val.sum — der Recorder setzt bei total_increasing einen eigenen Nullpunkt (sum ≠ state).
+# Perioden im Dashboard = Deltas der sum-Spalte der Kosten-Statistik.
 
 set -eu
 
@@ -32,8 +33,8 @@ SELECT
   UTC_TIMESTAMP(6),
   val.start_ts,
   FROM_UNIXTIME(val.start_ts),
-  ROUND(val.sum * @price, 6),
-  ROUND(val.sum * @price, 6),
+  ROUND(val.state * @price, 6),
+  ROUND(val.state * @price, 6),
   @cost_meta
 FROM statistics val
 LEFT JOIN statistics cost
@@ -47,8 +48,8 @@ SELECT
   UTC_TIMESTAMP(6),
   val.start_ts,
   FROM_UNIXTIME(val.start_ts),
-  ROUND(val.sum * @price, 6),
-  ROUND(val.sum * @price, 6),
+  ROUND(val.state * @price, 6),
+  ROUND(val.state * @price, 6),
   @cost_meta
 FROM statistics_short_term val
 LEFT JOIN statistics_short_term cost
@@ -60,15 +61,15 @@ UPDATE statistics cost
 JOIN statistics val ON cost.start_ts = val.start_ts
   AND cost.metadata_id = @cost_meta
   AND val.metadata_id = @val_meta
-SET cost.state = ROUND(val.sum * @price, 6),
-    cost.sum = ROUND(val.sum * @price, 6);
+SET cost.state = ROUND(val.state * @price, 6),
+    cost.sum = ROUND(val.state * @price, 6);
 
 UPDATE statistics_short_term cost
 JOIN statistics_short_term val ON cost.start_ts = val.start_ts
   AND cost.metadata_id = @cost_meta
   AND val.metadata_id = @val_meta
-SET cost.state = ROUND(val.sum * @price, 6),
-    cost.sum = ROUND(val.sum * @price, 6);
+SET cost.state = ROUND(val.state * @price, 6),
+    cost.sum = ROUND(val.state * @price, 6);
 "
 
 mariadb_cmd -N -e "

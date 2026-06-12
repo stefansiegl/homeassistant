@@ -11,7 +11,7 @@ Siehe auch: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) (No
 | **Stabil-Template** | Ausreißer filtern, bevor sie in den Recorder gelangen |
 | **recorder.exclude (Roh)** | Keine korrupte Roh-Historie; Neustart kompiliert `sum` nicht aus Spikes |
 | **Energie-Dashboard** | Nur `*_stabil`-Entities + `input_number`-Preis-Helfer |
-| **Kosten** | Template `sensor.*_stabil_kosten` (= Verbrauch stabil × `input_number`-Preis), Recorder — **kein** Sync-Skript |
+| **Kosten** | Template `sensor.*_stabil_kosten` (inkrementell: ΔVerbrauch × Preis), Recorder — **kein** Skript im Betrieb |
 | **Monitoring** | `check-energie-statistik-anomaly.sh` 2×/Tag → `notify.haus_warnungen` (kein Auto-Repair) |
 
 **Nicht mehr:** tägliche Automation `repair_energie_dashboard` (04:00 / nach Neustart).
@@ -75,23 +75,41 @@ Danach Strg+F5. Nicht auf bereits migrierte Daten wiederholt laufen lassen.
 - **08:00 / 20:00:** `shell_command.check_energie_statistik_anomaly` → bei Befund `notify.haus_warnungen`
 - **Stabil `filtered: true`:** optional Automation auf `sensor.*_stabil` (OCR/Tasmota abgefangen)
 
-## Kosten-Recorder (seit 2026-06-11)
+## Warum Kosten „kompliziert“ wirken
 
-**Template-Kosten** (YAML, `configuration.yaml`) — Recorder schreibt stündlich in MariaDB:
+Home Assistant trennt drei Dinge, die nicht dasselbe sind:
 
-| Medium | Entity | Formel |
-|--------|--------|--------|
-| Gas | `sensor.gasmeter_stabil_kosten` | `gasmeter_value_stabil` × `gaspreis_pro_m3` |
-| Wasser | `sensor.watermeter_stabil_kosten` | `watermeter_value_stabil` × `wasserpreis_pro_m3` |
-| Strom Bezug | `sensor.strom_bezug_stabil_kosten` | `mt691_total_in_stabil` × `strompreis_pro_kwh` |
-| Einspeisung | `sensor.strom_einspeisung_stabil_verguetung` | `mt691_total_out_stabil` × `einspeiseverguetung_pro_kwh` |
+| Begriff | Bedeutung | Beispiel Strom |
+|---------|-----------|----------------|
+| **Zählerstand** (`state`) | Absoluter Stand am Zähler | ~17.800 kWh |
+| **Statistik-`sum`** | Verbrauch seit Recorder-Nullpunkt | ~9.200 kWh |
+| **Kosten-Statistik** | Tageskosten = stündliche Δ der Kosten-`sum` | ~2 €/Tag |
 
-Energie-Dashboard (`.storage/energy`): `stat_cost` / `stat_compensation` zeigen auf diese Entities.
+Falsche Kombinationen erzeugen die bisherigen Bugs: HA-Auto-`_*_cost` (Neustart-Sprünge), absolutes `Zählerstand × Preis` (Preisänderung + Sync-Kollision), Sync-Skripte (zweite Wahrheit in MariaDB).
 
-**Nicht aufzeichnen:** HA-Auto-Kosten der Energy-Integration (`sensor.gasmeter_value_stabil_cost_2`, …) — andere Semantik, erzeugte Fehlalarme.
+## Kosten (Zielarchitektur, seit 2026-06-12)
 
-**Notfall** (Minus-Tageskosten): betroffene Template-Entity prüfen; einmalig `repair-energie-dashboard.sh` — **kein** Dauer-Sync.
+**Eine Quelle:** Trigger-Templates in `configuration.yaml` — dieselbe Logik wie HA-Energy intern:
+
+```
+Kosten_neu = Kosten_alt + (Zählerstand_neu − Zählerstand_alt) × Preis_jetzt
+```
+
+`this.state` und `last_reading` überleben **Core-Neustart** (Restore State). Recorder schreibt stündlich in MariaDB.
+
+| Medium | Entity | Trigger |
+|--------|--------|---------|
+| Gas | `sensor.gasmeter_stabil_kosten` | `gasmeter_value_stabil` |
+| Wasser | `sensor.watermeter_stabil_kosten` | `watermeter_value_stabil` |
+| Strom Bezug | `sensor.strom_bezug_stabil_kosten` | `mt691_total_in_stabil` |
+| Einspeisung | `sensor.strom_einspeisung_stabil_verguetung` | `mt691_total_out_stabil` |
+
+Energie-Dashboard: `stat_cost` / `stat_compensation` → diese Entities (`.storage/energy`).
+
+**Nicht aufzeichnen:** HA-Auto-`_*_cost` / `_*_compensation` (bleiben `recorder.exclude`).
+
+**Kein Skript im Normalbetrieb.** `sync-energie-cost-all.sh` nur manuell nach Statistik-Korruption.
 
 ## Preisänderung
 
-Template rechnet live mit aktuellem `input_number`-Preis → Recorder-Statistik ab der Änderung mit neuem Preis. Keine Automation, kein Sync.
+Neuer Verbrauch wird mit neuem `input_number`-Preis multipliziert; alte Tage bleiben unverändert (kein Rückrechnen der ganzen Historie).

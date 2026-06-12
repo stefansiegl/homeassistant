@@ -13,18 +13,18 @@ Recorder-**Statistik** kann durch Geräte-Ausreißer verfälscht sein. Symptome:
 | Gas | `sensor.gasmeter_value_stabil` | `input_number.gaspreis_pro_m3` |
 | Wasser | `sensor.watermeter_value_stabil` | `input_number.wasserpreis_pro_m3` |
 
-In `.storage/energy`: `stat_cost` / `stat_compensation` = **`null`** — HA legt `sensor.*_cost` an; das Frontend liest Kosten aus deren **Recorder-Statistik** (`energy/info` → `cost_sensors`).
-
-Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity.  
-Kosten = **Deltas** der `sum`-Spalte der Template-Kosten-Statistik (`sensor.gasmeter_stabil_kosten`, …).
+Verbrauch = **Deltas** der `sum`-Spalte der Verbrauchs-Entity (`*_stabil`).  
+Kosten = **Deltas** der `sum`-Spalte der Template-Kosten-Entities (`sensor.gasmeter_stabil_kosten`, …).
 
 ## Kosten-Sensoren & Recorder
 
-**Template-Kosten** (`sensor.*_stabil_kosten`, `sensor.strom_einspeisung_stabil_verguetung`) werden vom **Recorder** aufgezeichnet — Formel: Verbrauch stabil × Preis-Helfer.
+**Inkrementelle Template-Kosten** — ΔVerbrauch × `input_number`-Preis; siehe [`energie-statistik-praevention.md`](./energie-statistik-praevention.md).
 
-HA-Auto-Kosten (`sensor.gasmeter_value_stabil_cost_2`, …) und Roh-Kosten bleiben in `recorder.exclude`.
+HA-Auto-`_*_cost` bleiben in `recorder.exclude` (doppelte/instabile Quelle).
 
-**Notfall / Migration:** `repair-energie-dashboard.sh` oder einmalig `sync-energie-cost-all.sh` (füllt stündliche `statistics` für Template-`stat_cost`-Entities aus Verbrauch × Preis — nötig nach Umstellung, solange Recorder noch keine Stunden-Historie hat). **Nicht** `purge-energie-cost-statistics.sh` ohne Nachpflege.
+**Normalbetrieb:** kein Sync, keine Automation. Recorder + Templates reichen.
+
+**Notfall** (Minus-Tageskosten, Lücken): `repair-energie-dashboard.sh` oder `sync-energie-cost-all.sh` — danach Strg+F5. **Nicht** `purge-energie-cost-statistics.sh` ohne Nachpflege.
 
 ## Workflow
 
