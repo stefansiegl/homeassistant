@@ -18,6 +18,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
 - [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
+- [**Garten-Bewässerung**](./docs/garten-bewaesserung.md) – Zigbee-Bodenfeuchte, Gardena BT-Ventile, Automationen.
 - [**Backup-Strategie**](./docs/backup-strategie.md) – GitHub, Google Drive, Verschlüsselung, was nicht in Git liegt.
 - [Räume & Bereiche](./docs/raeume-und-bereiche.md) – Aktuelle Areas aus Home Assistant als lesbare Referenz.
 - [Standards & UI](./docs/standards.md) – Glue-Method, Naming Conventions, KI-Regeln.
@@ -34,6 +35,10 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [ ] Humidity-Modus für die Lüftungsanlage (Radon-Logik erweitern).
 - [ ] Kiosk-Mode für das Tablet (Default Dashboard Layout).
 - [ ] Terrasse: Rolladen-Steuerung bei Hitze automatisieren.
+
+## 📋 Backlog (vorbereitet, später)
+
+- [ ] **Gardena Bluetooth → Home Assistant Core:** Upstream-PR einreichen (Patch fertig: [`docs/upstream-pr-gardena-bluetooth.md`](./docs/upstream-pr-gardena-bluetooth.md), [`upstream-patches/home-assistant-core/`](./upstream-patches/home-assistant-core/)). Bis Merge: Custom Integration `gardena_bluetooth (Proxy Fix)` behalten.
 
 ## 🛠 Arbeiten mit der KI
 Bevor Code-Änderungen (`.yaml`) vorgenommen werden, muss immer zuerst das entsprechende Design-Dokument in `/docs` angelegt, geprüft oder aktualisiert werden. Code ohne Dokumentations-Update gilt als technischer Fehler.

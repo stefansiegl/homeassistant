@@ -1707,3 +1707,40 @@
             {{ states('sensor.energie_statistik_anomalie_text')
             | default('Auffällige Verbrauchssprünge — check-energie-statistik.sh', true) }}
   mode: single
+- id: garten_tropf_automatisch
+  alias: 'Garten: Tropf automatisch'
+  description: Bewässert Hecke/Beet bei Trockenheit (docs/garten-bewaesserung.md)
+  triggers:
+  - trigger: time_pattern
+    hours: '/2'
+    minutes: '0'
+  - trigger: state
+    entity_id:
+    - sensor.feuchte_garten_hecke_soil_moisture
+    - sensor.feuchte_garten_beet_soil_moisture
+  conditions:
+  - condition: state
+    entity_id: input_boolean.garten_tropf_automatisch
+    state: 'on'
+  - condition: template
+    value_template: >
+      {% set sh = states('input_number.garten_schwellwert_hecke') | float(35) %}
+      {% set sb = states('input_number.garten_schwellwert_beet') | float(35) %}
+      {% set h = states('sensor.feuchte_garten_hecke_soil_moisture') %}
+      {% set b = states('sensor.feuchte_garten_beet_soil_moisture') %}
+      {{ (h not in ['unknown', 'unavailable', 'none', ''] and h | float(100) < sh)
+         or (b not in ['unknown', 'unavailable', 'none', ''] and b | float(100) < sb) }}
+  - condition: template
+    value_template: >
+      {% set last = states('input_datetime.garten_tropf_letzte_bewaesserung') %}
+      {% if last in ['unknown', 'unavailable', 'none', ''] %}
+        true
+      {% else %}
+        {{ (as_timestamp(now()) - as_timestamp(last)) > (states('input_number.garten_tropf_sperre_stunden') | float(6) * 3600) }}
+      {% endif %}
+  - condition: time
+    after: 06:00:00
+    before: '21:00:00'
+  actions:
+  - action: script.garten_tropf_bewaessern
+  mode: single

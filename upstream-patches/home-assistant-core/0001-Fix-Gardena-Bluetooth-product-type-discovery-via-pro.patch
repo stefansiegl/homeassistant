@@ -1,0 +1,384 @@
+From 5f57e2032ea3bd88909239c757ab616a2859d911 Mon Sep 17 00:00:00 2001
+From: root <root@core-ssh.local.hass.io>
+Date: Sun, 14 Jun 2026 16:27:18 +0200
+Subject: [PATCH] Fix Gardena Bluetooth product type discovery via proxies
+
+Gardena devices often advertise the scan service UUID in the main
+advertisement while manufacturer data arrives in scan responses. ESPHome
+Bluetooth proxies and passive scanners may only forward partial data,
+which led to "Unable to find product type" during pairing and migration.
+
+Match active scans on the scan service, accumulate manufacturer data
+across packets, and fall back to resolving the product type via a short
+BLE connection probe when advertisements stay incomplete.
+
+Co-authored-by: Cursor <cursoragent@cursor.com>
+---
+ .../components/gardena_bluetooth/__init__.py  | 110 +++++++++++++++---
+ .../gardena_bluetooth/config_flow.py          |  32 +++--
+ .../gardena_bluetooth/test_config_flow.py     |  27 ++++-
+ .../components/gardena_bluetooth/test_init.py |  34 ++++++
+ 4 files changed, 182 insertions(+), 21 deletions(-)
+
+diff --git a/homeassistant/components/gardena_bluetooth/__init__.py b/homeassistant/components/gardena_bluetooth/__init__.py
+index 8f638f0f..8892c27b 100644
+--- a/homeassistant/components/gardena_bluetooth/__init__.py
++++ b/homeassistant/components/gardena_bluetooth/__init__.py
+@@ -5,8 +5,9 @@ import logging
+ 
+ from bleak.backends.device import BLEDevice
+ from gardena_bluetooth.client import CachedConnection, Client
+-from gardena_bluetooth.const import ScanService
+-from gardena_bluetooth.parse import ManufacturerData, ProductType
++from gardena_bluetooth.const import ScanService, Valve
++from gardena_bluetooth.exceptions import CharacteristicNotFound, CommunicationFailure
++from gardena_bluetooth.parse import Characteristic, ManufacturerData, ProductType, Service
+ from habluetooth import BluetoothServiceInfoBleak
+ 
+ from homeassistant.components import bluetooth
+@@ -36,6 +37,36 @@ DISCONNECT_DELAY = 5
+ PRODUCTS_SCAN_TIMEOUT = 10
+ PRODUCT_TYPE_TIMEOUT = 30
+ 
++_PROBE_PRODUCT_TYPES = (
++    ProductType.VALVE,
++    ProductType.WATER_COMPUTER,
++    ProductType.PUMP,
++    ProductType.PRESSURE_TANKS,
++    ProductType.AUTOMATS,
++    ProductType.AQUA_CONTOURS,
++)
++
++_PROBE_CHARACTERISTICS = {
++    ProductType.VALVE: Valve.state,
++}
++
++
++def _probe_characteristic(product_type: ProductType) -> Characteristic | None:
++    if characteristic := _PROBE_CHARACTERISTICS.get(product_type):
++        return characteristic
++    services = Service.services_for_product_type(product_type)
++    if not services:
++        return None
++    return next(iter(services[0].characteristics.values()), None)
++
++
++def _update_manufacturer_data(
++    data: ManufacturerData, info: BluetoothServiceInfoBleak
++) -> None:
++    raw = info.manufacturer_data.get(ManufacturerData.company, b"")
++    if raw:
++        data.update(raw)
++
+ 
+ async def async_get_product(hass: HomeAssistant, address: str) -> ManufacturerData:
+     """Get manufacturer data for the given address via active scan."""
+@@ -46,8 +77,7 @@ async def async_get_product(hass: HomeAssistant, address: str) -> ManufacturerDa
+         LOGGER.debug("Processing advertisement from %s: %s", info.address, info)
+         if info.device.address != address:
+             return False
+-
+-        data.update(info.manufacturer_data.get(ManufacturerData.company, b""))
++        _update_manufacturer_data(data, info)
+         return data.product_type is not ProductType.UNKNOWN
+ 
+     with suppress(TimeoutError):
+@@ -55,7 +85,23 @@ async def async_get_product(hass: HomeAssistant, address: str) -> ManufacturerDa
+             hass,
+             _data_callback,
+             bluetooth.BluetoothCallbackMatcher(
+-                address=address, manufacturer_id=ManufacturerData.company
++                address=address,
++                service_uuid=ScanService,
++            ),
++            mode=bluetooth.BluetoothScanningMode.ACTIVE,
++            timeout=PRODUCT_TYPE_TIMEOUT,
++        )
++
++    if data.product_type is not ProductType.UNKNOWN:
++        return data
++
++    with suppress(TimeoutError):
++        await bluetooth.async_process_advertisements(
++            hass,
++            _data_callback,
++            bluetooth.BluetoothCallbackMatcher(
++                address=address,
++                manufacturer_id=ManufacturerData.company,
+             ),
+             mode=bluetooth.BluetoothScanningMode.ACTIVE,
+             timeout=PRODUCT_TYPE_TIMEOUT,
+@@ -72,37 +118,75 @@ async def async_get_products(hass: HomeAssistant) -> dict[str, ManufacturerData]
+         if ScanService not in info.service_uuids:
+             return False
+ 
+-        raw = info.manufacturer_data.get(ManufacturerData.company, b"")
+         if (data := products.get(info.device.address)) is None:
+             data = ManufacturerData()
+             products[info.device.address] = data
+ 
+-        data.update(raw)
++        _update_manufacturer_data(data, info)
+         return False
+ 
+     with suppress(TimeoutError):
+         await bluetooth.async_process_advertisements(
+             hass,
+             _data_callback,
+-            bluetooth.BluetoothCallbackMatcher(
+-                manufacturer_id=ManufacturerData.company
+-            ),
++            bluetooth.BluetoothCallbackMatcher(service_uuid=ScanService),
+             mode=bluetooth.BluetoothScanningMode.ACTIVE,
+             timeout=PRODUCTS_SCAN_TIMEOUT,
+         )
+     return products
+ 
+ 
++async def async_probe_product_type(
++    hass: HomeAssistant, address: str
++) -> ProductType:
++    """Determine product type by connecting when advertisements are incomplete."""
++    connection = get_connection(hass, address)
++
++    for product_type in _PROBE_PRODUCT_TYPES:
++        client = Client(connection, product_type)
++        characteristic = _probe_characteristic(product_type)
++        if characteristic is None:
++            continue
++        try:
++            await client.read_char(characteristic)
++            LOGGER.info(
++                "Probed Gardena product type %s for %s via BLE connection",
++                product_type.name,
++                address,
++            )
++            return product_type
++        except (CharacteristicNotFound, CommunicationFailure, DeviceUnavailable):
++            LOGGER.debug(
++                "Probe for %s on %s did not match",
++                product_type.name,
++                address,
++            )
++        finally:
++            await client.disconnect()
++
++    return ProductType.UNKNOWN
++
++
++async def async_resolve_product_type(
++    hass: HomeAssistant, address: str
++) -> ProductType:
++    """Resolve product type from advertisements, falling back to connection probe."""
++    mfg = await async_get_product(hass, address)
++    if mfg.product_type is not ProductType.UNKNOWN:
++        return mfg.product_type
++    return await async_probe_product_type(hass, address)
++
++
+ async def async_migrate_product_type(
+     hass: HomeAssistant, entry: GardenaBluetoothConfigEntry
+ ) -> GardenaBluetoothConfigEntry:
+     """Discover product type for old entries and upgrade them to minor version 2."""
+-    mfg = await async_get_product(hass, entry.data[CONF_ADDRESS])
+-    if mfg.product_type is ProductType.UNKNOWN:
++    product_type = await async_resolve_product_type(hass, entry.data[CONF_ADDRESS])
++    if product_type is ProductType.UNKNOWN:
+         raise ConfigEntryNotReady("Unable to find product type")
+     hass.config_entries.async_update_entry(
+         entry,
+-        data={**entry.data, CONF_PRODUCT_TYPE: mfg.product_type.name},
++        data={**entry.data, CONF_PRODUCT_TYPE: product_type.name},
+         minor_version=2,
+     )
+     return entry
+diff --git a/homeassistant/components/gardena_bluetooth/config_flow.py b/homeassistant/components/gardena_bluetooth/config_flow.py
+index 9a091cb8..a70aa2b6 100644
+--- a/homeassistant/components/gardena_bluetooth/config_flow.py
++++ b/homeassistant/components/gardena_bluetooth/config_flow.py
+@@ -14,7 +14,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+ from homeassistant.const import CONF_ADDRESS
+ from homeassistant.data_entry_flow import AbortFlow
+ 
+-from . import async_get_product, async_get_products, get_connection
++from . import async_get_product, async_get_products, async_resolve_product_type, get_connection
+ from .const import CONF_PRODUCT_TYPE, DOMAIN
+ 
+ _LOGGER = logging.getLogger(__name__)
+@@ -39,11 +39,20 @@ class GardenaBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
+         """Initialize the config flow."""
+         self.address: str | None
+         self.devices: dict[str, ManufacturerData] = {}
++        self._product_type: ProductType | None = None
++
++    def _get_product_type(self) -> ProductType:
++        """Return the resolved product type for the selected device."""
++        assert self.address
++        if self._product_type is not None:
++            return self._product_type
++        return self.devices[self.address].product_type
+ 
+     async def async_read_data(self):
+         """Try to connect to device and extract information."""
+         assert self.address
+-        client = Client(get_connection(self.hass, self.address))
++        product_type = self._get_product_type()
++        client = Client(get_connection(self.hass, self.address), product_type)
+         try:
+             model = await client.read_char(DeviceInformation.model_number)
+             _LOGGER.debug("Found device with model: %s", model)
+@@ -57,7 +66,7 @@ class GardenaBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
+         assert self.address in self.devices
+         return {
+             CONF_ADDRESS: self.address,
+-            CONF_PRODUCT_TYPE: self.devices[self.address].product_type.name,
++            CONF_PRODUCT_TYPE: product_type.name,
+         }
+ 
+     async def async_step_bluetooth(
+@@ -65,12 +74,20 @@ class GardenaBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
+     ) -> ConfigFlowResult:
+         """Handle the bluetooth discovery step."""
+         _LOGGER.debug("Discovered device: %s", discovery_info)
+-        mfg = await async_get_product(self.hass, discovery_info.address)
+-        self.devices[discovery_info.address] = mfg
+-        if mfg.product_type not in _SUPPORTED_PRODUCT_TYPES:
++        mfg = ManufacturerData()
++        if raw := discovery_info.manufacturer_data.get(ManufacturerData.company, b""):
++            mfg.update(raw)
++        product_type = mfg.product_type
++        if product_type is ProductType.UNKNOWN:
++            product_type = await async_resolve_product_type(
++                self.hass, discovery_info.address
++            )
++        if product_type not in _SUPPORTED_PRODUCT_TYPES:
+             return self.async_abort(reason="no_devices_found")
+ 
+         self.address = discovery_info.address
++        self.devices[discovery_info.address] = mfg
++        self._product_type = product_type
+         await self.async_set_unique_id(self.address)
+         self._abort_if_unique_id_configured()
+         return await self.async_step_confirm()
+@@ -80,7 +97,7 @@ class GardenaBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
+     ) -> ConfigFlowResult:
+         """Confirm discovery."""
+         assert self.address
+-        title = PRODUCT_NAMES[self.devices[self.address].product_type]
++        title = PRODUCT_NAMES[self._get_product_type()]
+ 
+         if user_input is not None:
+             data = await self.async_read_data()
+@@ -102,6 +119,7 @@ class GardenaBluetoothConfigFlow(ConfigFlow, domain=DOMAIN):
+         """Handle the initial step."""
+         if user_input is not None:
+             self.address = user_input[CONF_ADDRESS]
++            self._product_type = None
+             await self.async_set_unique_id(self.address, raise_on_progress=False)
+             self._abort_if_unique_id_configured()
+             return await self.async_step_confirm()
+diff --git a/tests/components/gardena_bluetooth/test_config_flow.py b/tests/components/gardena_bluetooth/test_config_flow.py
+index c838bdac..43c4898f 100644
+--- a/tests/components/gardena_bluetooth/test_config_flow.py
++++ b/tests/components/gardena_bluetooth/test_config_flow.py
+@@ -2,12 +2,13 @@
+ 
+ from unittest.mock import Mock
+ 
++from gardena_bluetooth.const import Valve
+ from gardena_bluetooth.exceptions import CharacteristicNotFound
+ import pytest
+ from syrupy.assertion import SnapshotAssertion
+ 
+ from homeassistant import config_entries
+-from homeassistant.components.gardena_bluetooth.const import DOMAIN
++from homeassistant.components.gardena_bluetooth.const import CONF_PRODUCT_TYPE, DOMAIN
+ from homeassistant.const import CONF_ADDRESS
+ from homeassistant.core import HomeAssistant
+ from homeassistant.data_entry_flow import FlowResultType
+@@ -183,6 +184,30 @@ async def test_bluetooth(
+     assert result == snapshot
+ 
+ 
++async def test_bluetooth_probe_when_manufacturer_data_missing(
++    hass: HomeAssistant,
++    mock_read_char_raw: dict[str, bytes],
++) -> None:
++    """Test bluetooth discovery when only the scan service is advertised."""
++
++    mock_read_char_raw[Valve.state.uuid] = Valve.state.encode(False)
++
++    inject_bluetooth_service_info(hass, MISSING_MANUFACTURER_DATA_SERVICE_INFO)
++    await hass.async_block_till_done(wait_background_tasks=True)
++
++    result = next(iter(hass.config_entries.flow.async_progress_by_handler(DOMAIN)))
++
++    assert result["step_id"] == "confirm"
++
++    result = await hass.config_entries.flow.async_configure(
++        result["flow_id"],
++        user_input={},
++    )
++
++    assert result["type"] == FlowResultType.CREATE_ENTRY
++    assert result["data"][CONF_PRODUCT_TYPE] == "VALVE"
++
++
+ async def test_bluetooth_invalid(
+     hass: HomeAssistant,
+     snapshot: SnapshotAssertion,
+diff --git a/tests/components/gardena_bluetooth/test_init.py b/tests/components/gardena_bluetooth/test_init.py
+index 265e7b53..f2c09700 100644
+--- a/tests/components/gardena_bluetooth/test_init.py
++++ b/tests/components/gardena_bluetooth/test_init.py
+@@ -10,6 +10,7 @@ from gardena_bluetooth.const import (
+     Battery,
+     DeviceConfiguration,
+     DeviceInformation,
++    Valve,
+ )
+ from habluetooth import BluetoothServiceInfo
+ import pytest
+@@ -155,6 +156,39 @@ async def test_migrate_config_entry_product_type_delayed(
+     assert legacy_entry.data[CONF_PRODUCT_TYPE] == "WATER_COMPUTER"
+ 
+ 
++async def test_migrate_config_entry_product_type_probe(
++    hass: HomeAssistant,
++    mock_read_char_raw: dict[str, bytes],
++    get_product_event: asyncio.Event,
++) -> None:
++    """Test migration resolves product type via BLE connection probe."""
++
++    mock_read_char_raw[Valve.state.uuid] = Valve.state.encode(False)
++
++    legacy_entry = MockConfigEntry(
++        domain=DOMAIN,
++        data={CONF_ADDRESS: MISSING_MANUFACTURER_DATA_SERVICE_INFO.address},
++        unique_id=MISSING_MANUFACTURER_DATA_SERVICE_INFO.address,
++    )
++    legacy_entry.add_to_hass(hass)
++    await hass.async_block_till_done()
++
++    get_product_event.clear()
++
++    async with asyncio.TaskGroup() as tg:
++        setup_task = tg.create_task(
++            hass.config_entries.async_setup(legacy_entry.entry_id)
++        )
++
++        await get_product_event.wait()
++        inject_bluetooth_service_info(hass, MISSING_MANUFACTURER_DATA_SERVICE_INFO)
++
++        assert await setup_task is True
++
++    assert legacy_entry.minor_version == 2
++    assert legacy_entry.data[CONF_PRODUCT_TYPE] == "VALVE"
++
++
+ @pytest.mark.usefixtures("constant_advertisements")
+ async def test_migrate_config_entry_product_type_fails(
+     hass: HomeAssistant,
+-- 
+2.52.0
+

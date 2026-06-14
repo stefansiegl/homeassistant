@@ -18,6 +18,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 6. **Abfallentsorgung** — Übersicht + 4 Müll-Sensoren
 7. **Zigbee2MQTT** — `switch.zigbee2mqtt_bridge_permit_join`
 8. **Haus-Wartung** — je eine kompakte Mushroom-Karte (Tap → Bestätigung → `script.wartung_*`)
+9. **Garten** — Bodenfeuchte Hecke/Beet, 3 Ventile (Tap → Bewässerungs-Skripte), Tropf-Auto-Schalter — siehe [`garten-bewaesserung.md`](./garten-bewaesserung.md)
 
 ## Abhängigkeiten
 

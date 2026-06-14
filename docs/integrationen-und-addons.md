@@ -166,6 +166,16 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
   - Spec: [`ai-on-the-edge.md`](./ai-on-the-edge.md) — Entities, Live-Status, Energie-Dashboard, Fehler-Handling.
   - Einrichtung: Geräte-Web-UI + Mosquitto; HA MQTT-Integration (Auto-Discovery). YAML: `customize`, Template `sensor.watermeter_in_l`, Recorder-Filter in `configuration.yaml`.
 
+- **Garten-Bewässerung (Zigbee + Gardena Bluetooth)**
+  - Spec: [`garten-bewaesserung.md`](./garten-bewaesserung.md)
+  - **Bodenfeuchte Garten:** 2× **Tuya SGS01Z** (IP67) — `Feuchte-Garten-Hecke` / `Feuchte-Garten-Beet`
+  - **Topfpflanzen innen:** 3× **ThirdReality** — friendly_name nach Raum beim Pairing
+  - **Ventile:** 3× Gardena **1285-20** über **`gardena_bluetooth`** — aktuell Custom **`Gardena Bluetooth (Proxy Fix)`** in `custom_components/` (Workaround für ESPHome-Proxy; Erfolgsrezept in Spec)
+  - **BLE Garten:** Atom am **EG-Fenster** — [`atom-bluetooth-proxy-eg-garten.yaml`](../esphome/atom-bluetooth-proxy-eg-garten.yaml), **active scanning** (OTA nötig)
+  - **BLE sonst:** Atom 1.OG / 2.OG passiv
+  - **Legacy:** `gardena_smart_system` (Cloud, Smart Gateway) nach Migration in UI entfernen — siehe Spec Abschnitt „Aufräumen“
+  - **YAML:** Helfer/Automationen/Skripte in `helpers.yaml`, `automations.yaml`, `scripts.yaml`; Dashboard-Block in `dashboards/uebersicht.yaml`
+
 *(Weitere Integrationen wie Xiaomi Miot Auto für Staubsauger etc. können wir ergänzen, sobald wir sie aktiv anfassen.)*
 
 ---

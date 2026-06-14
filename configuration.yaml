@@ -77,6 +77,10 @@ homeassistant:
     sensor.waste_bio_display:
       entity_picture: /local/images/waste/waste-gruen.png
 
+    # Garten-Bewässerung (docs/garten-bewaesserung.md)
+    valve.ventil_garten_rasen_klein:
+      entity_picture: /local/images/garden/regner-sd80.webp
+
     # Sprachsteuerung (Google/Assist) — siehe docs/sprachsteuerung-licht-eg.md
     light.alle_lichter_erdgeschoss:
       friendly_name: Alle Lichter Erdgeschoss
@@ -1192,3 +1196,10 @@ powercalc:
 
 logger:
   default: info
+  logs:
+    # Temporär für Gardena-BT-Pairing (docs/garten-bewaesserung.md) — danach wieder entfernen
+    homeassistant.components.bluetooth: debug
+    homeassistant.components.gardena_bluetooth: debug
+    custom_components.gardena_bluetooth: debug
+    gardena_bluetooth.client: debug
+    habluetooth: debug

@@ -576,3 +576,53 @@ szene_adrian_gemutlich:
     - action: scene.turn_on
       target:
         entity_id: scene.adrian_gemutlich
+
+garten_tropf_bewaessern:
+  alias: Garten Tropf bewässern
+  description: Tropf-Ventil Zone C für konfigurierte Dauer (docs/garten-bewaesserung.md)
+  icon: mdi:water-pump
+  mode: restart
+  sequence:
+    - action: valve.open
+      target:
+        entity_id: valve.ventil_garten_tropf_hecke_beet
+    - delay:
+        minutes: "{{ states('input_number.garten_tropf_dauer_minuten') | int(15) }}"
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_tropf_hecke_beet
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garten_tropf_letzte_bewaesserung
+      data:
+        timestamp: "{{ as_timestamp(now()) | int }}"
+
+garten_rasen_gross_bewaessern:
+  alias: Garten Rasen gross bewässern
+  description: Zone A — großer Regner (docs/garten-bewaesserung.md)
+  icon: mdi:sprinkler
+  mode: restart
+  sequence:
+    - action: valve.open
+      target:
+        entity_id: valve.ventil_garten_rasen_gross
+    - delay:
+        minutes: "{{ states('input_number.garten_rasen_dauer_minuten') | int(20) }}"
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_rasen_gross
+
+garten_rasen_klein_bewaessern:
+  alias: Garten Rasen klein bewässern
+  description: Zone B — zwei kleine Regner (docs/garten-bewaesserung.md)
+  icon: mdi:sprinkler-variant
+  mode: restart
+  sequence:
+    - action: valve.open
+      target:
+        entity_id: valve.ventil_garten_rasen_klein
+    - delay:
+        minutes: "{{ states('input_number.garten_rasen_dauer_minuten') | int(20) }}"
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_rasen_klein

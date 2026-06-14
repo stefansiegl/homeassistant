@@ -19,4 +19,26 @@ Ich teste nun "SLC SmartOne ZigBee 4in1 Wandschalter Wanddimmer" von Lampenwelt
 
 Die Schalter sind leider noch nicht gut genug, manchmal muss man mehrfach drücken, gefällt mir nicht.
 
-**Hue Smart Button (David/Adrian):** Gehäuse kann die Taste klemmen — Adrian-klein nur zuverlässig mit leicht offenem Case. Details: [`lights.md`](lights.md) → Abschnitt „Hue Smart Button — Montage & Diagnose“. 
+**Hue Smart Button (David/Adrian):** Gehäuse kann die Taste klemmen — Adrian-klein nur zuverlässig mit leicht offenem Case. Details: [`lights.md`](lights.md) → Abschnitt „Hue Smart Button — Montage & Diagnose“.
+
+## Garten-Bewässerung
+
+| Komponente | Modell / Name | Integration | Status |
+|------------|---------------|-------------|--------|
+| Bodenfeuchte Hecke | Tuya SGS01Z / TS0601 (Zigbee, IP67) | Zigbee2MQTT | 📦 gekauft, Pairing offen |
+| Bodenfeuchte Beet | Tuya SGS01Z / TS0601 (Zigbee, IP67) | Zigbee2MQTT | 📦 gekauft, Pairing offen |
+| Ventil Rasen gross | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone A, `valve.ventil_garten_rasen_gross` |
+| Ventil Rasen klein | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone B, `valve.ventil_garten_rasen_klein` |
+| Ventil Tropf Hecke/Beet | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone C, `valve.ventil_garten_tropf_hecke_beet` *(Leck offen)* |
+| BT-Proxy EG Garten | M5 Atom Lite | ESPHome `atom-bluetooth-proxy-eg-garten.yaml` | ✅ **active scanning**, am EG-Fenster |
+| BT-Proxy 1.OG / 2.OG | M5 Atom Lite | ESPHome | ✅ passiv |
+
+## Bodenfeuchte innen (Topfpflanzen)
+
+| Komponente | Modell | Integration | Status |
+|------------|--------|-------------|--------|
+| Topfpflanze (3×, Raum beim Pairing benennen) | ThirdReality 3RSM0147Z / Gen2 | Zigbee2MQTT | 📦 gekauft, Pairing offen |
+
+Nur Monitoring — **keine** Garten-Automation. Spec: [`garten-bewaesserung.md`](./garten-bewaesserung.md) (Abschnitt Pairing innen).
+
+**Legacy (ohne Smart Gateway nicht nutzbar):** GARDENA smart Sensor — ersetzen durch Zigbee; `gardena_smart_system` in HA entfernen.

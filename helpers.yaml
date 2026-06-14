@@ -13,6 +13,10 @@ input_boolean:
     name: Radon Lüfter Logik aktivieren
     icon: mdi:shield-check
     initial: false
+  garten_tropf_automatisch:
+    name: Garten Tropf automatisch
+    icon: mdi:water-pump
+    initial: false
 input_number:
   ziel_luftfeuchtigkeit:
     name: Ziel Luftfeuchtigkeit
@@ -112,6 +116,51 @@ input_number:
     icon: mdi:timer-alert-outline
     unit_of_measurement: min
     initial: 30
+  garten_schwellwert_hecke:
+    name: Garten Schwellwert Hecke
+    min: 10
+    max: 80
+    step: 1
+    mode: slider
+    icon: mdi:water-percent
+    unit_of_measurement: "%"
+    initial: 35
+  garten_schwellwert_beet:
+    name: Garten Schwellwert Beet
+    min: 10
+    max: 80
+    step: 1
+    mode: slider
+    icon: mdi:water-percent
+    unit_of_measurement: "%"
+    initial: 35
+  garten_tropf_dauer_minuten:
+    name: Garten Tropf Dauer
+    min: 5
+    max: 120
+    step: 5
+    mode: box
+    icon: mdi:timer-outline
+    unit_of_measurement: min
+    initial: 15
+  garten_tropf_sperre_stunden:
+    name: Garten Tropf Sperre
+    min: 1
+    max: 72
+    step: 1
+    mode: box
+    icon: mdi:timer-sand
+    unit_of_measurement: h
+    initial: 6
+  garten_rasen_dauer_minuten:
+    name: Garten Rasen Dauer
+    min: 5
+    max: 60
+    step: 5
+    mode: box
+    icon: mdi:sprinkler
+    unit_of_measurement: min
+    initial: 20
 
 input_select:
   waschmaschine_status_helper:
@@ -202,6 +251,11 @@ input_datetime:
     has_date: true
     has_time: true
     icon: mdi:water-pump
+  garten_tropf_letzte_bewaesserung:
+    name: Garten Tropf letzte Bewässerung
+    has_date: true
+    has_time: true
+    icon: mdi:water
 
 # Kombinationssensor: max CO2 aller Aranet-Sensoren im Haus
 template:
