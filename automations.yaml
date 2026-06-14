@@ -941,213 +941,70 @@
   mode: single
 - id: '1770908410686'
   alias: 'David: Kombinierte Steuerung'
-  description: Klick Toggle, Halten = dimmen (kein Doppelklick mehr)
+  description: Nur An/Aus — Debounce am Tür-Schalter, Smart Button nur press
   triggers:
   - trigger: device
     domain: mqtt
     device_id: eb9176b54c72cdc77763504806f72acd
     type: action
-    subtype: left_press
-    id: klick_gross
-  - trigger: device
-    domain: mqtt
-    device_id: eb9176b54c72cdc77763504806f72acd
-    type: action
-    subtype: left_hold
-    id: halten_gross
-  - trigger: device
-    domain: mqtt
-    device_id: eb9176b54c72cdc77763504806f72acd
-    type: action
-    subtype: left_hold_release
-    id: loslassen_gross
+    subtype: left_press_release
+    id: tuere
   - trigger: device
     domain: mqtt
     device_id: 2e0440a811764f5a442354a22f8191f5
     type: action
     subtype: press
-    id: klick_klein
-  - trigger: device
-    domain: mqtt
-    device_id: 2e0440a811764f5a442354a22f8191f5
-    type: action
-    subtype: hold
-    id: halten_klein
-  - trigger: device
-    domain: mqtt
-    device_id: 2e0440a811764f5a442354a22f8191f5
-    type: action
-    subtype: release
-    id: loslassen_klein
+    id: klein
   actions:
+  - delay:
+      milliseconds: 400
   - choose:
     - conditions:
-      - condition: trigger
-        id: klick_gross
+      - condition: state
+        entity_id: light.licht_1og_david
+        state: 'on'
       sequence:
-      - action: light.toggle
+      - action: light.turn_off
         target:
           entity_id: light.licht_1og_david
-    - conditions:
-      - condition: trigger
-        id: klick_klein
-      sequence:
-      - action: light.toggle
-        target:
-          entity_id: light.licht_1og_david
-    - conditions:
-      - condition: trigger
-        id: halten_gross
-      sequence:
-      - repeat:
-          while:
-          - condition: template
-            value_template: '{{ true }}'
-          sequence:
-          - action: light.turn_on
-            target:
-              entity_id: light.licht_1og_david
-            data:
-              brightness_step_pct: 5
-              transition: 0.4
-          - delay:
-              milliseconds: 450
-    - conditions:
-      - condition: trigger
-        id: halten_klein
-      sequence:
-      - repeat:
-          while:
-          - condition: template
-            value_template: '{{ true }}'
-          sequence:
-          - action: light.turn_on
-            target:
-              entity_id: light.licht_1og_david
-            data:
-              brightness_step_pct: 5
-              transition: 0.4
-          - delay:
-              milliseconds: 450
-    - conditions:
-      - condition: trigger
-        id: loslassen_gross
-      sequence:
-      - stop: Dimmen beendet
-    - conditions:
-      - condition: trigger
-        id: loslassen_klein
-      sequence:
-      - stop: Dimmen beendet
-  mode: restart
+    default:
+    - action: light.turn_on
+      target:
+        entity_id: light.licht_1og_david
+  mode: single
 - id: '1770908467492'
   alias: 'Adrian: Kombinierte Steuerung'
-  description: Tür-Doppelklick Szenen; Smart Button klein wie David (Toggle + Halten dimmen)
+  description: Nur An/Aus — Debounce am Tür-Schalter, Smart Button nur press
   triggers:
   - trigger: device
     domain: mqtt
     device_id: 57a44c1d926b3e4c1e7092c179feb5e3
     type: action
-    subtype: left_press
-    id: press_eval_tuere
+    subtype: left_press_release
+    id: tuere
   - trigger: device
     domain: mqtt
     device_id: e04e1bc520552046b664e45a54a136f1
     type: action
-    subtype: 'on'
-    id: klick_klein
-  - trigger: device
-    domain: mqtt
-    device_id: e04e1bc520552046b664e45a54a136f1
-    type: action
-    subtype: 'off'
-    id: klick_klein
-  - trigger: device
-    domain: mqtt
-    device_id: e04e1bc520552046b664e45a54a136f1
-    type: action
-    subtype: hold
-    id: halten_klein
-  - trigger: device
-    domain: mqtt
-    device_id: e04e1bc520552046b664e45a54a136f1
-    type: action
-    subtype: release
-    id: loslassen_klein
+    subtype: press
+    id: klein
   actions:
+  - delay:
+      milliseconds: 400
   - choose:
     - conditions:
-      - condition: trigger
-        id: press_eval_tuere
+      - condition: state
+        entity_id: light.licht_1og_adrian
+        state: 'on'
       sequence:
-      - wait_for_trigger:
-        - trigger: device
-          domain: mqtt
-          device_id: 57a44c1d926b3e4c1e7092c179feb5e3
-          type: action
-          subtype: left_press
-        timeout:
-          milliseconds: 500
-      - if:
-        - condition: template
-          value_template: '{{ wait.trigger is not none }}'
-        then:
-        - if:
-          - condition: numeric_state
-            entity_id: light.licht_1og_adrian
-            attribute: brightness
-            above: 200
-          then:
-          - action: scene.turn_on
-            target:
-              entity_id: scene.adrian_gemutlich
-          else:
-          - action: scene.turn_on
-            target:
-              entity_id: scene.adrian_hell
-        else:
-        - action: light.toggle
-          target:
-            entity_id: light.licht_1og_adrian
-    - conditions:
-      - condition: trigger
-        id: klick_klein
-      sequence:
-      - action: light.toggle
+      - action: light.turn_off
         target:
           entity_id: light.licht_1og_adrian
-    - conditions:
-      - condition: trigger
-        id: halten_klein
-      sequence:
-      - repeat:
-          count: 120
-          sequence:
-          - action: light.turn_on
-            target:
-              entity_id: light.licht_1og_adrian
-            data:
-              brightness_step_pct: 5
-              transition: 0.4
-          - wait_for_trigger:
-            - trigger: device
-              domain: mqtt
-              device_id: e04e1bc520552046b664e45a54a136f1
-              type: action
-              subtype: release
-            timeout:
-              milliseconds: 450
-          - if:
-            - condition: template
-              value_template: '{{ wait.trigger is not none }}'
-            then:
-            - stop: Dimmen beendet
-    - conditions:
-      - condition: trigger
-        id: loslassen_klein
-      sequence:
-      - stop: Dimmen beendet
-  mode: restart
+    default:
+    - action: light.turn_on
+      target:
+        entity_id: light.licht_1og_adrian
+  mode: single
 - id: '1771166205977'
   alias: Lichtschalter-EG-Esszimmer-Tuere-03
   description: ''
@@ -1743,4 +1600,42 @@
     before: '21:00:00'
   actions:
   - action: script.garten_tropf_bewaessern
+  mode: single
+- id: garten_sicherheit_max_laufzeit
+  alias: 'Garten: Sicherheit Max-Laufzeit'
+  description: Schließt Außen-Ventile nach konfigurierbarer Max-Laufzeit (docs/garten-bewaesserung.md)
+  triggers:
+  - trigger: time_pattern
+    minutes: '/5'
+  - trigger: state
+    entity_id:
+    - valve.ventil_garten_rasen_gross
+    - valve.ventil_garten_rasen_klein
+    - valve.ventil_garten_tropf_hecke_beet
+    to: open
+  conditions: []
+  actions:
+  - repeat:
+      for_each:
+      - valve.ventil_garten_rasen_gross
+      - valve.ventil_garten_rasen_klein
+      - valve.ventil_garten_tropf_hecke_beet
+      sequence:
+      - if:
+        - condition: template
+          value_template: >
+            {% set v = repeat.item %}
+            {% set max_s = states('input_number.garten_max_laufzeit_stunden') | float(1) * 3600 %}
+            {{ is_state(v, 'open')
+               and (as_timestamp(now()) - as_timestamp(states[v].last_changed)) > max_s }}
+        then:
+        - action: valve.close
+          target:
+            entity_id: '{{ repeat.item }}'
+        - action: persistent_notification.create
+          data:
+            title: Garten Sicherheit
+            message: >
+              {{ state_attr(repeat.item, 'friendly_name') or repeat.item }}
+              wurde nach {{ states('input_number.garten_max_laufzeit_stunden') }} h automatisch geschlossen.
   mode: single

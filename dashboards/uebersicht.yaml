@@ -387,8 +387,8 @@ views:
       layout: horizontal
       icon_color: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'') | int(60) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))) / 86400 %} {% if tage >= limit %} red {% else %} blue {% endif %}'
       tap_action:
-        action: call-service
-        service: script.wartung_befeuchter_reinigung_vermerken
+        action: perform-action
+        perform_action: script.wartung_befeuchter_reinigung_vermerken
         confirmation:
           text: Hast du die Befeuchter heute wirklich gereinigt?
     - type: custom:mushroom-template-card
@@ -398,8 +398,8 @@ views:
       layout: horizontal
       icon_color: '{% set limit = states(''input_number.intervall_luefterfilter_reinigung'') | int(180) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter''))) / 86400 %} {% if tage >= limit %} red {% else %} green {% endif %}'
       tap_action:
-        action: call-service
-        service: script.wartung_luefterfilter_vermerken
+        action: perform-action
+        perform_action: script.wartung_luefterfilter_vermerken
         confirmation:
           text: Sind die Filter heute wirklich getauscht/gereinigt worden?
   - type: vertical-stack
@@ -453,10 +453,10 @@ views:
         icon: mdi:sprinkler
         layout: vertical
         tap_action:
-          action: call-service
-          service: script.garten_rasen_gross_bewaessern
+          action: perform-action
+          perform_action: script.garten_rasen_gross_bewaessern
           confirmation:
-            text: Viereckregner OS 140 für {{ states('input_number.garten_rasen_dauer_minuten') | int(20) }} Min bewässern?
+            text: Viereckregner OS 140 bewässern?
       - type: custom:mushroom-entity-card
         entity: valve.ventil_garten_rasen_klein
         name: 2× Versenkregner SD80
@@ -464,10 +464,10 @@ views:
         picture: /local/images/garden/regner-sd80.webp
         layout: vertical
         tap_action:
-          action: call-service
-          service: script.garten_rasen_klein_bewaessern
+          action: perform-action
+          perform_action: script.garten_rasen_klein_bewaessern
           confirmation:
-            text: Versenkregner SD80 für {{ states('input_number.garten_rasen_dauer_minuten') | int(20) }} Min bewässern?
+            text: Versenkregner SD80 bewässern?
       - type: custom:mushroom-entity-card
         entity: valve.ventil_garten_tropf_hecke_beet
         name: Tropf Hecke/Beet
@@ -475,10 +475,10 @@ views:
         layout: vertical
         secondary_info: last-changed
         tap_action:
-          action: call-service
-          service: script.garten_tropf_bewaessern
+          action: perform-action
+          perform_action: script.garten_tropf_bewaessern
           confirmation:
-            text: Tropf für {{ states('input_number.garten_tropf_dauer_minuten') | int(15) }} Min bewässern? (Leitung derzeit undicht)
+            text: Tropf Hecke/Beet bewässern? (Leitung derzeit undicht)
     - type: custom:mushroom-entity-card
       entity: input_boolean.garten_tropf_automatisch
       name: Tropf automatisch

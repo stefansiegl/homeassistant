@@ -79,7 +79,12 @@ homeassistant:
 
     # Garten-Bewässerung (docs/garten-bewaesserung.md)
     valve.ventil_garten_rasen_klein:
+      friendly_name: Versenkregner
       entity_picture: /local/images/garden/regner-sd80.webp
+    valve.ventil_garten_rasen_gross:
+      friendly_name: großer Rasensprenger
+    valve.ventil_garten_tropf_hecke_beet:
+      friendly_name: Tropfschlauch
 
     # Sprachsteuerung (Google/Assist) — siehe docs/sprachsteuerung-licht-eg.md
     light.alle_lichter_erdgeschoss:
@@ -1140,6 +1145,71 @@ lovelace:
 bluetooth:
 mobile_app:
 cloud:
+  google_actions:
+    entity_config:
+      script.garten_rasen_gross_bewaessern:
+        name: Rasensprenger an
+        room: Garten
+        aliases:
+          - großer Rasensprenger an
+          - Rasensprenger starten
+          - großer Rasensprenger starten
+      script.garten_rasen_klein_bewaessern:
+        name: Versenkregner an
+        room: Garten
+        aliases:
+          - Kreisregner an
+          - Versenkregner starten
+          - Kreisregner starten
+      script.garten_tropf_bewaessern:
+        name: Tropfschlauch an
+        room: Garten
+        aliases:
+          - Hecke an
+          - Beet an
+          - Tropfregner an
+          - Hecke bewässern
+          - Beet bewässern
+          - Tropfregner starten
+      script.garten_rasen_gross_aus:
+        name: Rasensprenger aus
+        room: Garten
+        aliases:
+          - großer Rasensprenger aus
+          - Rasensprenger stoppen
+          - großer Rasensprenger stoppen
+      script.garten_rasen_klein_aus:
+        name: Versenkregner aus
+        room: Garten
+        aliases:
+          - Kreisregner aus
+          - Versenkregner stoppen
+          - Kreisregner stoppen
+      script.garten_tropf_aus:
+        name: Tropfschlauch aus
+        room: Garten
+        aliases:
+          - Hecke aus
+          - Beet aus
+          - Tropfregner aus
+          - Hecke stoppen
+          - Beet stoppen
+      script.garten_bewaesserung_aus:
+        name: Garten Bewässerung aus
+        room: Garten
+        aliases:
+          - Bewässerung aus
+          - Garten Wasser aus
+          - Garten alles aus
+          - Garten stoppen
+      script.garten_bewaesserung_status:
+        name: Läuft Bewässerung
+        room: Garten
+        aliases:
+          - Garten Bewässerung Status
+          - Welche Bewässerung läuft
+          - Was läuft im Garten
+          - Läuft gerade Bewässerung
 
 tts:
   - platform: google_translate

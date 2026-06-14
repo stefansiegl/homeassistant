@@ -290,10 +290,18 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 
 | Datei | Inhalt |
 |-------|--------|
-| `helpers.yaml` | Schwellwerte, Dauer, Sperrzeit, `input_boolean.garten_tropf_automatisch` |
-| `scripts.yaml` | `garten_tropf_bewaessern`, `garten_rasen_gross_bewaessern`, `garten_rasen_klein_bewaessern` |
-| `automations.yaml` | `garten_tropf_automatisch` |
+| `helpers.yaml` | Schwellwerte, Dauer, Sperrzeit, **Max-Laufzeit Sicherheit** (`input_number.garten_max_laufzeit_stunden`, Standard 1 h), `input_boolean.garten_tropf_automatisch` |
+| `scripts.yaml` | Start: `garten_*_bewaessern` · Stop: `garten_*_aus`, `garten_bewaesserung_aus` · Status: `garten_bewaesserung_status` (TTS) |
+| `automations.yaml` | `garten_tropf_automatisch`, `garten_sicherheit_max_laufzeit` |
 | `dashboards/uebersicht.yaml` | Karten Garten (Feuchte, Ventile, Auto-Schalter) |
+| `docs/sprachsteuerung-garten.md` | Google Assistant / Assist — An/Aus + Aliase |
+
+
+### Sicherheit Max-Laufzeit (V1)
+
+- Helper: `input_number.garten_max_laufzeit_stunden` (Standard **1 h**, konfigurierbar)
+- Automation `garten_sicherheit_max_laufzeit`: prüft alle **5 Min** und bei Ventil-Öffnung, ob ein Außen-Ventil länger als die Max-Laufzeit **offen** ist → `valve.close` + Hinweis-Benachrichtigung
+- Gilt für alle drei Ventile: Rasen groß/klein, Tropf Hecke/Beet
 
 ### Logik Tropf-Automation (V1)
 

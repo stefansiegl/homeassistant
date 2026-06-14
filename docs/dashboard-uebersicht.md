@@ -46,3 +46,8 @@ Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchte
 - [`konfigurations-strategie.md`](./konfigurations-strategie.md)
 - [`dashboard-tablett.md`](./dashboard-tablett.md) — EG-Tablet (anderer Use-Case)
 - [`climate.md`](./climate.md) — Lüftung/Radon (Platzhalter)
+
+
+## Hinweise
+
+- Garten-Ventil-Karten und Haus-Wartung nutzen `tap_action: perform-action` (kein `call-service`; keine Jinja-Templates in `confirmation.text`).

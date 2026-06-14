@@ -86,10 +86,10 @@ Spec EG: [`licht-eg-anforderungen.md`](licht-eg-anforderungen.md) · Drehregler:
 
 | Name (Z2M) | Batterie | Typ | device_id | MQTT-Aktionen | Automation / Wirkung |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Schalter-1OG-David-Tuere | `sensor.schalter_1og_david_tuere_battery` | Hue wall switch module | `eb9176b54c72cdc77763504806f72acd` | `left_press`, `left_hold`, `left_hold_release` | Klick Toggle · Hold = dimmen · `David: Kombinierte Steuerung` |
-| Schalter-1OG-David-klein | `sensor.schalter_1og_david_klein_battery` | Hue Smart Button | `2e0440a811764f5a442354a22f8191f5` | `press`, `hold`, `release` | Klick Toggle · Hold = dimmen · Ziel: `light.licht_1og_david` · dieselbe Automation |
-| Schalter-1OG-Adrian-Tuere | `sensor.schalter_1og_adrian_tuere_battery` | Hue wall switch module | `57a44c1d926b3e4c1e7092c179feb5e3` | `left_press` | Einfachklick Toggle · Doppelklick Szenen Hell/Gemütlich · `Adrian: Kombinierte Steuerung` |
-| Schalter-1OG-Adrian-klein | `sensor.schalter_1og_adrian_klein_battery` | Hue Smart Button | `e04e1bc520552046b664e45a54a136f1` | `press`, `hold`, `release` | Klick Toggle · Hold = dimmen · Ziel: `light.licht_1og_adrian` · **Gehäuse:** siehe Abschnitt unten |
+| Schalter-1OG-David-Tuere | `sensor.schalter_1og_david_tuere_battery` | Hue wall switch module | `eb9176b54c72cdc77763504806f72acd` | `left_press_release` | An/Aus mit Debounce · `David: Kombinierte Steuerung` |
+| Schalter-1OG-David-klein | `sensor.schalter_1og_david_klein_battery` | Hue Smart Button | `2e0440a811764f5a442354a22f8191f5` | `press` | Klick Toggle · Ziel: `light.licht_1og_david` · dieselbe Automation |
+| Schalter-1OG-Adrian-Tuere | `sensor.schalter_1og_adrian_tuere_battery` | Hue wall switch module | `57a44c1d926b3e4c1e7092c179feb5e3` | `left_press_release` | An/Aus mit Debounce · `Adrian: Kombinierte Steuerung` |
+| Schalter-1OG-Adrian-klein | `sensor.schalter_1og_adrian_klein_battery` | Hue Smart Button | `e04e1bc520552046b664e45a54a136f1` | `press` | Klick Toggle · Ziel: `light.licht_1og_adrian` · **Gehäuse:** siehe Abschnitt unten |
 
 #### Hue Smart Button — Montage & Diagnose
 

@@ -578,7 +578,7 @@ szene_adrian_gemutlich:
         entity_id: scene.adrian_gemutlich
 
 garten_tropf_bewaessern:
-  alias: Garten Tropf bewässern
+  alias: Tropfschlauch an
   description: Tropf-Ventil Zone C für konfigurierte Dauer (docs/garten-bewaesserung.md)
   icon: mdi:water-pump
   mode: restart
@@ -598,7 +598,7 @@ garten_tropf_bewaessern:
         timestamp: "{{ as_timestamp(now()) | int }}"
 
 garten_rasen_gross_bewaessern:
-  alias: Garten Rasen gross bewässern
+  alias: Rasensprenger an
   description: Zone A — großer Regner (docs/garten-bewaesserung.md)
   icon: mdi:sprinkler
   mode: restart
@@ -613,7 +613,7 @@ garten_rasen_gross_bewaessern:
         entity_id: valve.ventil_garten_rasen_gross
 
 garten_rasen_klein_bewaessern:
-  alias: Garten Rasen klein bewässern
+  alias: Versenkregner an
   description: Zone B — zwei kleine Regner (docs/garten-bewaesserung.md)
   icon: mdi:sprinkler-variant
   mode: restart
@@ -626,3 +626,90 @@ garten_rasen_klein_bewaessern:
     - action: valve.close
       target:
         entity_id: valve.ventil_garten_rasen_klein
+garten_rasen_gross_aus:
+  alias: Rasensprenger aus
+  description: Stoppt Viereckregner und schließt Ventil Zone A (Sprachsteuerung)
+  icon: mdi:sprinkler-off
+  mode: single
+  sequence:
+    - action: script.turn_off
+      target:
+        entity_id: script.garten_rasen_gross_bewaessern
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_rasen_gross
+
+garten_rasen_klein_aus:
+  alias: Versenkregner aus
+  description: Stoppt Versenkregner und schließt Ventil Zone B (Sprachsteuerung)
+  icon: mdi:sprinkler-off
+  mode: single
+  sequence:
+    - action: script.turn_off
+      target:
+        entity_id: script.garten_rasen_klein_bewaessern
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_rasen_klein
+
+garten_tropf_aus:
+  alias: Tropfschlauch aus
+  description: Stoppt Tropfbewässerung und schließt Ventil Zone C (Sprachsteuerung)
+  icon: mdi:pipe-valve
+  mode: single
+  sequence:
+    - action: script.turn_off
+      target:
+        entity_id: script.garten_tropf_bewaessern
+    - action: valve.close
+      target:
+        entity_id: valve.ventil_garten_tropf_hecke_beet
+
+garten_bewaesserung_aus:
+  alias: Garten Bewässerung aus
+  description: Stoppt alle Garten-Bewässerungen und schließt alle Ventile (Sprachsteuerung)
+  icon: mdi:water-off
+  mode: single
+  sequence:
+    - action: script.turn_off
+      target:
+        entity_id:
+          - script.garten_rasen_gross_bewaessern
+          - script.garten_rasen_klein_bewaessern
+          - script.garten_tropf_bewaessern
+    - action: valve.close
+      target:
+        entity_id:
+          - valve.ventil_garten_rasen_gross
+          - valve.ventil_garten_rasen_klein
+          - valve.ventil_garten_tropf_hecke_beet
+garten_bewaesserung_status:
+  alias: Läuft Bewässerung
+  description: Sagt an, welche Garten-Bewässerung gerade läuft (Sprachsteuerung)
+  icon: mdi:information-outline
+  mode: single
+  sequence:
+    - variables:
+        nachricht: >-
+          {%- set gross = is_state('valve.ventil_garten_rasen_gross', 'open')
+              or is_state('script.garten_rasen_gross_bewaessern', 'on') -%}
+          {%- set klein = is_state('valve.ventil_garten_rasen_klein', 'open')
+              or is_state('script.garten_rasen_klein_bewaessern', 'on') -%}
+          {%- set tropf = is_state('valve.ventil_garten_tropf_hecke_beet', 'open')
+              or is_state('script.garten_tropf_bewaessern', 'on') -%}
+          {%- if not gross and not klein and not tropf -%}
+          Im Garten läuft gerade keine Bewässerung.
+          {%- else -%}
+          Im Garten läuft
+          {%- if gross %} der große Rasensprenger{% endif -%}
+          {%- if klein %}{% if gross %} und{% endif %} der Versenkregner{% endif -%}
+          {%- if tropf %}{% if gross or klein %} und{% endif %} der Tropfschlauch{% endif -%}
+          .
+          {%- endif -%}
+    - action: tts.speak
+      target:
+        entity_id: media_player.benachrichtigung_lautsprecher
+      data:
+        cache: false
+        media_player_entity_id: media_player.benachrichtigung_lautsprecher
+        message: "{{ nachricht }}"

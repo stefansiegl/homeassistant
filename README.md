@@ -19,6 +19,8 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
 - [**Garten-Bewässerung**](./docs/garten-bewaesserung.md) – Zigbee-Bodenfeuchte, Gardena BT-Ventile, Automationen.
+- [**Sprachsteuerung Garten**](./docs/sprachsteuerung-garten.md) – Google Assistant: Rasensprenger, Versenkregner/Kreisregner, Tropf, Status.
+- [**Sprachsteuerung Licht EG**](./docs/sprachsteuerung-licht-eg.md) – Google Assistant: Lichtgruppen, Szenen, Aliase.
 - [**Backup-Strategie**](./docs/backup-strategie.md) – GitHub, Google Drive, Verschlüsselung, was nicht in Git liegt.
 - [Räume & Bereiche](./docs/raeume-und-bereiche.md) – Aktuelle Areas aus Home Assistant als lesbare Referenz.
 - [Standards & UI](./docs/standards.md) – Glue-Method, Naming Conventions, KI-Regeln.

@@ -161,6 +161,15 @@ input_number:
     icon: mdi:sprinkler
     unit_of_measurement: min
     initial: 20
+  garten_max_laufzeit_stunden:
+    name: Garten Max-Laufzeit Sicherheit
+    min: 0.25
+    max: 24
+    step: 0.25
+    mode: box
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: h
+    initial: 1
 
 input_select:
   waschmaschine_status_helper:
