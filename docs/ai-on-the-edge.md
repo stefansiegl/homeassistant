@@ -43,12 +43,12 @@ Konfiguration, ROI, WLAN, MQTT und Firmware laufen auf der **AI-on-the-Edge-Ober
 | **Wasser** | `watermeter` | http://192.168.188.121/ | Konfigurationsoberfläche; bei MQTT-/Erkennungsproblemen zuerst hier prüfen |
 | **Gas** | `gasmeter` | http://192.168.188.122/ | Konfigurationsoberfläche; bei MQTT-/Erkennungsproblemen zuerst hier prüfen |
 
-### SD-Karten (Betrieb, 2026-06-07)
+### SD-Karten (Betrieb)
 
-| Zähler | SD aktuell | Ersatz bereit | Hinweis |
-|--------|------------|---------------|---------|
-| **Gas** | 4 GB SanDisk (getauscht) | — | Webhook in Web-UI deaktiviert (Crash-Ursache); läuft wieder |
-| **Wasser** | **16 GB** (noch original) | **4 GB SanDisk** | Prophylaktischer Tausch **ausstehend** — erst bei erneuten Problemen; dann Backup `wlan.ini` + `config/` vom Wasser-ESP, nicht Gas-Config kopieren |
+| Zähler | SD aktuell | Hinweis |
+|--------|------------|---------|
+| **Gas** | 4 GB SanDisk (getauscht 2026-06) | Webhook in Web-UI deaktiviert (Crash-Ursache); läuft wieder |
+| **Wasser** | **4 GB SanDisk** (getauscht) | Wie Gas: nur **Wasser-**`config/`/`wlan.ini` — nicht Gas-Config kopieren; Webhook deaktiviert lassen |
 
 Typische Aufgaben in der Web-UI: Live-Bild / ROI, Digitizer-Status, MQTT-Broker testen, Gerät neu starten, Referenzwert setzen.
 
@@ -121,9 +121,14 @@ Templates in [`configuration.yaml`](../configuration.yaml):
 
 **Stabil** (`sensor.watermeter_value_stabil`) — Trigger-Template bei jeder Änderung von `sensor.watermeter_value`:
 
-- Sprung-Filter wie `bin/repair-watermeter-statistics.sh`: max. **+2 m³/h** (zeitlich skaliert), max. **−0,2 m³**, nach **>48 h** Pause bis **+15 m³**
-- OCR-Spike: Wert **>3× letzter Stand** und **>500 m³** → verwerfen, letzten stabilen Wert halten
-- Attribute `raw_value`, `filtered` (true = Ausreißer verworfen)
+- Sprung-Filter: max. **+2 m³/h** (zeitlich skaliert), max. **−0,2 m³** (mit **Abwärts-Erholung**, siehe unten)
+- Nach **>48 h** Pause: max. **+3 m³** (nicht +15 — verhindert falsche Hochstände nach Offline)
+- OCR-Spike: Wert **>3× letzter Stand** und **>500 m³** → verwerfen
+- Attribute `raw_value`, `filtered`, `last_accepted_ts`, `raw_confirm_count`
+
+**Abwärts-Erholung (seit 2026-06-23):** Wenn OCR nach Störung wieder stabil einen **niedrigeren** plausiblen Stand liefert (`no error`, kein `problem`, Abweichung ≤5 m³, 3× gleicher Rohwert) → Stabil übernimmt den Wert (korrigiert fälschlich zu hohe Stände).
+
+**Manuelle Korrektur:** Script `script.wasser_stabil_korrigieren` (nach Abgleich am physischen Zähler) setzt `input_number.watermeter_stabil_korrektur` → Stabil übernimmt OCR-Wert einmalig. Statistik danach: `bin/anchor-watermeter-stabil-statistics.sh` (siehe [`energie-statistik-praevention.md`](./energie-statistik-praevention.md)).
 
 **Liter:**
 
@@ -289,7 +294,7 @@ InfluxDB-`include` listet AIoT-Entities **nicht** — Langzeit speichert MariaDB
 
 ## Backlog
 
-- [ ] **Wasser-SD:** 16 GB → 4 GB SanDisk tauschen, wenn `watermeter` wieder spinnt/offline (Ersatzkarte liegt bereit; Vorgehen wie Gas-Migration, aber **Wasser-`config/`** vom Backup)
+- [x] **Wasser-SD:** 16 GB → 4 GB SanDisk getauscht
 - [ ] Energie-Dashboard-Vollständigkeit prüfen
 - [ ] Optional: Mushroom-Karten auf [`dashboard-uebersicht.md`](./dashboard-uebersicht.md)
 - [ ] Legacy-Entities `*_value_2` / `gasmeter_in_kwh2` klären oder entfernen

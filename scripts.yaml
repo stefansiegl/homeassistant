@@ -583,12 +583,12 @@ garten_tropf_bewaessern:
   icon: mdi:water-pump
   mode: restart
   sequence:
-    - action: valve.open
+    - action: valve.open_valve
       target:
         entity_id: valve.ventil_garten_tropf_hecke_beet
     - delay:
         minutes: "{{ states('input_number.garten_tropf_dauer_minuten') | int(15) }}"
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_tropf_hecke_beet
     - action: input_datetime.set_datetime
@@ -603,12 +603,12 @@ garten_rasen_gross_bewaessern:
   icon: mdi:sprinkler
   mode: restart
   sequence:
-    - action: valve.open
+    - action: valve.open_valve
       target:
         entity_id: valve.ventil_garten_rasen_gross
     - delay:
         minutes: "{{ states('input_number.garten_rasen_dauer_minuten') | int(20) }}"
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_rasen_gross
 
@@ -618,14 +618,27 @@ garten_rasen_klein_bewaessern:
   icon: mdi:sprinkler-variant
   mode: restart
   sequence:
-    - action: valve.open
+    - action: valve.open_valve
       target:
         entity_id: valve.ventil_garten_rasen_klein
     - delay:
         minutes: "{{ states('input_number.garten_rasen_dauer_minuten') | int(20) }}"
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_rasen_klein
+
+garten_rasen_bewaessern:
+  alias: Rasen beide Zonen
+  description: Zone A dann B nacheinander, kein Tropf (docs/garten-bewaesserung.md)
+  icon: mdi:sprinkler
+  mode: single
+  sequence:
+    - condition: template
+      value_template: >
+        {{ not is_state('script.garten_tropf_bewaessern', 'on')
+           and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
+    - action: script.garten_rasen_gross_bewaessern
+    - action: script.garten_rasen_klein_bewaessern
 garten_rasen_gross_aus:
   alias: Rasensprenger aus
   description: Stoppt Viereckregner und schließt Ventil Zone A (Sprachsteuerung)
@@ -635,7 +648,7 @@ garten_rasen_gross_aus:
     - action: script.turn_off
       target:
         entity_id: script.garten_rasen_gross_bewaessern
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_rasen_gross
 
@@ -648,7 +661,7 @@ garten_rasen_klein_aus:
     - action: script.turn_off
       target:
         entity_id: script.garten_rasen_klein_bewaessern
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_rasen_klein
 
@@ -661,7 +674,7 @@ garten_tropf_aus:
     - action: script.turn_off
       target:
         entity_id: script.garten_tropf_bewaessern
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_tropf_hecke_beet
 
@@ -677,7 +690,7 @@ garten_bewaesserung_aus:
           - script.garten_rasen_gross_bewaessern
           - script.garten_rasen_klein_bewaessern
           - script.garten_tropf_bewaessern
-    - action: valve.close
+    - action: valve.close_valve
       target:
         entity_id:
           - valve.ventil_garten_rasen_gross
@@ -713,3 +726,189 @@ garten_bewaesserung_status:
         cache: false
         media_player_entity_id: media_player.benachrichtigung_lautsprecher
         message: "{{ nachricht }}"
+
+haustuer_status:
+  alias: Haustür Status
+  description: Sagt den Nuki-Haustür-Status per TTS (Sprachsteuerung, nur lesen)
+  icon: mdi:door-closed-lock
+  mode: single
+  sequence:
+    - variables:
+        nachricht: >-
+          {%- set lock = states('lock.nuki_haustur_lock') -%}
+          {%- set locked = is_state('binary_sensor.nuki_haustur_locked', 'on') -%}
+          {%- if lock in ['unavailable', 'unknown', 'none', ''] -%}
+          Ich kann den Status der Haustür gerade nicht ermitteln.
+          {%- elif lock == 'locked' or locked -%}
+          Die Haustür ist abgeschlossen.
+          {%- elif lock == 'unlatched' -%}
+          Die Haustür ist nicht verriegelt. Die Tür ist offen oder entriegelt.
+          {%- elif lock == 'unlocked' -%}
+          Die Haustür ist aufgeschlossen.
+          {%- elif lock == 'locking' -%}
+          Die Haustür wird gerade abgeschlossen.
+          {%- elif lock == 'unlocking' -%}
+          Die Haustür wird gerade aufgeschlossen.
+          {%- else -%}
+          Die Haustür hat den Status {{ lock }}.
+          {%- endif -%}
+    - action: tts.speak
+      target:
+        entity_id: media_player.benachrichtigung_lautsprecher
+      data:
+        cache: false
+        media_player_entity_id: media_player.benachrichtigung_lautsprecher
+        message: "{{ nachricht }}"
+
+licht_aus_adrian:
+  alias: Licht Adrian aus
+  description: Kinderzimmer Adrian — Licht aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.licht_1og_adrian
+
+licht_ein_adrian:
+  alias: Licht Adrian an
+  description: Kinderzimmer Adrian — Licht an (Sprachsteuerung)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: light.turn_on
+      target:
+        entity_id: light.licht_1og_adrian
+
+licht_aus_david:
+  alias: Licht David aus
+  description: Kinderzimmer David — Licht aus (Sprachsteuerung)
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: light.licht_1og_david
+
+licht_ein_david:
+  alias: Licht David an
+  description: Kinderzimmer David — Licht an (Sprachsteuerung)
+  icon: mdi:lightbulb-on-outline
+  mode: single
+  sequence:
+    - action: light.turn_on
+      target:
+        entity_id: light.licht_1og_david
+
+haus_muell_info:
+  alias: Müllabfuhr Info
+  description: Sagt an, wann welche Mülltonne abgeholt wird (Sprachsteuerung)
+  icon: mdi:trash-can-outline
+  mode: single
+  sequence:
+    - variables:
+        nachricht: >-
+          {%- set bins = [
+            ('Restmüll', state_attr('sensor.waste_rest_days', 'daysTo') | int(99)),
+            ('Gelbe Tonne', state_attr('sensor.waste_gelb_days', 'daysTo') | int(99)),
+            ('Biotonne', state_attr('sensor.waste_bio_days', 'daysTo') | int(99)),
+            ('Papiertonne', state_attr('sensor.waste_papier_days', 'daysTo') | int(99))
+          ] -%}
+          {%- set parts = [] -%}
+          {%- for name, days in bins -%}
+            {%- if days <= 14 -%}
+              {%- if days == 0 -%}
+                {%- set parts = parts + [name ~ ' heute'] -%}
+              {%- elif days == 1 -%}
+                {%- set parts = parts + [name ~ ' morgen'] -%}
+              {%- else -%}
+                {%- set parts = parts + [name ~ ' in ' ~ days ~ ' Tagen'] -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- if parts | length == 0 -%}
+          In den nächsten zwei Wochen ist keine Müllabholung eingetragen.
+          {%- else -%}
+          Müllabfuhr: {{ parts | join(', ') }}.
+          {%- endif -%}
+    - action: tts.speak
+      target:
+        entity_id: media_player.benachrichtigung_lautsprecher
+      data:
+        cache: false
+        media_player_entity_id: media_player.benachrichtigung_lautsprecher
+        message: "{{ nachricht }}"
+
+haus_strom_info:
+  alias: Strom Info
+  description: Stromverbrauch und -kosten (Sprachsteuerung)
+  icon: mdi:flash
+  mode: single
+  sequence:
+    - variables:
+        nachricht: >-
+          {%- set leistung = states('sensor.mt691_power_cur_stabil') | float(0) | round(0) -%}
+          {%- set bezug = states('sensor.mt691_total_in_stabil') | float(0) | round(0) -%}
+          {%- set einspeis = states('sensor.mt691_total_out_stabil') | float(0) | round(0) -%}
+          {%- set kosten = states('sensor.strom_bezug_stabil_kosten') | float(0) | round(2) -%}
+          {%- set verguetung = states('sensor.strom_einspeisung_stabil_verguetung') | float(0) | round(2) -%}
+          Aktuell werden {{ leistung }} Watt bezogen.
+          Stromzähler: {{ bezug }} Kilowattstunden Bezug, {{ einspeis }} Kilowattstunden Einspeisung.
+          Stromkosten bisher {{ '%.2f' | format(kosten) | replace('.', ',') }} Euro.
+          Einspeisevergütung bisher {{ '%.2f' | format(verguetung) | replace('.', ',') }} Euro.
+    - action: tts.speak
+      target:
+        entity_id: media_player.benachrichtigung_lautsprecher
+      data:
+        cache: false
+        media_player_entity_id: media_player.benachrichtigung_lautsprecher
+        message: "{{ nachricht }}"
+
+haus_energie_info:
+  alias: Energie Info
+  description: Strom, Wasser, Gas und Kosten (Sprachsteuerung)
+  icon: mdi:home-lightning-bolt-outline
+  mode: single
+  sequence:
+    - variables:
+        nachricht: >-
+          {%- set leistung = states('sensor.mt691_power_cur_stabil') | float(0) | round(0) -%}
+          {%- set bezug = states('sensor.mt691_total_in_stabil') | float(0) | round(0) -%}
+          {%- set strom_k = states('sensor.strom_bezug_stabil_kosten') | float(0) | round(2) -%}
+          {%- set wasser = states('sensor.watermeter_value_stabil') | float(0) | round(1) -%}
+          {%- set wasser_k = states('sensor.watermeter_stabil_kosten') | float(0) | round(2) -%}
+          {%- set gas = states('sensor.gasmeter_value_stabil') | float(0) | round(1) -%}
+          {%- set gas_k = states('sensor.gasmeter_stabil_kosten') | float(0) | round(2) -%}
+          Energie-Überblick:
+          Strom aktuell {{ leistung }} Watt, Zählerstand {{ bezug }} Kilowattstunden Bezug,
+          Kosten {{ '%.2f' | format(strom_k) | replace('.', ',') }} Euro.
+          Wasser {{ wasser }} Kubikmeter, Kosten {{ '%.2f' | format(wasser_k) | replace('.', ',') }} Euro.
+          Gas {{ gas }} Kubikmeter, Kosten {{ '%.2f' | format(gas_k) | replace('.', ',') }} Euro.
+    - action: tts.speak
+      target:
+        entity_id: media_player.benachrichtigung_lautsprecher
+      data:
+        cache: false
+        media_player_entity_id: media_player.benachrichtigung_lautsprecher
+        message: "{{ nachricht }}"
+
+wasser_stabil_korrigieren:
+  alias: 'Wasser: Stabil auf OCR-Stand setzen'
+  description: >-
+    Setzt watermeter_value_stabil auf den aktuellen OCR-Wert (nach Abgleich am
+    physischen Zähler). Einmalig bei falschem Stabil-Stand.
+  icon: mdi:water-sync
+  mode: single
+  sequence:
+    - condition: template
+      value_template: >-
+        {{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none', '']
+           and states('sensor.watermeter_error') == 'no error' }}
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.watermeter_stabil_korrektur
+      data:
+        value: "{{ states('sensor.watermeter_value') | float(0) }}"
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.watermeter_value_stabil

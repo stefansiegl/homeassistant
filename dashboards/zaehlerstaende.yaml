@@ -1,0 +1,121 @@
+# Dashboard: Zählerstände
+# Siehe docs/dashboard-zaehlerstaende.md
+
+views:
+- title: Zählerstände
+  cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Zählerstände
+      subtitle: Zur Meldung an Versorger — Stabil-Werte (gefiltert)
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: custom:mushroom-template-card
+      primary: Gas — Portal
+      secondary: >-
+        Zählernr. 7PIP0003662520 · Vertragsnr. 795291806
+      icon: mdi:fire
+      layout: horizontal
+      icon_color: orange
+      tap_action:
+        action: none
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n}"
+    - type: custom:mushroom-template-card
+      entity: sensor.gasmeter_value_stabil
+      primary: Alle Stände
+      secondary: >-
+        Gas: {{ '%.3f' | format(states('sensor.gasmeter_value_stabil') | float(0)) | replace('.', ',') }} m³
+        (Zählernr. 7PIP0003662520 · Vertragsnr. 795291806)
+        · Wasser: {{ '%.3f' | format(states('sensor.watermeter_value_stabil') | float(0)) | replace('.', ',') }} m³
+        · 1.8.0: {{ '%.1f' | format(states('sensor.mt691_total_in_stabil') | float(0)) | replace('.', ',') }} kWh
+        · 2.8.0: {{ '%.1f' | format(states('sensor.mt691_total_out_stabil') | float(0)) | replace('.', ',') }} kWh
+      icon: mdi:clipboard-text-outline
+      layout: horizontal
+      icon_color: blue
+      tap_action:
+        action: none
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n}"
+    - type: grid
+      columns: 2
+      square: false
+      card_mod:
+        style: "ha-card {\n  box-shadow: none;\n  background: none;\n  margin-top: 0px;\n}\n:host {\n  --grid-card-gap: 0px;\n}"
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.gasmeter_value_stabil
+        primary: >-
+          {{ '%.3f' | format(states('sensor.gasmeter_value_stabil') | float(0)) | replace('.', ',') }} m³
+        secondary: >-
+          Gas{% if is_state('binary_sensor.gasmeter_problem', 'on') %} · Problem{% elif is_state('binary_sensor.gasmeter_warnung', 'on') %} · Warnung{% elif is_state_attr('sensor.gasmeter_value_stabil', 'filtered', true) %} · gefiltert{% else %} · {{ relative_time(states.sensor.gasmeter_value_stabil.last_updated) }}{% endif %}
+        icon: mdi:fire
+        layout: vertical
+        icon_color: >-
+          {% if is_state('binary_sensor.gasmeter_problem', 'on') or is_state('binary_sensor.gasmeter_warnung', 'on') %} red
+          {% elif is_state_attr('sensor.gasmeter_value_stabil', 'filtered', true) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.watermeter_value_stabil
+        primary: >-
+          {{ '%.3f' | format(states('sensor.watermeter_value_stabil') | float(0)) | replace('.', ',') }} m³
+        secondary: >-
+          Wasser{% if is_state('binary_sensor.watermeter_problem', 'on') %} · Problem{% elif is_state('binary_sensor.watermeter_warnung', 'on') %} · Warnung{% elif is_state_attr('sensor.watermeter_value_stabil', 'filtered', true) %} · gefiltert{% else %} · {{ relative_time(states.sensor.watermeter_value_stabil.last_updated) }}{% endif %}
+        icon: mdi:water
+        layout: vertical
+        icon_color: >-
+          {% if is_state('binary_sensor.watermeter_problem', 'on') or is_state('binary_sensor.watermeter_warnung', 'on') %} red
+          {% elif is_state_attr('sensor.watermeter_value_stabil', 'filtered', true) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.mt691_total_in_stabil
+        primary: >-
+          {{ '%.1f' | format(states('sensor.mt691_total_in_stabil') | float(0)) | replace('.', ',') }} kWh
+        secondary: >-
+          Strom 1.8.0 Bezug{% if states('sensor.mt691_total_in_stabil') in ['unknown', 'unavailable', 'none'] %} · offline{% elif is_state_attr('sensor.mt691_total_in_stabil', 'filtered', true) %} · gefiltert{% else %} · {{ relative_time(states.sensor.mt691_total_in_stabil.last_updated) }}{% endif %}
+        icon: mdi:transmission-tower
+        layout: vertical
+        icon_color: >-
+          {% if states('sensor.mt691_total_in_stabil') in ['unknown', 'unavailable', 'none'] %} red
+          {% elif is_state_attr('sensor.mt691_total_in_stabil', 'filtered', true) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.mt691_total_out_stabil
+        primary: >-
+          {{ '%.1f' | format(states('sensor.mt691_total_out_stabil') | float(0)) | replace('.', ',') }} kWh
+        secondary: >-
+          Strom 2.8.0 Einspeisung{% if states('sensor.mt691_total_out_stabil') in ['unknown', 'unavailable', 'none'] %} · offline{% elif is_state_attr('sensor.mt691_total_out_stabil', 'filtered', true) %} · gefiltert{% else %} · {{ relative_time(states.sensor.mt691_total_out_stabil.last_updated) }}{% endif %}
+        icon: mdi:solar-power
+        layout: vertical
+        icon_color: >-
+          {% if states('sensor.mt691_total_out_stabil') in ['unknown', 'unavailable', 'none'] %} red
+          {% elif is_state_attr('sensor.mt691_total_out_stabil', 'filtered', true) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  border-bottom-left-radius: 0px;\n  border-bottom-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n}"
+    - type: custom:mushroom-template-card
+      primary: Hinweis
+      secondary: >-
+        Stabil-Werte wie im Energie-Dashboard. Bei rot/orange: Zähler vor Ort oder AI-on-the-Edge-Web-UI prüfen.
+      icon: mdi:information-outline
+      layout: horizontal
+      icon_color: grey
+      tap_action:
+        action: none
+      card_mod:
+        style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n  opacity: 0.9;\n}"

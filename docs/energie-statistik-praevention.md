@@ -28,7 +28,9 @@ Siehe auch: [`energie-statistik-wartung.md`](./energie-statistik-wartung.md) (No
 | Gas | `sensor.gasmeter_value` | `sensor.gasmeter_value_stabil` |
 | Wasser | `sensor.watermeter_value` | `sensor.watermeter_value_stabil` |
 
-Stabil-Sensoren haben Attribute `raw_value`, `filtered`, `last_accepted_ts`.
+Stabil-Sensoren haben Attribute `raw_value`, `filtered`, `last_accepted_ts` (Wasser zusätzlich `raw_confirm_count`).
+
+**Wasser-Stabil** (seit 2026-06-23): Gap-Sprung max. **3 m³** (48 h+), Abwärts-Erholung nach OCR-Störung, manuelles Script `wasser_stabil_korrigieren` + optional `bin/anchor-watermeter-stabil-statistics.sh` für MariaDB-Historie.
 
 ### Preise (`input_number` in `helpers.yaml`)
 

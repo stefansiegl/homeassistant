@@ -1,0 +1,27 @@
+Nr	Kategorie	System	Testbefehl (primär)	Alternative	Erwartung	Getestet	OK?	Notizen
+0	Setup	Google Assistant	Hey Google, synchronisiere meine Geräte		Geräte aktualisiert			
+1	Garten	Home Assistant	Hey Google, Rasensprenger an		Ventil großer Rasen startet			
+2	Garten	Home Assistant	Hey Google, Versenkregner an		Ventil Kreisregner startet			
+3	Garten	Home Assistant	Hey Google, Tropfschlauch an	Tropfschläuche an	Ventil Tropf startet			
+4	Garten	Home Assistant	Hey Google, Rasensprenger aus	Rasensprenger aus	Ventil großer Rasen stoppt			
+5	Garten	Home Assistant	Hey Google, Versenkregner aus		Ventil Kreisregner stoppt			
+6	Garten	Home Assistant	Hey Google, Tropfschlauch aus	Hecke aus / Heckenbewässerung aus	Ventil Tropf stoppt			
+7	Garten	Home Assistant	Hey Google, Garten Bewässerung aus	alle Bewässerung aus	Alle Ventile aus			
+8	Garten	Home Assistant	Hey Google, aktiviere Bewässerung Status	starte Bewässerung Status	Sprachantwort was läuft			NICHT als Frage stellen
+9	Haustür	Home Assistant	Hey Google, aktiviere Haustür Status	starte Haustür Status	Sprachantwort Nuki			NICHT Ist die Haustür zu
+10	Haustür	Home Assistant	Hey Google, öffne die Haustür		Soll NICHT funktionieren			
+11	Licht	Home Assistant	Hey Google, alle Lichter aus	Licht überall aus	EG+Kinder+Schlafzimmer aus			
+12	Licht	Home Assistant	Hey Google, Licht Adrian an	aktiviere Licht Adrian an	Adrian an			
+13	Licht	Home Assistant	Hey Google, Adrian Licht aus	Adrian Licht aus	Adrian aus			
+14	Licht	Home Assistant	Hey Google, Licht David an	Licht bei David an	David an			
+15	Licht	Home Assistant	Hey Google, mach das Licht bei David aus	aktiviere Licht David aus	David aus			
+16	Licht	Home Assistant	Hey Google, schalte das Licht in der Küche ein		Küche an			
+17	Licht	Home Assistant	Hey Google, schalte das Licht in der Küche aus		Küche aus			
+18	Licht	Home Assistant	Hey Google, Wohnzimmerlicht an	Wohnzimmerlicht an	Wohnzimmer an			
+19	Licht	Home Assistant	Hey Google, Wohnzimmerlicht aus	Wohnzimmerlicht aus	Wohnzimmer aus			
+20	Haus-Info	Home Assistant	Hey Google, aktiviere Müllabfuhr Info	starte Müllabfuhr Info	Sprachantwort Mülltermine			NICHT Wann kommt Müll
+21	Haus-Info	Home Assistant	Hey Google, aktiviere Strom Info	starte Strom Info	Sprachantwort Strom			NICHT Wie viel Strom
+22	Haus-Info	Home Assistant	Hey Google, aktiviere Energie Info	starte Energie Info	Sprachantwort Strom+Wasser+Gas			
+23	Einkauf	Google Keep	Hey Google, Testartikel zwei auf die Einkaufsliste		In Keep Notizen			
+24	Einkauf	Google Keep (App)	Keep Notizen prüfen		Testartikel zwei sichtbar			
+25	To-do	Google Keep	Hey Google, Testaufgabe auf meine Aufgabenliste		In Keep-Liste (ohne Uhrzeit)			Tasks will oft Uhrzeit

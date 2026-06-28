@@ -1,4 +1,4 @@
-# Garten: Bewässerung (Zigbee-Feuchte + Gardena Bluetooth-Ventile)
+# Garten: Bewässerung (Froggit/Ecowitt-Feuchte + Gardena Bluetooth-Ventile)
 
 Spec für Bodenfeuchte und drei Bewässerungszonen im Garten. Ersetzt die frühere **Gardena Smart System**-Welt (Cloud + Smart Gateway) ohne neuen Hub.
 
@@ -8,9 +8,11 @@ Spec für Bodenfeuchte und drei Bewässerungszonen im Garten. Ersetzt die frühe
 
 ## Ziel
 
-- **Hecke + Beet:** Bodenfeuchte per **Zigbee** (Zigbee2MQTT), Tropfbewässerung per **Gardena BT-Ventil** — optional automatisch bei Trockenheit
+- **Hecke + Beet + weitere Zonen:** Bodenfeuchte per **Froggit DP100/DP110** (868 MHz) über **DP1500**-Gateway → HA-Integration **Ecowitt**
+- **Tropfbewässerung** per **Gardena BT-Ventil** — optional automatisch bei Trockenheit (Beet CH5, 2× täglich)
 - **Rasen (2 Zonen):** zwei weitere BT-Ventile — manuell oder später Zeit/Wetter (kein Bodenfeuchte-Sensor am Rasen)
 - **Kein Gardena Smart Gateway** — alte `gardena_smart_system`-Geräte aufräumen
+- **Zigbee-Bodenfeuchte** (Tuya/ThirdReality): optional parallel — siehe [Abschnitt Zigbee](#zigbee-bodenfeuchte-optional--innen)
 
 ---
 
@@ -18,9 +20,9 @@ Spec für Bodenfeuchte und drei Bewässerungszonen im Garten. Ersetzt die frühe
 
 ```mermaid
 flowchart TB
-  subgraph zigbee [Zigbee2MQTT]
-    FH["Feuchte-Garten-Hecke"]
-    FB["Feuchte-Garten-Beet"]
+  subgraph froggit [Froggit 868 MHz]
+    DP1500["DP1500 Gateway"]
+    S1["CH1–CH8 Bodenfeuchte"]
   end
   subgraph bt [gardena_bluetooth]
     VA["Ventil-Garten-Rasen-Gross"]
@@ -28,30 +30,136 @@ flowchart TB
     VC["Ventil-Garten-Tropf-Hecke-Beet"]
   end
   subgraph infra [Infrastruktur]
-    Z2M["Zigbee2MQTT"]
     Proxy["ESPHome BT-Proxy"]
   end
-  FH --> Z2M --> HA["Home Assistant"]
-  FB --> Z2M --> HA
+  S1 --> DP1500 -->|"Ecowitt Push"| HA["Home Assistant"]
   VA --> Proxy --> HA
   VB --> Proxy --> HA
   VC --> Proxy --> HA
-  FH -->|"unter Schwelle"| VC
-  FB -->|"unter Schwelle"| VC
+  S1 -->|"unter Schwelle (geplant)"| VC
 ```
 
 | Funktion | Hardware | Integration |
 |----------|----------|-------------|
-| Bodenfeuchte Hecke | **Tuya SGS01Z** (TS0601_soil_3, IP67) | Zigbee2MQTT |
-| Bodenfeuchte Beet | **Tuya SGS01Z** (TS0601_soil_3, IP67) | Zigbee2MQTT |
-| Topfpflanzen innen (3×) | **ThirdReality** 3RSM0147Z / Gen2 | Zigbee2MQTT (nur Anzeige, keine Automation V1) |
+| Gateway + 8× Bodenfeuchte | **froggit DP1500** (≈ Ecowitt **GW1100A**) + **DP100** (max. 8 Kanäle) | Core **`ecowitt`** (UI) |
 | Zone A — großer Regner | Gardena 1285-20 | `gardena_bluetooth` → `valve.*` |
 | Zone B — 2 kleine Regner | Gardena 1285-20 | `gardena_bluetooth` |
 | Zone C — Tropf Hecke/Beet | Gardena 1285-20 | `gardena_bluetooth` |
 | BLE-Reichweite Garten | **ESPHome Atom am EG-Fenster** (`atom-bluetooth-proxy-eg-garten.yaml`) | ESPHome — **active scanning** |
 | BLE sonst | Atom 1.OG / 2.OG (passiv) | [`esphome/atom-bluetooth-proxy-*.yaml`](../esphome/) |
 
-**Abgrenzung:** `gardena_smart_system` (HACS, Cloud) ≠ `gardena_bluetooth` (Core, lokal). Alte **GARDENA smart Sensor** (868 MHz → Gateway) sind ohne Hub wertlos — **nicht** per Zigbee umnutzbar.
+**Abgrenzung:** `gardena_smart_system` (HACS, Cloud) ≠ `gardena_bluetooth` (Core, lokal). **Froggit DP100/DP110** ≠ Zigbee — laufen nur über **DP1500**, nicht über Zigbee2MQTT.
+
+---
+
+## Froggit DP1500 → Home Assistant (Ecowitt)
+
+### Hardware
+
+| Teil | Modell | Hinweis |
+|------|--------|---------|
+| Gateway | **froggit DP1500** | In HA als **GW1100A** (Firmware z. B. `GW1100A_V2.4.5`); Web-UI **`http://192.168.188.166/`** |
+| Bodenfeuchte | **froggit DP100** (868 MHz) | Bis **8 Kanäle** am DP1500; IP66 outdoor |
+| App / Web-UI | **WS View Plus** | Pairing der DP100-Kanäle; Live Data zeigt **CH1–CH8** |
+
+Technisch identisch mit **Ecowitt GW1100** — HA-Integration heißt deshalb **Ecowitt**, nicht „Froggit“.
+
+### Einrichtung Home Assistant (Core, UI)
+
+1. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Ecowitt**
+2. HA zeigt **Server-IP**, **Pfad** (`/api/webhook/…`) und **Port** (`8123`) — notieren
+3. Am **DP1500** den Upload-Server konfigurieren (siehe unten)
+4. Nach 1–2 Minuten: Gerät **GW1100A** + Sensoren in HA
+
+**Voraussetzung:** DP1500 muss HA per **HTTP** auf Port **8123** erreichen (kein HTTPS — Ecowitt-Protokoll unterstützt kein TLS).
+
+### Upload-Server am DP1500 konfigurieren
+
+> **Häufiger Stolperstein:** „Others / DIY Upload Servers“ gibt es **nur in der Handy-App**, nicht in der Web-UI-Seitenleiste.
+
+#### Option A — Web-UI (Browser)
+
+**URL:** [`http://192.168.188.166/`](http://192.168.188.166/)
+
+1. Links **Weather Services** wählen (nicht „Live Data“)
+2. **Ganz nach unten scrollen** (unter Ecowitt.net, Wunderground, …)
+3. Abschnitt **Customized** / **Angepasst**:
+   - **Customized:** Enable
+   - **Protocol Type Same As:** Ecowitt
+   - **Server IP:** LAN-IP von HA (z. B. `192.168.188.99`)
+   - **Port:** `8123`
+   - **Path:** `/api/webhook/<webhook-id>` — **mit** führendem `/` (Web-UI)
+   - **Upload Interval:** z. B. `60` s
+4. **Save**
+
+#### Option B — WS View Plus App
+
+1. Gateway wählen → **⋯** → **Others** → **DIY Upload Servers** → **Customized**
+2. Protokoll **Ecowitt**, gleiche IP/Port
+3. **Path ohne** führenden Slash: `api/webhook/<webhook-id>` (App setzt `/` selbst)
+4. Speichern / **Finish** nicht vergessen
+
+#### Alternative ohne Upload-Server
+
+**Ecowitt Local** (HACS, `alexlenk/ecowitt_local`): nur Gateway-IP eintragen — HA **holt** Daten per Polling. Kein Customized-Block nötig.
+
+### Entities in Home Assistant (Stand 2026-06-23)
+
+Gerät: **`GW1100A`** (`device_id` Ecowitt, Integration `ecowitt`).
+
+| Funktion | Gateway-Kanal | HA `entity_id` |
+|----------|---------------|----------------|
+| Bodenfeuchte 1 | CH1 | `sensor.gw1100a_soil_moisture_1` |
+| Bodenfeuchte 2 | CH2 | `sensor.gw1100a_soil_moisture_2` |
+| Bodenfeuchte 3 | CH3 | `sensor.gw1100a_soil_moisture_3` |
+| Bodenfeuchte 4 | CH4 | `sensor.gw1100a_soil_moisture_4` |
+| Bodenfeuchte 5 | CH5 | `sensor.gw1100a_soil_moisture_5` |
+| Bodenfeuchte 6 | CH6 | `sensor.gw1100a_soil_moisture_6` |
+| Bodenfeuchte 7 | CH7 | `sensor.gw1100a_soil_moisture_7` |
+| Bodenfeuchte 8 | CH8 | `sensor.gw1100a_soil_moisture_8` |
+| Innen-Temperatur (Gateway-Kabel) | — | `sensor.gw1100a_indoor_temperature` |
+| Innen-Luftfeuchte | — | `sensor.gw1100a_indoor_humidity` |
+| Luftdruck absolut/relativ | — | `sensor.gw1100a_absolute_pressure`, `sensor.gw1100a_relative_pressure` |
+
+**Kanal → Standort** (Stand 2026-06-24): Zuordnung physisch abgeschlossen — Friendly Names und Areas in HA gesetzt (siehe Tabelle).
+
+| CH | HA Entity | Standort | Pflanze | Bewässerung / Hinweise |
+|----|-----------|----------|---------|------------------------|
+| 1 | `sensor.gw1100a_soil_moisture_1` | Zimmer Adrian (1.OG) | Glücksfeder (klein) | Nur Topf — **2× Glücksfeder** bei Adrian (CH1 + CH4) |
+| 2 | `sensor.gw1100a_soil_moisture_2` | Wohnzimmer (EG) | Elefantenfuß | Nur Topf |
+| 3 | `sensor.gw1100a_soil_moisture_3` | Esszimmer (EG) | Strahlenaralie | Nur Topf |
+| 4 | `sensor.gw1100a_soil_moisture_4` | Zimmer Adrian (1.OG) | Glücksfeder (groß) | Nur Topf — **2× Glücksfeder** bei Adrian (CH1 + CH4) |
+| 5 | `sensor.gw1100a_soil_moisture_5` | Garten Beet | — | Messstelle wird von **großem Regner** (Zone A) **und Tropfschlauch** (Zone C) erreicht; **Messstelle für Tropf-Automation** |
+| 6 | `sensor.gw1100a_soil_moisture_6` | Garten Hecke | — | **Tropfschlauch** Zone C (`Ventil-Garten-Tropf-Hecke-Beet`); nur Anzeige/Dashboard |
+| 7 | `sensor.gw1100a_soil_moisture_7` | Garten Himbeeren | Himbeeren | Messstelle wird von **großem Regner** und **Tropfschlauch** erreicht |
+| 8 | `sensor.gw1100a_soil_moisture_8` | Zimmer David (1.OG) | Glücksbambus | Nur Topf |
+
+**Aufteilung:** CH1–CH4 und CH8 **innen** (Topfpflanzen). CH5–CH7 **Garten** — Sensoren nach **Standort** benannt (Beet, Hecke, Himbeeren); Hinweise „Regner/Tropf erreicht Messstelle“ beschreiben die **Bewässerungsreichweite**, nicht die Pflanze. Tropf-Automation (`garten_tropf_automatisch`) nutzt **nur CH5 (Beet)**.
+
+#### Friendly Names in HA (gesetzt)
+
+Muster laut [`standards.md`](./standards.md): `Typ-Geschoss-Raum[-Detail]` → hier **`Feuchte-{Geschoss}-{Raum}-{Detail}`**. Die `entity_id` (`sensor.gw1100a_soil_moisture_N`) bleibt von Ecowitt vorgegeben — Anzeigename und Area in der Entity Registry gesetzt.
+
+| CH | Friendly Name | Area (HA `area_id`) |
+|----|---------------|---------------------|
+| 1 | `Feuchte-1OG-Zimmer-Adrian-Gluecksfeder-klein` | `adrian` |
+| 2 | `Feuchte-EG-Wohnzimmer-Elefantenfuss` | `wohnzimmer` |
+| 3 | `Feuchte-EG-Esszimmer-Strahlenaralie` | `esszimmer` |
+| 4 | `Feuchte-1OG-Zimmer-Adrian-Gluecksfeder-gross` | `adrian` |
+| 5 | `Feuchte-Garten-Beet` | `garten` |
+| 6 | `Feuchte-Garten-Hecke` | `garten` |
+| 7 | `Feuchte-Garten-Himbeeren` | `garten` |
+| 8 | `Feuchte-1OG-Zimmer-David-Gluecksbambus` | `david` |
+
+Diagnose-Entities `sensor.gw1100a_soil_ad_*` sind standardmäßig deaktiviert — ignorieren.
+
+### Nächste Schritte (nach Einbindung)
+
+- [x] CH1–CH8 physisch zugeordnet (siehe Tabelle oben)
+- [x] Friendly Names + Areas in HA gesetzt (Entity Registry)
+- [ ] Area **Garten** am Gateway-Gerät
+- [x] Dashboard `uebersicht.yaml` + Automation `garten_tropf_automatisch` auf Ecowitt-Entities umgestellt (Beet CH5, 2× täglich)
+- [ ] Schwellwerte `input_number.garten_schwellwert_*` nach 1–2 Wochen Beobachtung kalibrieren
 
 ---
 
@@ -86,7 +194,9 @@ Gehäuse am Ventil mit Zone **A / B / C** beschriften (nicht Pairing-# — #2 is
 
 ---
 
-## Zigbee-Bodenfeuchte
+## Zigbee-Bodenfeuchte (optional / innen)
+
+> **Garten-Automation V1** nutzt künftig **Froggit/Ecowitt** (oben). Zigbee-Sensoren können parallel für Tests/Innen bleiben.
 
 ### Bestand (gekauft)
 
@@ -250,32 +360,6 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 - Batterie **30 Min raus** (Entladung), **ein** Reset, sofort im Pairing-Fenster testen — nicht fünfmal hintereinander resetten.
 - nRF Connect: weiterhin unsichtbar → Hardware/Reset; sichtbar, HA nicht → Proxy Active + Custom Integration prüfen.
 
----
-
-### Gardena BT — Pairing & Fehlersuche (Referenz)
-
-**nRF Connect** (nicht „NFC“): kostenlose App von Nordic Semiconductor ([Android](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp) / [iOS](https://apps.apple.com/app/nrf-connect/id1051074755)). Zeigt **alle Bluetooth-Geräte** in der Nähe — Test, ob das Ventil nach Factory Reset überhaupt sendet.
-
-**Factory Reset 1285** (Firmware ≥ 1.7.23.29 ✅):
-
-1. **9-V-Alkaliblock** raus (kein Akku)
-2. **Man.-Taste** halten, Batterie einlegen
-3. **~10 s weiter** halten → **blaue Verbindungs-LED blinkt ~3 Min** (Pairing-Fenster)
-4. Innerhalb dieser 3 Min: nRF Connect **oder** HA/Gardena-App — Ventil **< 2 m** vom **EG-Proxy** und Handy
-
-| nRF Connect | HA Gardena Bluetooth |
-|-------------|----------------------|
-| Gerät sichtbar | Proxy/Scanning — Ventil ok, HA-Konfiguration prüfen |
-| Nichts sichtbar | Reset-Fenster abgelaufen, Batterie, Wähler **AUTO/OFF**, Steuerteil auf Ventil |
-
-**Typische HA-Falle:** Proxy hatte `active: False` → HA findet nichts. Zusätzlich in HA pro ESP-Proxy unter **Konfigurieren → Bluetooth-Scanmodus: Active** stellen (YAML `active: true` allein reicht nicht immer).
-
-**Scan Response / „Unable to find product type“:** Das Ventil sendet Service-UUID `98BD…` im Advertising, Herstellerdaten `0x0426` (Produkttyp) oft erst in der **Scan Response** — nRF Connect (aktiv) sieht beides, ESP-Proxies leiten teils nur das Advertising weiter. Symptome: Pairing startet, danach *Einrichtungsfehler: Unable to find product type*.
-
-**Workaround (Repo, bis Core-Patch merged):** Custom Integration `custom_components/gardena_bluetooth/` — akkumuliert Werbung über Scan-Service und ermittelt Produkttyp per BLE-Connect-Fallback. In HA als **„Gardena Bluetooth (Proxy Fix)“** sichtbar. Upstream-PR-Vorbereitung: [`upstream-pr-gardena-bluetooth.md`](upstream-pr-gardena-bluetooth.md), Patch unter [`upstream-patches/home-assistant-core/`](../upstream-patches/home-assistant-core/).
-
-**Wenn Gardena-App nach Reset auch nichts findet:** Batterie 30 Min raus (Entladung), ein Reset, sofort im Pairing-Fenster testen — nicht fünfmal hintereinander resetten.
-
 ### Entities (Ventile)
 
 | Friendly Name | entity_id | Bild (Dashboard) |
@@ -294,8 +378,15 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 | `scripts.yaml` | Start: `garten_*_bewaessern` · Stop: `garten_*_aus`, `garten_bewaesserung_aus` · Status: `garten_bewaesserung_status` (TTS) |
 | `automations.yaml` | `garten_tropf_automatisch`, `garten_sicherheit_max_laufzeit` |
 | `dashboards/uebersicht.yaml` | Karten Garten (Feuchte, Ventile, Auto-Schalter) |
+| `dashboards/garten.yaml` | **Eigenes Dashboard** Bewässerung + 8× Feuchte mit Pflanzenbildern — [`dashboard-garten.md`](./dashboard-garten.md) |
 | `docs/sprachsteuerung-garten.md` | Google Assistant / Assist — An/Aus + Aliase |
+| `google_assistant_expose.yaml` | Freigabe-Liste für Google Assistant (Git) |
 
+
+
+### Ventil-Services (HA)
+
+Skripte und Automationen nutzen `valve.open_valve` / `valve.close_valve` (nicht `valve.open` / `valve.close`).
 
 ### Sicherheit Max-Laufzeit (V1)
 
@@ -305,9 +396,11 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 
 ### Logik Tropf-Automation (V1)
 
-- Trigger: alle 2 h + bei Feuchte-Änderung
-- Bedingungen: `input_boolean.garten_tropf_automatisch` an; Hecke **oder** Beet unter Schwellwert; Sperrzeit (`input_number.garten_tropf_sperre_stunden`) seit letztem Lauf; nur 06:00–21:00
+- Trigger: **2× täglich** um **04:00** und **21:00** (Hitze — kein 2-h-Intervall, kein Feuchte-State-Trigger)
+- Bedingungen: `input_boolean.garten_tropf_automatisch` an; **Beet** (`sensor.gw1100a_soil_moisture_5`, CH5) unter `input_number.garten_schwellwert_beet`; Sperrzeit (`input_number.garten_tropf_sperre_stunden`) seit letztem Lauf
 - Aktion: `script.garten_tropf_bewaessern` (Ventil öffnen → Wartezeit → schließen → Zeitstempel)
+
+> **Hinweis Leck:** Tropfschlauch Zone C ist derzeit **undicht** — Automation bleibt aktiv, sinnvoller Test erst nach Reparatur. Schalter `garten_tropf_automatisch` standardmäßig **aus**.
 
 Schwellwerte Start: **35 %** — nach Beobachtung anpassen.
 
@@ -333,7 +426,11 @@ HACS-Repo `gardena_smart_system` optional deinstallieren, wenn nicht mehr benöt
 
 ## Abnahme-Checkliste
 
-- [ ] 2× **Tuya** Garten: Feuchte + Temperatur + Batterie, `linkquality` ok
+- [x] **DP1500** in HA (Ecowitt), 8× `soil_moisture` + Gateway-Werte live
+- [x] CH1–CH8 Standorte dokumentiert (Kanal-Tabelle)
+- [x] Friendly Names + Areas in HA gesetzt (8× `soil_moisture`)
+- [x] Dashboard/Automation auf Ecowitt-Entities umgestellt (Beet CH5, 2× täglich 04:00+21:00)
+- [ ] 2× **Tuya** Garten (optional): Feuchte + Temperatur + Batterie, `linkquality` ok
 - [ ] 3× **ThirdReality** innen: Werte plausibel, Areas gesetzt
 - [x] 3× BT-Ventile: Mapping-Tabelle ausgefüllt, alle per HA schaltbar
 - [ ] Tropf-Ventil: manuell + Automation (Auto-Schalter testweise an)

@@ -18,7 +18,7 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 6. **Abfallentsorgung** — Übersicht + 4 Müll-Sensoren
 7. **Zigbee2MQTT** — `switch.zigbee2mqtt_bridge_permit_join`
 8. **Haus-Wartung** — je eine kompakte Mushroom-Karte (Tap → Bestätigung → `script.wartung_*`)
-9. **Garten** — Bodenfeuchte Hecke/Beet, 3 Ventile (Tap → Bewässerungs-Skripte), Tropf-Auto-Schalter — siehe [`garten-bewaesserung.md`](./garten-bewaesserung.md)
+9. **Garten** — Kurzblock auf Übersicht; **eigenes Dashboard** [`dashboard-garten.md`](./dashboard-garten.md) mit allen 8 Feuchtesensoren + Bildern
 
 ## Abhängigkeiten
 
@@ -45,7 +45,7 @@ Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchte
 
 - [`konfigurations-strategie.md`](./konfigurations-strategie.md)
 - [`dashboard-tablett.md`](./dashboard-tablett.md) — EG-Tablet (anderer Use-Case)
-- [`climate.md`](./climate.md) — Lüftung/Radon (Platzhalter)
+- [`climate.md`](./climate.md) — Lüftung (CO₂, Nacht-Kühlung, Status-Sensor)
 
 
 ## Hinweise

@@ -19,9 +19,9 @@ Dieses Dokument ist eine **lesbare Kopie** der aktuell in Home Assistant konfigu
 ### Erdgeschoss (EG)
 
 - **Erdgeschoss** (`erdgeschoss`)
-- **Esszimmer (EG)** (`esszimmer`)
+- **Esszimmer (EG)** (`esszimmer`) — Bodenfeuchte Froggit **CH3** (Strahlenaralie)
 - **Küche (EG)** (`kuche`)
-- **Wohnzimmer (EG)** (`wohnzimmer`)
+- **Wohnzimmer (EG)** (`wohnzimmer`) — Bodenfeuchte Froggit **CH2** (Elefantenfuß)
 - **Toilette (EG)** (`toilette_eg`)
 - **Klo EG** (`klo_eg`)
 
@@ -42,13 +42,13 @@ Dieses Dokument ist eine **lesbare Kopie** der aktuell in Home Assistant konfigu
 ### Außen
 
 - **Balkon** (`balkon`)
-- **Garten** (`garten`)
+- **Garten** (`garten`) — Bodenfeuchte Froggit **CH5** (Beet), **CH6** (Hecke), **CH7** (Himbeeren); Details [`garten-bewaesserung.md`](./garten-bewaesserung.md)
 - **briefkasten** (`briefkasten`)
 
 ### Personen / Sonstiges
 
-- **Adrian** (`adrian`)
-- **david** (`david`)
+- **Adrian** (`adrian`) — Bodenfeuchte Froggit **CH1** + **CH4** (Glücksfeder klein/groß)
+- **david** (`david`) — Bodenfeuchte Froggit **CH8** (Glücksbambus)
 - **Bedroom** (`bedroom`)
 - **Badezimmer** (`badezimmer`)
 - **bad 2og** (`bad_2og`)

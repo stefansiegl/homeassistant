@@ -1,0 +1,269 @@
+# Dashboard: Garten — Bewässerung & Bodenfeuchte
+# Siehe docs/dashboard-garten.md
+
+views:
+- title: Garten
+  path: garten
+  cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Garten
+      subtitle: Bewässerung & Bodenfeuchte · Froggit + Gardena
+
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_indoor_temperature
+        primary: Gateway
+        secondary: >-
+          {{ states('sensor.gw1100a_indoor_temperature') }} °C ·
+          {{ states('sensor.gw1100a_indoor_humidity') }} % rF
+        icon: mdi:access-point
+        layout: horizontal
+        tap_action:
+          action: url
+          url_path: http://192.168.188.166/
+      - type: custom:mushroom-template-card
+        primary: DP1500 Live
+        secondary: Web-UI · CH1–CH8
+        icon: mdi:web
+        icon_color: blue
+        layout: horizontal
+        tap_action:
+          action: url
+          url_path: http://192.168.188.166/
+
+    - type: custom:mushroom-title-card
+      title: Topfpflanzen
+      subtitle: Innen · Froggit CH1–CH4, CH8
+
+    - type: grid
+      columns: 2
+      square: false
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_1
+        primary: Glücksfeder klein
+        secondary: >-
+          Adrian · {% set s = states('sensor.gw1100a_soil_moisture_1') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/gluecksfeder.jpg
+        layout: horizontal
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_1') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_4
+        primary: Glücksfeder groß
+        secondary: >-
+          Adrian · {% set s = states('sensor.gw1100a_soil_moisture_4') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/gluecksfeder.jpg
+        layout: horizontal
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_4') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_2
+        primary: Elefantenfuß
+        secondary: >-
+          Wohnzimmer · {% set s = states('sensor.gw1100a_soil_moisture_2') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/elefantenfuss.jpg
+        layout: horizontal
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_2') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_3
+        primary: Strahlenaralie
+        secondary: >-
+          Esszimmer · {% set s = states('sensor.gw1100a_soil_moisture_3') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/strahlenaralie.jpg
+        layout: horizontal
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_3') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_8
+        primary: Glücksbambus
+        secondary: >-
+          David · {% set s = states('sensor.gw1100a_soil_moisture_8') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/gluecksbambus.jpg
+        layout: horizontal
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_8') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+
+    - type: custom:mushroom-title-card
+      title: Garten
+      subtitle: Außen · Schwellwert Hecke/Beet einstellbar
+
+    - type: grid
+      columns: 3
+      square: false
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_5
+        primary: Beet
+        secondary: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_5') %}
+          {% set z = states('input_number.garten_schwellwert_beet') | int(35) %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—
+          {%- else %}{{ s | round(0) }} % · Ziel {{ z }} %{% endif %}
+        picture: /local/images/garden/plants/beet.jpg
+        layout: vertical
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_5') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < states('input_number.garten_schwellwert_beet') | float(35) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_6
+        primary: Hecke
+        secondary: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_6') %}
+          {% set z = states('input_number.garten_schwellwert_hecke') | int(35) %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—
+          {%- else %}{{ s | round(0) }} % · Ziel {{ z }} %{% endif %}
+        picture: /local/images/garden/plants/hecke.jpg
+        layout: vertical
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_6') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < states('input_number.garten_schwellwert_hecke') | float(35) %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.gw1100a_soil_moisture_7
+        primary: Himbeeren
+        secondary: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_7') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+        picture: /local/images/garden/plants/himbeeren.jpg
+        layout: vertical
+        icon: mdi:water-percent
+        icon_color: >-
+          {% set s = states('sensor.gw1100a_soil_moisture_7') %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
+          {% elif s | float(100) < 35 %} orange
+          {% else %} green {% endif %}
+        tap_action:
+          action: more-info
+
+    - type: custom:mushroom-title-card
+      title: Bewässerung
+      subtitle: Tap = manuell · Auto-Schalter unten
+
+    - type: grid
+      columns: 3
+      square: false
+      cards:
+      - type: custom:mushroom-entity-card
+        entity: valve.ventil_garten_rasen_gross
+        name: Viereckregner
+        icon: mdi:sprinkler
+        layout: vertical
+        tap_action:
+          action: perform-action
+          perform_action: script.garten_rasen_gross_bewaessern
+          confirmation:
+            text: Viereckregner OS 140 bewässern?
+      - type: custom:mushroom-entity-card
+        entity: valve.ventil_garten_rasen_klein
+        name: Versenkregner
+        icon: mdi:sprinkler-variant
+        picture: /local/images/garden/regner-sd80.webp
+        layout: vertical
+        tap_action:
+          action: perform-action
+          perform_action: script.garten_rasen_klein_bewaessern
+          confirmation:
+            text: Versenkregner SD80 bewässern?
+      - type: custom:mushroom-entity-card
+        entity: valve.ventil_garten_tropf_hecke_beet
+        name: Tropf Beet
+        icon: mdi:pipe-leak
+        layout: vertical
+        tap_action:
+          action: perform-action
+          perform_action: script.garten_tropf_bewaessern
+          confirmation:
+            text: Tropfschlauch starten? (Leck prüfen)
+
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-entity-card
+        entity: input_boolean.garten_rasen_automatisch
+        name: Rasen 4 Uhr
+        layout: horizontal
+        icon: mdi:sprinkler
+      - type: custom:mushroom-entity-card
+        entity: input_boolean.garten_tropf_automatisch
+        name: Tropf 4+21 Uhr
+        layout: horizontal
+        icon: mdi:water-sync
+
+    - type: custom:mushroom-template-card
+      primary: Bewässerung stoppen
+      secondary: Alle Ventile + laufende Skripte
+      icon: mdi:stop-circle-outline
+      icon_color: red
+      layout: horizontal
+      tap_action:
+        action: perform-action
+        perform_action: script.garten_bewaesserung_aus
+        confirmation:
+          text: Alle Garten-Bewässerungen stoppen?
+
+    - type: entities
+      title: Einstellungen
+      show_header_toggle: false
+      entities:
+      - entity: input_number.garten_schwellwert_beet
+      - entity: input_number.garten_schwellwert_hecke
+      - entity: input_number.garten_tropf_dauer_minuten
+      - entity: input_number.garten_tropf_sperre_stunden
+      - entity: input_number.garten_rasen_dauer_minuten
+      - entity: input_datetime.garten_tropf_letzte_bewaesserung
+
+    - type: markdown
+      content: >
+        **Tropf automatisch:** nur **Beet (CH5)**, 2× täglich **4:00** und **21:00**.
+        Standard **aus** — Tropfschlauch-Leck erst reparieren.
+
+        **Bilder:** Eigene Fotos nach `/config/www/images/garden/plants/` (gleicher Dateiname).
+        Siehe `docs/dashboard-garten.md` im Repo.

@@ -166,10 +166,11 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
   - Spec: [`ai-on-the-edge.md`](./ai-on-the-edge.md) — Entities, Live-Status, Energie-Dashboard, Fehler-Handling.
   - Einrichtung: Geräte-Web-UI + Mosquitto; HA MQTT-Integration (Auto-Discovery). YAML: `customize`, Template `sensor.watermeter_in_l`, Recorder-Filter in `configuration.yaml`.
 
-- **Garten-Bewässerung (Zigbee + Gardena Bluetooth)**
+- **Garten-Bewässerung (Froggit/Ecowitt + Gardena Bluetooth)**
   - Spec: [`garten-bewaesserung.md`](./garten-bewaesserung.md)
-  - **Bodenfeuchte Garten:** 2× **Tuya SGS01Z** (IP67) — `Feuchte-Garten-Hecke` / `Feuchte-Garten-Beet`
-  - **Topfpflanzen innen:** 3× **ThirdReality** — friendly_name nach Raum beim Pairing
+  - **Gateway:** **froggit DP1500** → Core-Integration **`ecowitt`** (UI); Upload unter Web-UI **Weather Services → scroll → Customized**
+  - **Bodenfeuchte:** 8× **froggit DP100** → `sensor.gw1100a_soil_moisture_1` … `_8` (CH1–CH8)
+  - **Zigbee (optional):** Tuya SGS01Z Garten, ThirdReality innen — Zigbee2MQTT
   - **Ventile:** 3× Gardena **1285-20** über **`gardena_bluetooth`** — aktuell Custom **`Gardena Bluetooth (Proxy Fix)`** in `custom_components/` (Workaround für ESPHome-Proxy; Erfolgsrezept in Spec)
   - **BLE Garten:** Atom am **EG-Fenster** — [`atom-bluetooth-proxy-eg-garten.yaml`](../esphome/atom-bluetooth-proxy-eg-garten.yaml), **active scanning** (OTA nötig)
   - **BLE sonst:** Atom 1.OG / 2.OG passiv

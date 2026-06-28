@@ -41,8 +41,13 @@ Sicherheit: `input_number.garten_max_laufzeit_stunden`.
 
 ### Aliase & Google-Namen
 
-In `configuration.yaml` → `cloud.google_actions.entity_config` (Git-versioniert).  
-Freigabe: `.storage/homeassistant.exposed_entities` für Google + Assist.
+In `configuration.yaml` → `cloud.google_actions.entity_config` (Git-versioniert).
+
+### Freigabe (Git, nicht UI)
+
+Liste: [`google_assistant_expose.yaml`](../google_assistant_expose.yaml) — eingebunden als `cloud.google_actions.filter.include_entities`.  
+Nach Änderung: Core-Neustart + „Hey Google, synchronisiere meine Geräte“.  
+Die UI-Liste unter Sprachassistenten ist dann nur noch Referenz (ausgegraut).
 
 ## Einrichtung (nach YAML-Änderung)
 
@@ -55,9 +60,6 @@ Freigabe: `.storage/homeassistant.exposed_entities` für Google + Assist.
 - Bewässerungslogik: [`garten-bewaesserung.md`](garten-bewaesserung.md)
 - Vorbild Licht EG: [`sprachsteuerung-licht-eg.md`](sprachsteuerung-licht-eg.md)
 
-## Freigabe Google Assistant
-
-Die Script-Entities werden in der HA-UI unter **Einstellungen → Sprachassistenten → Google Assistant → Freilegen** sichtbar, sofern `expose_new: true` (Nabu Casa) aktiv ist. Zusätzlich sind die Garten-Scripts in `.storage/homeassistant.exposed_entities` für Google + Assist freigegeben (nicht in Git — bei Neuaufsetzen einmal prüfen).
 
 Nach YAML-Änderungen: **„Hey Google, synchronisiere meine Geräte“**.
 

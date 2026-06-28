@@ -20,6 +20,22 @@ views:
       icon_color: blue
       card_mod:
         style: "ha-card {\n  border-bottom-left-radius: 0px;\n  border-bottom-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: custom:mushroom-template-card
+      entity: sensor.luftung_status
+      primary: '{{ states(''sensor.luftung_status'') }}'
+      secondary: >-
+        Ziel {{ state_attr(''sensor.luftung_status'', ''ziel_prozent'') | default(''—'') }} %
+        · {{ state_attr(''sensor.luftung_status'', ''profil'') | default(''—'') }}
+      icon: mdi:fan-auto
+      icon_color: >-
+        {% if is_state('input_boolean.ventilation_kill_switch', 'on') %} red
+        {% elif state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) > 0 %} blue
+        {% else %} grey {% endif %}
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
     - type: grid
       columns: 2
       square: false
@@ -414,15 +430,15 @@ views:
       - type: custom:mushroom-template-card
         primary: Bodenfeuchte Hecke
         secondary: >-
-          {% set s = states('sensor.feuchte_garten_hecke_soil_moisture') %}
+          {% set s = states('sensor.gw1100a_soil_moisture_6') %}
           {% if s in ['unknown', 'unavailable', 'none', ''] -%}
-          Zigbee-Sensor noch nicht gepairt
+          Sensor nicht verfügbar
           {%- else -%}
           {{ s | round(0) }} % (Ziel {{ states('input_number.garten_schwellwert_hecke') | int(35) }} %)
           {%- endif %}
         icon: mdi:water-percent
         icon_color: >-
-          {% set s = states('sensor.feuchte_garten_hecke_soil_moisture') %}
+          {% set s = states('sensor.gw1100a_soil_moisture_6') %}
           {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
           {% elif s | float(100) < states('input_number.garten_schwellwert_hecke') | float(35) %} orange
           {% else %} green {% endif %}
@@ -430,15 +446,15 @@ views:
       - type: custom:mushroom-template-card
         primary: Bodenfeuchte Beet
         secondary: >-
-          {% set s = states('sensor.feuchte_garten_beet_soil_moisture') %}
+          {% set s = states('sensor.gw1100a_soil_moisture_5') %}
           {% if s in ['unknown', 'unavailable', 'none', ''] -%}
-          Zigbee-Sensor noch nicht gepairt
+          Sensor nicht verfügbar
           {%- else -%}
           {{ s | round(0) }} % (Ziel {{ states('input_number.garten_schwellwert_beet') | int(35) }} %)
           {%- endif %}
         icon: mdi:water-percent
         icon_color: >-
-          {% set s = states('sensor.feuchte_garten_beet_soil_moisture') %}
+          {% set s = states('sensor.gw1100a_soil_moisture_5') %}
           {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
           {% elif s | float(100) < states('input_number.garten_schwellwert_beet') | float(35) %} orange
           {% else %} green {% endif %}
@@ -452,6 +468,10 @@ views:
         name: Viereckregner OS 140
         icon: mdi:sprinkler
         layout: vertical
+        hold_action:
+          action: none
+        double_tap_action:
+          action: none
         tap_action:
           action: perform-action
           perform_action: script.garten_rasen_gross_bewaessern
@@ -459,6 +479,10 @@ views:
             text: Viereckregner OS 140 bewässern?
       - type: custom:mushroom-entity-card
         entity: valve.ventil_garten_rasen_klein
+        hold_action:
+          action: none
+        double_tap_action:
+          action: none
         name: 2× Versenkregner SD80
         icon: mdi:sprinkler-variant
         picture: /local/images/garden/regner-sd80.webp
@@ -470,6 +494,10 @@ views:
             text: Versenkregner SD80 bewässern?
       - type: custom:mushroom-entity-card
         entity: valve.ventil_garten_tropf_hecke_beet
+        hold_action:
+          action: none
+        double_tap_action:
+          action: none
         name: Tropf Hecke/Beet
         icon: mdi:pipe-leak
         layout: vertical
@@ -480,6 +508,12 @@ views:
           confirmation:
             text: Tropf Hecke/Beet bewässern? (Leitung derzeit undicht)
     - type: custom:mushroom-entity-card
+      entity: input_boolean.garten_rasen_automatisch
+      name: Rasen morgens automatisch
+      layout: horizontal
+      icon: mdi:sprinkler
+      icon_color: '{% if is_state(entity, ''on'') %} blue {% else %} grey {% endif %}'
+    - type: custom:mushroom-entity-card
       entity: input_boolean.garten_tropf_automatisch
       name: Tropf automatisch
       layout: horizontal
@@ -487,7 +521,11 @@ views:
       icon_color: '{% if is_state(entity, ''on'') %} blue {% else %} grey {% endif %}'
     - type: markdown
       content: >
-        **Tropf automatisch** startet `Ventil-Garten-Tropf-Hecke-Beet`, wenn Hecke **oder** Beet unter dem
-        Schwellwert sind — nur **6–21 Uhr**, mindestens **6 h** Abstand zum letzten Lauf. Standard: **aus**
-        (Leitung derzeit undicht; Automation erst nach Reparatur sinnvoll testen).
+        **Rasen morgens** täglich **4:00** — erst Viereckregner, dann Versenkregner
+        (Dauer je Zone: Helfer „Garten Rasen Dauer“, Standard 20 min). Kein Tropf. Nach der Ansaat wieder **aus**.
+
+        **Tropf automatisch** startet `Ventil-Garten-Tropf-Hecke-Beet`, wenn **Beet** (CH5) unter dem
+        Schwellwert ist — **2× täglich** um **4:00** und **21:00**, mindestens **6 h** Abstand zum letzten Lauf.
+        Standard: **aus** (Tropfschlauch-Leck derzeit **nicht repariert** — Automation bleibt aktiv, sinnvoller
+        Test erst nach Reparatur).
   badges: []

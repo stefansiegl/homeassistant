@@ -72,7 +72,7 @@ homeassistant:
       entity_picture: /local/images/waste/waste-schwarz.png
     sensor.waste_gelb_display:
       entity_picture: /local/images/waste/waste-gelb.png
-    sensor.waste_papiertonne_display:
+    sensor.waste_papier_display:
       entity_picture: /local/images/waste/waste-blau.png
     sensor.waste_bio_display:
       entity_picture: /local/images/waste/waste-gruen.png
@@ -96,6 +96,11 @@ homeassistant:
     light.licht_eg_kueche:
       friendly_name: Licht Küche
 
+    light.licht_1og_adrian:
+      friendly_name: Licht Adrian
+    light.licht_1og_david:
+      friendly_name: Licht David
+
     sensor.helios_luftung_energy:
       friendly_name: Helios Lüftung
     sensor.vicare_energy_consumption_today:
@@ -105,6 +110,7 @@ homeassistant:
 
   packages:
     helpers: !include helpers.yaml
+    luftung: !include luftung_templates.yaml
 
 # ---------------------------------------------------------
 # RECORDER (MariaDB Short-term Storage)
@@ -234,26 +240,53 @@ template:
           {{ states('sensor.watermeter_value') not in ['unknown', 'unavailable', 'none']
              or this.state not in ['unknown', 'unavailable', 'none', ''] }}
         state: >
-          {% set raw = states('sensor.watermeter_value') | float(none)
-             if trigger.platform != 'state'
-             else trigger.to_state.state | float(none) %}
-          {% if raw is none %}
-            {{ this.state }}
+          {% set korrektur = states('input_number.watermeter_stabil_korrektur') | float(0) %}
+          {% if korrektur > 0 %}
+            {{ korrektur }}
           {% else %}
-            {% set last = this.state | float(none) %}
-            {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
-            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
-               if trigger.platform == 'state' else as_timestamp(now()) %}
-            {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
-              {{ raw }}
+            {% set raw = states('sensor.watermeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% if raw is none %}
+              {{ this.state }}
             {% else %}
-              {% set hours = (now_ts - last_ts) / 3600 %}
-              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
-              {% set accepted = raw %}
-              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) %}
-                {% set accepted = last %}
+              {% set last = this.state | float(none) %}
+              {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
+              {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+                 if trigger.platform == 'state' else as_timestamp(now()) %}
+              {% if last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
+                {{ raw }}
+              {% else %}
+                {% set hours = (now_ts - last_ts) / 3600 %}
+                {% set limit = 3.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+                {% set accepted = raw %}
+                {% set spike_reject = raw > last * 3 and raw > 500 %}
+                {% set upward_reject = raw - last > limit %}
+                {% set downward_reject = last - raw > 0.2 %}
+                {% if upward_reject or spike_reject %}
+                  {% set accepted = last %}
+                {% elif downward_reject %}
+                  {% if is_state('sensor.watermeter_error', 'no error')
+                     and is_state('binary_sensor.watermeter_problem', 'off')
+                     and (last - raw) <= 5 %}
+                    {% set prev_raw = this.attributes.get('last_raw_seen') | float(-999) %}
+                    {% set confirm = this.attributes.get('raw_confirm_count', 0) | int %}
+                    {% if (raw - prev_raw) | abs < 0.02 %}
+                      {% set confirm = confirm + 1 %}
+                    {% else %}
+                      {% set confirm = 1 %}
+                    {% endif %}
+                    {% if confirm >= 3 %}
+                      {% set accepted = raw %}
+                    {% else %}
+                      {% set accepted = last %}
+                    {% endif %}
+                  {% else %}
+                    {% set accepted = last %}
+                  {% endif %}
+                {% endif %}
+                {{ accepted }}
               {% endif %}
-              {{ accepted }}
             {% endif %}
           {% endif %}
         attributes:
@@ -261,7 +294,31 @@ template:
           raw_value: >
             {{ states('sensor.watermeter_value') if trigger.platform != 'state'
                else trigger.to_state.state }}
+          korrektur_aktiv: >
+            {{ states('input_number.watermeter_stabil_korrektur') | float(0) > 0 }}
+          raw_confirm_count: >
+            {% set korrektur = states('input_number.watermeter_stabil_korrektur') | float(0) %}
+            {% if korrektur > 0 %}0{% else %}
+            {% set raw = states('sensor.watermeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {% set last = this.state | float(none) %}
+            {% if raw is none or last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}0
+            {% elif is_state('sensor.watermeter_error', 'no error')
+               and is_state('binary_sensor.watermeter_problem', 'off')
+               and last - raw > 0.2 and (last - raw) <= 5 %}
+              {% set prev_raw = this.attributes.get('last_raw_seen') | float(-999) %}
+              {% set confirm = this.attributes.get('raw_confirm_count', 0) | int %}
+              {% if (raw - prev_raw) | abs < 0.02 %}{{ confirm + 1 }}{% else %}1{% endif %}
+            {% else %}0{% endif %}{% endif %}
+          last_raw_seen: >
+            {% set raw = states('sensor.watermeter_value') | float(none)
+               if trigger.platform != 'state'
+               else trigger.to_state.state | float(none) %}
+            {{ raw if raw is not none else this.attributes.get('last_raw_seen', '') }}
           filtered: >
+            {% set korrektur = states('input_number.watermeter_stabil_korrektur') | float(0) %}
+            {% if korrektur > 0 %}false{% else %}
             {% set raw = states('sensor.watermeter_value') | float(none)
                if trigger.platform != 'state'
                else trigger.to_state.state | float(none) %}
@@ -273,16 +330,31 @@ template:
               {% set now_ts = as_timestamp(trigger.to_state.last_updated)
                  if trigger.platform == 'state' else as_timestamp(now()) %}
               {% set hours = (now_ts - last_ts) / 3600 %}
-              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
-              {{ raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) }}
-            {% endif %}
+              {% set limit = 3.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+              {% set spike_reject = raw > last * 3 and raw > 500 %}
+              {% set upward_reject = raw - last > limit %}
+              {% set downward_reject = last - raw > 0.2 %}
+              {% if upward_reject or spike_reject %}true
+              {% elif downward_reject %}
+                {% if is_state('sensor.watermeter_error', 'no error')
+                   and is_state('binary_sensor.watermeter_problem', 'off')
+                   and (last - raw) <= 5 %}
+                  {% set prev_raw = this.attributes.get('last_raw_seen') | float(-999) %}
+                  {% set confirm = this.attributes.get('raw_confirm_count', 0) | int %}
+                  {% set confirm = confirm + 1 if (raw - prev_raw) | abs < 0.02 else 1 %}
+                  {{ confirm < 3 }}
+                {% else %}true{% endif %}
+              {% else %}false{% endif %}
+            {% endif %}{% endif %}
           last_accepted_ts: >
+            {% set korrektur = states('input_number.watermeter_stabil_korrektur') | float(0) %}
+            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
+               if trigger.platform == 'state' else as_timestamp(now()) %}
+            {% if korrektur > 0 %}{{ now_ts }}{% else %}
             {% set raw = states('sensor.watermeter_value') | float(none)
                if trigger.platform != 'state'
                else trigger.to_state.state | float(none) %}
             {% set last = this.state | float(none) %}
-            {% set now_ts = as_timestamp(trigger.to_state.last_updated)
-               if trigger.platform == 'state' else as_timestamp(now()) %}
             {% if raw is none %}
               {{ this.attributes.get('last_accepted_ts', now_ts) }}
             {% elif last is none or this.state in ['unknown', 'unavailable', 'none', ''] %}
@@ -290,13 +362,31 @@ template:
             {% else %}
               {% set last_ts = this.attributes.get('last_accepted_ts', as_timestamp(this.last_updated)) | float(0) %}
               {% set hours = (now_ts - last_ts) / 3600 %}
-              {% set limit = 15.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
-              {% if raw - last > limit or last - raw > 0.2 or (raw > last * 3 and raw > 500) %}
-                {{ last_ts }}
-              {% else %}
-                {{ now_ts }}
+              {% set limit = 3.0 if hours > 48 else [2.0 * hours, 0.1] | max %}
+              {% set spike_reject = raw > last * 3 and raw > 500 %}
+              {% set upward_reject = raw - last > limit %}
+              {% set downward_reject = last - raw > 0.2 %}
+              {% set accept = true %}
+              {% if upward_reject or spike_reject %}
+                {% set accept = false %}
+              {% elif downward_reject %}
+                {% if is_state('sensor.watermeter_error', 'no error')
+                   and is_state('binary_sensor.watermeter_problem', 'off')
+                   and (last - raw) <= 5 %}
+                  {% set prev_raw = this.attributes.get('last_raw_seen') | float(-999) %}
+                  {% set confirm = this.attributes.get('raw_confirm_count', 0) | int %}
+                  {% if (raw - prev_raw) | abs < 0.02 %}
+                    {% set confirm = confirm + 1 %}
+                  {% else %}
+                    {% set confirm = 1 %}
+                  {% endif %}
+                  {% set accept = confirm >= 3 %}
+                {% else %}
+                  {% set accept = false %}
+                {% endif %}
               {% endif %}
-            {% endif %}
+              {{ now_ts if accept else last_ts }}
+            {% endif %}{% endif %}
 
   # Gaszähler: OCR-Ausreißer filtern (siehe docs/ai-on-the-edge.md)
   - trigger:
@@ -728,60 +818,40 @@ template:
         unit_of_measurement: "l"
         availability: "{{ states('sensor.watermeter_value_stabil') not in ['unknown', 'unavailable', 'none'] }}"
 
-      # Müll-Logik: Restmüll
-      - name: "Waste Rest Days"
-        unique_id: waste_rest_days
-        state: "{{ state_attr('sensor.waste_collection_rest', 'daysTo') | default(99) }}"
-        unit_of_measurement: "d"
       - name: "Waste Rest Display"
         unique_id: waste_rest_display_modern
         state: >
-          {% set days = state_attr('sensor.waste_collection_rest', 'daysTo') %}
+          {% set days = state_attr('sensor.waste_rest_days', 'daysTo') %}
           {% if days == None %} Unbekannt
           {% elif days == 0 %} Heute
           {% elif days == 1 %} Morgen
           {% else %} In {{ days }} Tagen
           {% endif %}
 
-      # Müll-Logik: Gelbe Tonne
-      - name: "Waste Gelb Days"
-        unique_id: waste_gelb_days
-        state: "{{ state_attr('sensor.waste_collection_gelb', 'daysTo') | default(99) }}"
-        unit_of_measurement: "d"
       - name: "Waste Gelb Display"
         unique_id: waste_gelb_display_modern
         state: >
-          {% set days = state_attr('sensor.waste_collection_gelb', 'daysTo') %}
+          {% set days = state_attr('sensor.waste_gelb_days', 'daysTo') %}
           {% if days == None %} Unbekannt
           {% elif days == 0 %} Heute
           {% elif days == 1 %} Morgen
           {% else %} In {{ days }} Tagen
           {% endif %}
 
-      # Müll-Logik: Biotonne
-      - name: "Waste Bio Days"
-        unique_id: waste_bio_days
-        state: "{{ state_attr('sensor.waste_collection_bio', 'daysTo') | default(99) }}"
-        unit_of_measurement: "d"
       - name: "Waste Bio Display"
         unique_id: waste_bio_display_modern
         state: >
-          {% set days = state_attr('sensor.waste_collection_bio', 'daysTo') %}
+          {% set days = state_attr('sensor.waste_bio_days', 'daysTo') %}
           {% if days == None %} Unbekannt
           {% elif days == 0 %} Heute
           {% elif days == 1 %} Morgen
           {% else %} In {{ days }} Tagen
           {% endif %}
 
-      # Müll-Logik: Papiertonne
-      - name: "Waste Papier Days"
-        unique_id: waste_papier_days
-        state: "{{ state_attr('sensor.waste_collection_papier', 'daysTo') | default(99) }}"
-        unit_of_measurement: "d"
       - name: "Waste Papier Display"
         unique_id: waste_papier_display_modern
         state: >
-          {% set days = state_attr('sensor.waste_collection_papier', 'daysTo') %}
+          {% set days = state_attr('sensor.waste_papier_days', 'daysTo') %}
           {% if days == None %} Unbekannt
           {% elif days == 0 %} Heute
           {% elif days == 1 %} Morgen
@@ -909,7 +979,7 @@ template:
         icon: mdi:gas-cylinder
         state: >
           {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
-          {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
+          {% set fehler_min = [states('input_number.zaehler_fehler_minuten') | int(30), 60] | max %}
           {% set offline_min = 5 %}
           {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
           {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -972,7 +1042,7 @@ template:
         icon: mdi:water-alert
         state: >
           {% set stale_min = states('input_number.zaehler_stale_minuten') | int(45) %}
-          {% set fehler_min = states('input_number.zaehler_fehler_minuten') | int(30) %}
+          {% set fehler_min = [states('input_number.zaehler_fehler_minuten') | int(30), 60] | max %}
           {% set offline_min = 5 %}
           {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
           {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
@@ -1141,11 +1211,30 @@ lovelace:
       icon: mdi:battery
       show_in_sidebar: true
       filename: dashboards/batterie.yaml
+    dashboard-luftung:
+      mode: yaml
+      title: Lüftung
+      icon: mdi:fan
+      show_in_sidebar: true
+      filename: dashboards/luftung.yaml
+    dashboard-zaehlerstaende:
+      mode: yaml
+      title: Zählerstände
+      icon: mdi:counter
+      show_in_sidebar: true
+      filename: dashboards/zaehlerstaende.yaml
+    dashboard-garten:
+      mode: yaml
+      title: Garten
+      icon: mdi:flower
+      show_in_sidebar: true
+      filename: dashboards/garten.yaml
 
 bluetooth:
 mobile_app:
 cloud:
   google_actions:
+    filter: !include google_assistant_expose.yaml
     entity_config:
       script.garten_rasen_gross_bewaessern:
         name: Rasensprenger an
@@ -1153,63 +1242,141 @@ cloud:
         aliases:
           - großer Rasensprenger an
           - Rasensprenger starten
-          - großer Rasensprenger starten
+          - rasen Sprenger an
       script.garten_rasen_klein_bewaessern:
         name: Versenkregner an
         room: Garten
         aliases:
           - Kreisregner an
           - Versenkregner starten
-          - Kreisregner starten
       script.garten_tropf_bewaessern:
         name: Tropfschlauch an
         room: Garten
         aliases:
           - Hecke an
           - Beet an
-          - Tropfregner an
+          - Tropfschlauch an
+          - Tropfschläuche an
           - Hecke bewässern
-          - Beet bewässern
-          - Tropfregner starten
       script.garten_rasen_gross_aus:
         name: Rasensprenger aus
         room: Garten
         aliases:
           - großer Rasensprenger aus
           - Rasensprenger stoppen
-          - großer Rasensprenger stoppen
+          - rasen Sprenger aus
+          - deaktiviere Rasensprenger
+          - stoppe Rasensprenger
       script.garten_rasen_klein_aus:
         name: Versenkregner aus
         room: Garten
         aliases:
           - Kreisregner aus
           - Versenkregner stoppen
-          - Kreisregner stoppen
+          - deaktiviere Versenkregner
+          - stoppe Versenkregner
       script.garten_tropf_aus:
         name: Tropfschlauch aus
         room: Garten
         aliases:
           - Hecke aus
           - Beet aus
-          - Tropfregner aus
-          - Hecke stoppen
-          - Beet stoppen
+          - Heckenbewässerung aus
+          - Bewässerung Hecke aus
+          - Tropfschlauch aus
+          - deaktiviere Tropfschlauch
+          - deaktiviere Heckenbewässerung
+          - stoppe Tropfschlauch
       script.garten_bewaesserung_aus:
         name: Garten Bewässerung aus
         room: Garten
         aliases:
           - Bewässerung aus
-          - Garten Wasser aus
+          - Gartenbewässerung aus
           - Garten alles aus
-          - Garten stoppen
+          - alle Bewässerung aus
+          - deaktiviere Garten Bewässerung
+          - stoppe Garten Bewässerung
       script.garten_bewaesserung_status:
-        name: Läuft Bewässerung
+        name: Bewässerung Status
         room: Garten
         aliases:
+          - aktiviere Bewässerung Status
+          - starte Bewässerung Status
           - Garten Bewässerung Status
-          - Welche Bewässerung läuft
-          - Was läuft im Garten
-          - Läuft gerade Bewässerung
+      script.haustuer_status:
+        name: Haustür Status
+        room: Haustür
+        aliases:
+          - aktiviere Haustür Status
+          - starte Haustür Status
+      script.licht_aus_alle:
+        name: Alle Lichter aus
+        room: Haus
+        aliases:
+          - Licht überall aus
+          - deaktiviere Alle Lichter
+          - schalte alle Lichter aus
+      script.licht_aus_adrian:
+        name: Licht Adrian aus
+        room: Adrian
+        aliases:
+          - Adrian Licht aus
+          - deaktiviere Licht Adrian
+          - schalte Adrian Licht aus
+      script.licht_ein_adrian:
+        name: Licht Adrian an
+        room: Adrian
+        aliases:
+          - Adrian Licht an
+          - schalte Adrian Licht an
+      script.licht_aus_david:
+        name: Licht David aus
+        room: David
+        aliases:
+          - David Licht aus
+          - Licht bei David aus
+          - mach das Licht bei David aus
+          - deaktiviere Licht David
+          - schalte David Licht aus
+      script.licht_ein_david:
+        name: Licht David an
+        room: David
+        aliases:
+          - David Licht an
+          - Licht bei David an
+          - schalte David Licht an
+      script.licht_aus_wohnzimmer:
+        name: Licht Wohnzimmer aus
+        room: Wohnzimmer
+        aliases:
+          - Wohnzimmerlicht aus
+          - deaktiviere Licht Wohnzimmer
+          - schalte Wohnzimmerlicht aus
+      script.licht_ein_wohnzimmer:
+        name: Licht Wohnzimmer an
+        room: Wohnzimmer
+        aliases:
+          - Wohnzimmerlicht an
+          - schalte Wohnzimmerlicht an
+      script.haus_muell_info:
+        name: Müllabfuhr Info
+        room: Haus
+        aliases:
+          - aktiviere Müllabfuhr Info
+          - starte Müllabfuhr Info
+      script.haus_strom_info:
+        name: Strom Info
+        room: Haus
+        aliases:
+          - aktiviere Strom Info
+          - starte Strom Info
+      script.haus_energie_info:
+        name: Energie Info
+        room: Haus
+        aliases:
+          - aktiviere Energie Info
+          - starte Energie Info
 
 tts:
   - platform: google_translate

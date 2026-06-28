@@ -1,0 +1,290 @@
+# Dashboard: Lüftung — Analyse & Verlauf
+# Siehe docs/dashboard-luftung.md
+
+views:
+- title: Analyse
+  path: analyse
+  cards:
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Lüftung — Aktuell
+      subtitle: Steuergrund & CO₂ alle Räume
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -10px !important;\n}"
+    - type: custom:mushroom-template-card
+      entity: sensor.luftung_status
+      primary: '{{ states(''sensor.luftung_status'') }}'
+      secondary: >-
+        Ziel {{ state_attr(''sensor.luftung_status'', ''ziel_prozent'') | default(''—'') }} %
+        · Profil {{ state_attr(''sensor.luftung_status'', ''profil'') | default(''—'') }}
+        · CO₂ eff. {{ state_attr(''sensor.luftung_status'', ''co2_effektiv'') | default(''—'') }} ppm
+      icon: mdi:fan-auto
+      icon_color: >-
+        {% if is_state('input_boolean.ventilation_kill_switch', 'on') %} red
+        {% elif state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) > 0 %} blue
+        {% else %} grey {% endif %}
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: "ha-card {\n  border-bottom-left-radius: 0px;\n  border-bottom-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: grid
+      columns: 2
+      square: false
+      card_mod:
+        style: "ha-card {\n  box-shadow: none;\n  background: none;\n  margin-top: 0px;\n}\n:host {\n  --grid-card-gap: 0px;\n}"
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.helios_fan_speed_percentage
+        primary: '{{ states(''sensor.helios_fan_speed_percentage'') }} %'
+        secondary: Lüfter Ist
+        icon: mdi:fan
+        layout: vertical
+        icon_color: blue
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.luftung_ziel_prozent
+        primary: '{{ states(''sensor.luftung_ziel_prozent'') }} %'
+        secondary: Lüfter Soll
+        icon: mdi:fan-auto
+        layout: vertical
+        icon_color: cyan
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.house_max_co2
+        primary: '{{ states(''sensor.house_max_co2'') }} ppm'
+        secondary: CO₂ Haus-Max
+        icon: mdi:home-analytics
+        layout: vertical
+        icon_color: >-
+          {% set v = states('sensor.house_max_co2') | int(0) %}
+          {% if v > 1200 %} red {% elif v > 900 %} orange {% else %} green {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border-bottom-left-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        primary: >-
+          {% set d = state_attr('sensor.luftung_status', 'delta_temp') %}
+          {% if d in ['—', none, ''] %}—{% else %}{{ d }} °C{% endif %}
+        secondary: ΔT Schlafz. − außen
+        icon: mdi:thermometer-chevron-down
+        layout: vertical
+        icon_color: >-
+          {% set d = state_attr('sensor.luftung_status', 'delta_temp') | float(-99) %}
+          {% if d >= 2 %} cyan {% elif d >= 0 %} grey {% else %} orange {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border-bottom-left-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  box-shadow: none;\n}"
+    - type: grid
+      columns: 4
+      square: false
+      card_mod:
+        style: "ha-card {\n  box-shadow: none;\n  background: none;\n  margin-top: 0px;\n}\n:host {\n  --grid-card-gap: 0px;\n}"
+      cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_02_kueche_carbon_dioxide
+        primary: '{{ states(''sensor.aranet4_02_kueche_carbon_dioxide'') }}'
+        secondary: EG Küche
+        icon: mdi:molecule-co2
+        layout: vertical
+        icon_color: >-
+          {% set v = states('sensor.aranet4_02_kueche_carbon_dioxide') | int(0) %}
+          {% if v > 1200 %} red {% elif v > 900 %} orange {% else %} green {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+        primary: '{{ states(''sensor.c9_46_fc_e8_90_d9_carbon_dioxide'') }}'
+        secondary: 1. OG
+        icon: mdi:molecule-co2
+        layout: vertical
+        icon_color: >-
+          {% set v = states('sensor.c9_46_fc_e8_90_d9_carbon_dioxide') | int(0) %}
+          {% if v > 1200 %} red {% elif v > 900 %} orange {% else %} green {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+        primary: '{{ states(''sensor.aranet4_01_arbeitszimmer_carbon_dioxide'') }}'
+        secondary: 2. OG Büro
+        icon: mdi:molecule-co2
+        layout: vertical
+        icon_color: >-
+          {% set v = states('sensor.aranet4_01_arbeitszimmer_carbon_dioxide') | int(0) %}
+          {% if v > 1200 %} red {% elif v > 900 %} orange {% else %} green {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-right: none;\n  box-shadow: none;\n}"
+      - type: custom:mushroom-template-card
+        entity: sensor.db_04_e6_6d_44_0d_carbon_dioxide
+        primary: '{{ states(''sensor.db_04_e6_6d_44_0d_carbon_dioxide'') }}'
+        secondary: 2. OG Schlafz.
+        icon: mdi:molecule-co2
+        layout: vertical
+        icon_color: >-
+          {% set v = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') | int(0) %}
+          {% if v > 1200 %} red {% elif v > 900 %} orange {% else %} green {% endif %}
+        card_mod:
+          style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n}"
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Letzte 24 Stunden
+      subtitle: Steuergrund, Lüfter und Raumwerte — zeitlich untereinander vergleichen
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -8px !important;\n  box-shadow: none;\n}"
+    - type: logbook
+      title: Steuergrund (Text)
+      hours_to_show: 24
+      entities:
+      - sensor.luftung_status
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n  max-height: 220px;\n  overflow: auto;\n}"
+    - type: history-graph
+      title: Steuergrund (Kurve) & Lüfter-Soll
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.luftung_grund_stufe
+        name: Grund (Zahl → Legende in more-info)
+      - entity: sensor.luftung_ziel_prozent
+        name: Lüfter Soll %
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: history-graph
+      title: Lüfterstufe Ist vs. Soll
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.luftung_ziel_prozent
+        name: Soll (Automation)
+      - entity: sensor.helios_fan_speed_percentage
+        name: Ist (Helios)
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: history-graph
+      title: CO₂ — alle Räume
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.aranet4_02_kueche_carbon_dioxide
+        name: EG Küche
+      - entity: sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+        name: 1. OG
+      - entity: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+        name: 2. OG Büro
+      - entity: sensor.db_04_e6_6d_44_0d_carbon_dioxide
+        name: 2. OG Schlafz.
+      - entity: sensor.house_max_co2
+        name: Haus Max
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: history-graph
+      title: Temperatur — Räume
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.aranet4_02_kueche_temperature
+        name: EG Küche
+      - entity: sensor.c9_46_fc_e8_90_d9_temperature
+        name: 1. OG
+      - entity: sensor.aranet4_01_arbeitszimmer_temperature
+        name: 2. OG Büro
+      - entity: sensor.db_04_e6_6d_44_0d_temperature
+        name: 2. OG Schlafz.
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: history-graph
+      title: Temperatur — Außen & Helios
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.helios_outside_air_temperature
+        name: Außenluft
+      - entity: sensor.helios_supply_air_temperature
+        name: Zuluft
+      - entity: sensor.helios_extract_air_temperature
+        name: Abluft
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: history-graph
+      title: Luftfeuchte — alle Räume
+      hours_to_show: 24
+      refresh_interval: 300
+      entities:
+      - entity: sensor.aranet4_02_kueche_humidity
+        name: EG Küche
+      - entity: sensor.c9_46_fc_e8_90_d9_humidity
+        name: 1. OG
+      - entity: sensor.aranet4_01_arbeitszimmer_humidity
+        name: 2. OG Büro
+      - entity: sensor.db_04_e6_6d_44_0d_humidity
+        name: 2. OG Schlafz.
+      card_mod:
+        style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n}"
+  - type: vertical-stack
+    cards:
+    - type: custom:mushroom-title-card
+      title: Trend — 7 Tage
+      subtitle: Stunden-Mittel und Extremwerte
+      card_mod:
+        style: "ha-card {\n  margin-bottom: -8px !important;\n  box-shadow: none;\n}"
+    - type: statistics-graph
+      title: Steuergrund & Lüfter
+      chart_type: line
+      period: hour
+      days_to_show: 7
+      stat_types:
+      - mean
+      - max
+      entities:
+      - entity: sensor.luftung_grund_stufe
+        name: Grund (max)
+      - entity: sensor.luftung_ziel_prozent
+        name: Lüfter Soll
+      - entity: sensor.helios_fan_speed_percentage
+        name: Lüfter Ist
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: statistics-graph
+      title: CO₂ — alle Räume
+      chart_type: line
+      period: hour
+      days_to_show: 7
+      stat_types:
+      - mean
+      - max
+      entities:
+      - entity: sensor.aranet4_02_kueche_carbon_dioxide
+        name: EG Küche
+      - entity: sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+        name: 1. OG
+      - entity: sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+        name: 2. OG Büro
+      - entity: sensor.db_04_e6_6d_44_0d_carbon_dioxide
+        name: 2. OG Schlafz.
+      - entity: sensor.house_max_co2
+        name: Haus Max
+      card_mod:
+        style: "ha-card {\n  border-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  border-bottom: none;\n  margin-bottom: 0px;\n  box-shadow: none;\n}"
+    - type: statistics-graph
+      title: Temperatur — Räume & Außen
+      chart_type: line
+      period: hour
+      days_to_show: 7
+      stat_types:
+      - mean
+      - min
+      entities:
+      - entity: sensor.aranet4_02_kueche_temperature
+        name: EG Küche
+      - entity: sensor.c9_46_fc_e8_90_d9_temperature
+        name: 1. OG
+      - entity: sensor.aranet4_01_arbeitszimmer_temperature
+        name: 2. OG Büro
+      - entity: sensor.db_04_e6_6d_44_0d_temperature
+        name: 2. OG Schlafz.
+      - entity: sensor.helios_outside_air_temperature
+        name: Außenluft
+      card_mod:
+        style: "ha-card {\n  border-top-left-radius: 0px;\n  border-top-right-radius: 0px;\n  border: 1px solid var(--divider-color, rgba(0,0,0,0.1));\n  border-top: none;\n  box-shadow: none;\n}"

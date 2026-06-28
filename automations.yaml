@@ -326,97 +326,70 @@
       data:
         message: Trockner ist fertig.
         language: de
-- id: ventilation_auto_co2_control
-  alias: 'Lüftung: Zentrale Steuerung (Radon & CO2 Mapping)'
-  description: Steuert die Helios KWL. Radon-Logik ist optional zuschaltbar.
+- id: ventilation_notaus
+  alias: 'Lüftung: Not-Aus'
+  description: Stoppt die Helios sofort und hält 0 % solange der Not-Aus aktiv ist.
   triggers:
-  - entity_id: sensor.house_max_co2
-    trigger: state
-  - entity_id: sensor.radon_meter_radon
-    trigger: state
-  - entity_id: input_boolean.ventilation_kill_switch
-    trigger: state
-  - entity_id: input_number.radon_threshold_helper
-    trigger: state
-  - entity_id: input_boolean.radon_logic_enabled
-    trigger: state
-  - event: start
-    trigger: homeassistant
+  - trigger: state
+    entity_id: input_boolean.ventilation_kill_switch
+    to: 'on'
+  - trigger: state
+    entity_id: fan.helios
+    attribute: percentage
+  - trigger: time_pattern
+    minutes: /5
+  conditions:
+  - condition: state
+    entity_id: input_boolean.ventilation_kill_switch
+    state: 'on'
   actions:
-  - if:
-    - condition: template
-      value_template: '{{ trigger.platform == ''homeassistant'' }}'
-    then:
-    - delay: 01:00:00
-  - choose:
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.ventilation_kill_switch
-        state: 'on'
-      sequence:
-      - target:
-          entity_id: fan.helios
-        data:
-          percentage: 0
-        action: fan.set_percentage
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.ventilation_kill_switch
-        state: 'off'
-      sequence:
-      - choose:
-        - conditions:
-          - condition: state
-            entity_id: input_boolean.radon_logic_enabled
-            state: 'on'
-          - condition: numeric_state
-            entity_id: sensor.radon_meter_radon
-            above: 110
-          sequence:
-          - target:
-              entity_id: fan.helios
-            data:
-              percentage: 100
-            action: fan.set_percentage
-        - conditions:
-          - condition: state
-            entity_id: input_boolean.radon_logic_enabled
-            state: 'on'
-          - condition: numeric_state
-            entity_id: sensor.radon_meter_radon
-            above: input_number.radon_threshold_helper
-          sequence:
-          - target:
-              entity_id: fan.helios
-            data:
-              percentage: 75
-            action: fan.set_percentage
-        - conditions:
-          - condition: numeric_state
-            entity_id: sensor.house_max_co2
-            above: 1100
-          sequence:
-          - target:
-              entity_id: fan.helios
-            data:
-              percentage: 50
-            action: fan.set_percentage
-        - conditions:
-          - condition: numeric_state
-            entity_id: sensor.house_max_co2
-            above: 800
-          sequence:
-          - target:
-              entity_id: fan.helios
-            data:
-              percentage: 10
-            action: fan.set_percentage
-        default:
-        - target:
-            entity_id: fan.helios
-          data:
-            percentage: 0
-          action: fan.set_percentage
+  - target:
+      entity_id: fan.helios
+    data:
+      percentage: 0
+    action: fan.set_percentage
+  mode: restart
+- id: ventilation_auto_co2_control
+  alias: 'Lüftung: Zentrale Steuerung'
+  description: >-
+    Setzt fan.helios auf sensor.luftung_status.ziel_prozent (Zeitprofile, CO₂,
+    Nacht-Kühlung, Radon). Spec docs/climate.md.
+  triggers:
+  - trigger: state
+    entity_id: sensor.luftung_status
+  - trigger: state
+    entity_id:
+    - sensor.house_max_co2
+    - sensor.db_04_e6_6d_44_0d_carbon_dioxide
+    - sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+    - sensor.aranet4_02_kueche_carbon_dioxide
+    - sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+    - sensor.db_04_e6_6d_44_0d_temperature
+    - sensor.helios_outside_air_temperature
+    - binary_sensor.helios_bypass
+    - sensor.radon_meter_radon
+    - input_boolean.radon_logic_enabled
+    - input_number.radon_threshold_helper
+    - input_number.radon_boost_threshold_helper
+  - trigger: state
+    entity_id: input_boolean.ventilation_kill_switch
+    to: 'off'
+  - trigger: time_pattern
+    minutes: /5
+  - trigger: homeassistant
+    event: start
+  conditions:
+  - condition: state
+    entity_id: input_boolean.ventilation_kill_switch
+    state: 'off'
+  actions:
+  - variables:
+      target_pct: "{{ state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) }}"
+  - target:
+      entity_id: fan.helios
+    data:
+      percentage: "{{ target_pct }}"
+    action: fan.set_percentage
   mode: restart
 - id: climate_humidification_delta_v2_2
   alias: 'Klima: Intelligente Befeuchtung (Delta-Steuerung)'
@@ -428,6 +401,8 @@
     entity_id: input_number.ziel_luftfeuchtigkeit
   - trigger: state
     entity_id: input_boolean.ventilation_kill_switch
+  - trigger: state
+    entity_id: fan.helios
   actions:
   - variables:
       ziel: '{{ states(''input_number.ziel_luftfeuchtigkeit'') | float(41) }}'
@@ -446,6 +421,8 @@
       - condition: time
         after: '22:00:00'
         before: 08:00:00
+      - condition: template
+        value_template: "{{ state_attr('fan.helios', 'percentage') | int(0) > 10 }}"
     then:
     - action: humidifier.turn_off
       target:
@@ -453,7 +430,7 @@
         - humidifier.deerma_jsq2w_a365_humidifier
         - humidifier.deerma_jsq2w_7134_humidifier
         - humidifier.deerma_jsq2w_b6e0_humidifier
-    - stop: Nachtruhe oder Kill-Switch aktiv
+    - stop: Nachtruhe, Kill-Switch oder Lüftung > 10 % aktiv
   - choose:
     - conditions:
       - condition: template
@@ -532,7 +509,10 @@
     - binary_sensor.deerma_jsq2w_a365_water_shortage_fault
     - binary_sensor.deerma_jsq2w_7134_water_shortage_fault
     - binary_sensor.deerma_jsq2w_b6e0_water_shortage_fault
+    from: 'off'
     to: 'on'
+    for:
+      minutes: 3
   actions:
   - action: notify.mobile_app_pixel_9_pro
     data:
@@ -681,12 +661,12 @@
   triggers:
   - trigger: numeric_state
     entity_id: sensor.spuelmaschine_shellypro3em_leistung
-    above: 5
+    above: 50
     for: 00:02:00
     id: trigger_start
   - trigger: numeric_state
     entity_id: sensor.spuelmaschine_shellypro3em_leistung
-    below: 2
+    below: 6
     for: 00:05:00
     id: trigger_fertig
   - trigger: numeric_state
@@ -1566,27 +1546,21 @@
   mode: single
 - id: garten_tropf_automatisch
   alias: 'Garten: Tropf automatisch'
-  description: Bewässert Hecke/Beet bei Trockenheit (docs/garten-bewaesserung.md)
+  description: Bewässert Beet bei Trockenheit 2× täglich (docs/garten-bewaesserung.md)
   triggers:
-  - trigger: time_pattern
-    hours: '/2'
-    minutes: '0'
-  - trigger: state
-    entity_id:
-    - sensor.feuchte_garten_hecke_soil_moisture
-    - sensor.feuchte_garten_beet_soil_moisture
+  - trigger: time
+    at: '04:00:00'
+  - trigger: time
+    at: '21:00:00'
   conditions:
   - condition: state
     entity_id: input_boolean.garten_tropf_automatisch
     state: 'on'
   - condition: template
     value_template: >
-      {% set sh = states('input_number.garten_schwellwert_hecke') | float(35) %}
       {% set sb = states('input_number.garten_schwellwert_beet') | float(35) %}
-      {% set h = states('sensor.feuchte_garten_hecke_soil_moisture') %}
-      {% set b = states('sensor.feuchte_garten_beet_soil_moisture') %}
-      {{ (h not in ['unknown', 'unavailable', 'none', ''] and h | float(100) < sh)
-         or (b not in ['unknown', 'unavailable', 'none', ''] and b | float(100) < sb) }}
+      {% set b = states('sensor.gw1100a_soil_moisture_5') %}
+      {{ b not in ['unknown', 'unavailable', 'none', ''] and b | float(100) < sb }}
   - condition: template
     value_template: >
       {% set last = states('input_datetime.garten_tropf_letzte_bewaesserung') %}
@@ -1595,11 +1569,29 @@
       {% else %}
         {{ (as_timestamp(now()) - as_timestamp(last)) > (states('input_number.garten_tropf_sperre_stunden') | float(6) * 3600) }}
       {% endif %}
-  - condition: time
-    after: 06:00:00
-    before: '21:00:00'
   actions:
   - action: script.garten_tropf_bewaessern
+  mode: single
+- id: garten_rasen_morgens
+  alias: 'Garten: Rasen morgens'
+  description: Täglich 4 Uhr Viereckregner dann Versenkregner (Ansaat / feuchte Haltephase)
+  triggers:
+  - trigger: time
+    at: '04:00:00'
+  conditions:
+  - condition: state
+    entity_id: input_boolean.garten_rasen_automatisch
+    state: 'on'
+  - condition: template
+    value_template: >
+      {{ not is_state('script.garten_rasen_gross_bewaessern', 'on')
+         and not is_state('script.garten_rasen_klein_bewaessern', 'on')
+         and not is_state('script.garten_tropf_bewaessern', 'on')
+         and not is_state('valve.ventil_garten_rasen_gross', 'open')
+         and not is_state('valve.ventil_garten_rasen_klein', 'open')
+         and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
+  actions:
+  - action: script.garten_rasen_bewaessern
   mode: single
 - id: garten_sicherheit_max_laufzeit
   alias: 'Garten: Sicherheit Max-Laufzeit'
@@ -1629,7 +1621,7 @@
             {{ is_state(v, 'open')
                and (as_timestamp(now()) - as_timestamp(states[v].last_changed)) > max_s }}
         then:
-        - action: valve.close
+        - action: valve.close_valve
           target:
             entity_id: '{{ repeat.item }}'
         - action: persistent_notification.create
@@ -1638,4 +1630,88 @@
             message: >
               {{ state_attr(repeat.item, 'friendly_name') or repeat.item }}
               wurde nach {{ states('input_number.garten_max_laufzeit_stunden') }} h automatisch geschlossen.
+  mode: single
+
+# --- Sprachsteuerung: MS To Do Listen (Assist) ---
+- id: todo_sprache_einkaufen
+  alias: 'Sprache: Einkaufsliste'
+  description: Fügt Einträge zu todo.todo_einkaufen (MS To Do) hinzu — docs/sprachsteuerung-todo.md
+  triggers:
+  - trigger: conversation
+    command:
+    - bitte {item} auf die Einkaufsliste setzen
+    - '{item} auf die Einkaufsliste setzen'
+    - füge {item} zur Einkaufsliste hinzu
+    - pack {item} auf die Einkaufsliste
+    - nimm {item} auf die Einkaufsliste auf
+    - setz {item} auf die Einkaufsliste
+  conditions: []
+  actions:
+  - action: todo.add_item
+    target:
+      entity_id: todo.todo_einkaufen
+    data:
+      item: '{{ trigger.slots.item }}'
+  - set_conversation_response: '{{ trigger.slots.item }} steht auf der Einkaufsliste.'
+  mode: single
+- id: todo_sprache_kathi_mitnehmen
+  alias: 'Sprache: Kathi mitnehmen'
+  description: Fügt Einträge zu todo.todo_kathi_mitnehmen (MS To Do) hinzu — docs/sprachsteuerung-todo.md
+  triggers:
+  - trigger: conversation
+    command:
+    - bitte nimm {item} auf die Liste Kathi mitnehmen auf
+    - nimm {item} auf die Liste Kathi mitnehmen auf
+    - '{item} auf die Liste Kathi mitnehmen'
+    - füge {item} zur Liste Kathi mitnehmen hinzu
+    - pack {item} auf die Kathi mitnehmen Liste
+  conditions: []
+  actions:
+  - action: todo.add_item
+    target:
+      entity_id: todo.todo_kathi_mitnehmen
+    data:
+      item: '{{ trigger.slots.item }}'
+  - set_conversation_response: '{{ trigger.slots.item }} steht auf der Liste Kathi mitnehmen.'
+  mode: single
+- id: todo_sprache_allgemein
+  alias: 'Sprache: To do Liste'
+  description: Fügt Einträge zu todo.todo_todo (MS To Do allgemein) hinzu — docs/sprachsteuerung-todo.md
+  triggers:
+  - trigger: conversation
+    command:
+    - bitte {item} auf die To do Liste setzen
+    - '{item} auf die To do Liste setzen'
+    - füge {item} zur To do Liste hinzu
+    - setz {item} auf meine To do Liste
+    - nimm {item} auf die allgemeine To do Liste auf
+    - '{item} auf meine Aufgabenliste'
+  conditions: []
+  actions:
+  - action: todo.add_item
+    target:
+      entity_id: todo.todo_todo
+    data:
+      item: '{{ trigger.slots.item }}'
+  - set_conversation_response: '{{ trigger.slots.item }} steht auf der To do Liste.'
+  mode: single
+- id: water_stabil_korrektur_reset
+  alias: 'Wasser: Stabil-Korrektur Helper zurücksetzen'
+  description: Setzt input_number.watermeter_stabil_korrektur auf 0 nach erfolgreicher Übernahme.
+  triggers:
+  - trigger: state
+    entity_id: sensor.watermeter_value_stabil
+  conditions:
+  - condition: template
+    value_template: "{{ states('input_number.watermeter_stabil_korrektur') | float(0) > 0 }}"
+  - condition: template
+    value_template: >-
+      {{ (states('sensor.watermeter_value_stabil') | float(0)
+          - states('input_number.watermeter_stabil_korrektur') | float(0)) | abs < 0.01 }}
+  actions:
+  - action: input_number.set_value
+    target:
+      entity_id: input_number.watermeter_stabil_korrektur
+    data:
+      value: 0
   mode: single

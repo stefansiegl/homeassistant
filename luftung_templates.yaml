@@ -1,0 +1,404 @@
+# Template-Logik Lüftungssteuerung — siehe docs/climate.md
+template:
+  - trigger:
+      - trigger: time_pattern
+        minutes: "/5"
+      - trigger: state
+        entity_id:
+          - sensor.house_max_co2
+          - sensor.db_04_e6_6d_44_0d_carbon_dioxide
+          - sensor.aranet4_01_arbeitszimmer_carbon_dioxide
+          - sensor.aranet4_02_kueche_carbon_dioxide
+          - sensor.c9_46_fc_e8_90_d9_carbon_dioxide
+          - sensor.db_04_e6_6d_44_0d_temperature
+          - sensor.helios_outside_air_temperature
+          - binary_sensor.helios_bypass
+          - sensor.radon_meter_radon
+          - input_boolean.radon_logic_enabled
+          - input_boolean.ventilation_kill_switch
+          - input_number.radon_threshold_helper
+          - input_number.radon_boost_threshold_helper
+    variables:
+      co2_sensors: >-
+        {{ [
+          'sensor.aranet4_01_arbeitszimmer_carbon_dioxide',
+          'sensor.aranet4_02_kueche_carbon_dioxide',
+          'sensor.c9_46_fc_e8_90_d9_carbon_dioxide',
+          'sensor.db_04_e6_6d_44_0d_carbon_dioxide'
+        ] }}
+      bad: "['unknown', 'unavailable', 'none', '']"
+    sensor:
+      - name: Luftung Status
+        unique_id: luftung_status
+        icon: mdi:fan-auto
+        state: >
+          {% set ns = namespace(vals=[]) %}
+          {% for s in co2_sensors %}
+            {% set v = states(s) %}
+            {% if v not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.vals = ns.vals + [v | float(0)] %}
+            {% endif %}
+          {% endfor %}
+          {% set house_max = (ns.vals | max) if ns.vals | length > 0 else none %}
+          {% set bed_raw = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') %}
+          {% set bed_co2 = bed_raw | float(0) if bed_raw not in ['unknown', 'unavailable', 'none', ''] else none %}
+          {% if is_state('input_boolean.ventilation_kill_switch', 'on') %}
+            Not-Aus aktiv
+          {% elif house_max is none and bed_co2 is none %}
+            CO₂-Sensor fehlt
+          {% else %}
+            {% if house_max is not none and bed_co2 is not none %}
+              {% set co2_eff = [house_max, bed_co2] | max %}
+            {% elif house_max is not none %}
+              {% set co2_eff = house_max %}
+            {% else %}
+              {% set co2_eff = bed_co2 %}
+            {% endif %}
+            {% set h = now().hour %}
+            {% if h >= 7 and h < 22 %}
+              {% set profil = 'tag' %}
+            {% elif h >= 22 or h < 2 %}
+              {% set profil = 'abend' %}
+            {% elif h >= 2 and h < 5 %}
+              {% set profil = 'nacht' %}
+            {% else %}
+              {% set profil = 'morgen' %}
+            {% endif %}
+            {% set radon_pct = 0 %}
+            {% set radon_code = '' %}
+            {% if is_state('input_boolean.radon_logic_enabled', 'on')
+               and states('sensor.radon_meter_radon') not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set rv = states('sensor.radon_meter_radon') | float(0) %}
+              {% set boost = states('input_number.radon_boost_threshold_helper') | float(110) %}
+              {% set warn = states('input_number.radon_threshold_helper') | float(95) %}
+              {% if rv > boost %}
+                {% set radon_pct = 100 %}
+                {% set radon_code = 'radon_boost' %}
+              {% elif rv > warn %}
+                {% set radon_pct = 75 %}
+                {% set radon_code = 'radon_warn' %}
+              {% endif %}
+            {% endif %}
+            {% set co2_pct = 0 %}
+            {% set co2_code = 'aus' %}
+            {% if profil == 'tag' %}
+              {% if co2_eff > 1800 %}{% set co2_pct = 100 %}{% set co2_code = 'co2_sehr_hoch' %}
+              {% elif co2_eff > 1400 %}{% set co2_pct = 75 %}{% set co2_code = 'co2_sehr_hoch' %}
+              {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+              {% elif co2_eff > 950 %}{% set co2_pct = 30 %}{% set co2_code = 'co2_erhoht' %}
+              {% elif co2_eff > 750 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_leicht' %}
+              {% endif %}
+            {% elif profil in ['abend', 'nacht'] %}
+              {% if co2_eff > 1800 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_sehr_hoch' %}
+              {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+              {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+              {% elif co2_eff > 950 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_erhoht' %}
+              {% endif %}
+            {% else %}
+              {% if co2_eff > 1800 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_sehr_hoch' %}
+              {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+              {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_erhoht' %}
+              {% elif co2_eff > 850 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_leicht' %}
+              {% endif %}
+            {% endif %}
+            {% set co2_hitze_sperre = false %}
+            {% if is_state('binary_sensor.helios_bypass', 'on') and co2_pct > 0 and co2_pct < 50 and co2_eff <= 995 %}
+              {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+              {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+              {% if out_raw not in ['unknown', 'unavailable', 'none', '']
+                 and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                {% if in_raw | float(0) - out_raw | float(0) < 1 %}
+                  {% set co2_hitze_sperre = true %}
+                  {% set co2_pct = 0 %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+            {% set cool_pct = 0 %}
+            {% set cool_code = '' %}
+            {% if profil in ['abend', 'nacht'] and co2_eff <= 1000 %}
+              {% set bypass = is_state('binary_sensor.helios_bypass', 'on') %}
+              {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+              {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+              {% if bypass and out_raw not in ['unknown', 'unavailable', 'none', '']
+                 and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set delta = in_raw | float(0) - out_raw | float(0) %}
+                {% if delta >= 2 %}
+                  {% set cool_pct = 15 %}
+                  {% set cool_code = 'nacht_kuehlung' %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+            {% set ziel = [radon_pct, co2_pct, cool_pct] | max | int %}
+            {% if profil in ['abend', 'nacht'] and co2_code != 'co2_sehr_hoch' %}
+              {% set ziel = [ziel, 50] | min %}
+            {% elif profil == 'morgen' %}
+              {% set ziel = [ziel, 50] | min %}
+            {% endif %}
+            {% if radon_pct == ziel and radon_pct > 0 %}
+              {% if radon_code == 'radon_boost' %}Radon kritisch{% else %}Radon erhöht{% endif %}
+            {% elif co2_pct == ziel and co2_pct > 0 %}
+              {% if co2_code == 'co2_sehr_hoch' %}CO₂ sehr hoch
+              {% elif co2_code == 'co2_hoch' %}CO₂ hoch
+              {% elif co2_code == 'co2_erhoht' %}CO₂ erhöht
+              {% else %}CO₂ leicht erhöht{% endif %}
+            {% elif co2_hitze_sperre %}
+              CO₂ erhöht — Sommer-Hitze-Sperre
+            {% elif cool_pct == ziel and cool_pct > 0 %}
+              Nacht-Kühlung (außen kühler)
+            {% else %}
+              Aus — alles ok
+            {% endif %}
+          {% endif %}
+        attributes:
+          ziel_prozent: >
+            {% set ns = namespace(vals=[]) %}
+            {% for s in co2_sensors %}
+              {% set v = states(s) %}
+              {% if v not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.vals = ns.vals + [v | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {% set house_max = (ns.vals | max) if ns.vals | length > 0 else none %}
+            {% set bed_raw = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') %}
+            {% set bed_co2 = bed_raw | float(0) if bed_raw not in ['unknown', 'unavailable', 'none', ''] else none %}
+            {% if is_state('input_boolean.ventilation_kill_switch', 'on') %}
+              0
+            {% elif house_max is none and bed_co2 is none %}
+              0
+            {% else %}
+              {% if house_max is not none and bed_co2 is not none %}
+                {% set co2_eff = [house_max, bed_co2] | max %}
+              {% elif house_max is not none %}
+                {% set co2_eff = house_max %}
+              {% else %}
+                {% set co2_eff = bed_co2 %}
+              {% endif %}
+              {% set h = now().hour %}
+              {% if h >= 7 and h < 22 %}
+                {% set profil = 'tag' %}
+              {% elif h >= 22 or h < 2 %}
+                {% set profil = 'abend' %}
+              {% elif h >= 2 and h < 5 %}
+                {% set profil = 'nacht' %}
+              {% else %}
+                {% set profil = 'morgen' %}
+              {% endif %}
+              {% set radon_pct = 0 %}
+              {% if is_state('input_boolean.radon_logic_enabled', 'on')
+                 and states('sensor.radon_meter_radon') not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set rv = states('sensor.radon_meter_radon') | float(0) %}
+                {% set boost = states('input_number.radon_boost_threshold_helper') | float(110) %}
+                {% set warn = states('input_number.radon_threshold_helper') | float(95) %}
+                {% if rv > boost %}{% set radon_pct = 100 %}
+                {% elif rv > warn %}{% set radon_pct = 75 %}{% endif %}
+              {% endif %}
+              {% set co2_pct = 0 %}
+              {% if profil == 'tag' %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 100 %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 75 %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 950 %}{% set co2_pct = 30 %}
+                {% elif co2_eff > 750 %}{% set co2_pct = 15 %}{% endif %}
+              {% elif profil in ['abend', 'nacht'] %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 950 %}{% set co2_pct = 15 %}{% endif %}
+              {% else %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}
+                {% elif co2_eff > 850 %}{% set co2_pct = 15 %}{% endif %}
+              {% endif %}
+              {% set co2_hitze_sperre = false %}
+              {% if is_state('binary_sensor.helios_bypass', 'on') and co2_pct > 0 and co2_pct < 50 and co2_eff <= 995 %}
+                {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+                {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+                {% if out_raw not in ['unknown', 'unavailable', 'none', '']
+                   and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                  {% if in_raw | float(0) - out_raw | float(0) < 1 %}
+                    {% set co2_hitze_sperre = true %}
+                    {% set co2_pct = 0 %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+              {% set cool_pct = 0 %}
+              {% if profil in ['abend', 'nacht'] and co2_eff <= 1000 %}
+                {% set bypass = is_state('binary_sensor.helios_bypass', 'on') %}
+                {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+                {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+                {% if bypass and out_raw not in ['unknown', 'unavailable', 'none', '']
+                   and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                  {% set delta = in_raw | float(0) - out_raw | float(0) %}
+                  {% if delta >= 2 %}{% set cool_pct = 15 %}{% endif %}
+                {% endif %}
+              {% endif %}
+              {% set ziel = [radon_pct, co2_pct, cool_pct] | max | int %}
+              {% if profil in ['abend', 'nacht'] and co2_eff <= 1800 %}
+                {% set ziel = [ziel, 50] | min %}
+              {% elif profil == 'morgen' %}
+                {% set ziel = [ziel, 50] | min %}
+              {% endif %}
+              {{ ziel }}
+            {% endif %}
+          grund_code: >
+            {% set ns = namespace(vals=[]) %}
+            {% for s in co2_sensors %}
+              {% set v = states(s) %}
+              {% if v not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.vals = ns.vals + [v | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {% set house_max = (ns.vals | max) if ns.vals | length > 0 else none %}
+            {% set bed_raw = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') %}
+            {% set bed_co2 = bed_raw | float(0) if bed_raw not in ['unknown', 'unavailable', 'none', ''] else none %}
+            {% if is_state('input_boolean.ventilation_kill_switch', 'on') %}
+              notaus
+            {% elif house_max is none and bed_co2 is none %}
+              sensor_ausfall
+            {% else %}
+              {% if house_max is not none and bed_co2 is not none %}
+                {% set co2_eff = [house_max, bed_co2] | max %}
+              {% elif house_max is not none %}
+                {% set co2_eff = house_max %}
+              {% else %}
+                {% set co2_eff = bed_co2 %}
+              {% endif %}
+              {% set h = now().hour %}
+              {% if h >= 7 and h < 22 %}{% set profil = 'tag' %}
+              {% elif h >= 22 or h < 2 %}{% set profil = 'abend' %}
+              {% elif h >= 2 and h < 5 %}{% set profil = 'nacht' %}
+              {% else %}{% set profil = 'morgen' %}{% endif %}
+              {% set radon_pct = 0 %}{% set radon_code = '' %}
+              {% if is_state('input_boolean.radon_logic_enabled', 'on')
+                 and states('sensor.radon_meter_radon') not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set rv = states('sensor.radon_meter_radon') | float(0) %}
+                {% if rv > states('input_number.radon_boost_threshold_helper') | float(110) %}
+                  {% set radon_pct = 100 %}{% set radon_code = 'radon_boost' %}
+                {% elif rv > states('input_number.radon_threshold_helper') | float(95) %}
+                  {% set radon_pct = 75 %}{% set radon_code = 'radon_warn' %}
+                {% endif %}
+              {% endif %}
+              {% set co2_pct = 0 %}{% set co2_code = 'aus' %}
+              {% if profil == 'tag' %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 100 %}{% set co2_code = 'co2_sehr_hoch' %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 75 %}{% set co2_code = 'co2_sehr_hoch' %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+                {% elif co2_eff > 950 %}{% set co2_pct = 30 %}{% set co2_code = 'co2_erhoht' %}
+                {% elif co2_eff > 750 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_leicht' %}
+                {% endif %}
+              {% elif profil in ['abend', 'nacht'] %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_sehr_hoch' %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+                {% elif co2_eff > 950 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_erhoht' %}
+                {% endif %}
+              {% else %}
+                {% if co2_eff > 1800 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_sehr_hoch' %}
+                {% elif co2_eff > 1400 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_hoch' %}
+                {% elif co2_eff > 1150 %}{% set co2_pct = 50 %}{% set co2_code = 'co2_erhoht' %}
+                {% elif co2_eff > 850 %}{% set co2_pct = 15 %}{% set co2_code = 'co2_leicht' %}
+                {% endif %}
+              {% endif %}
+              {% set co2_hitze_sperre = false %}
+              {% if is_state('binary_sensor.helios_bypass', 'on') and co2_pct > 0 and co2_pct < 50 and co2_eff <= 995 %}
+                {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+                {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+                {% if out_raw not in ['unknown', 'unavailable', 'none', '']
+                   and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                  {% if in_raw | float(0) - out_raw | float(0) < 1 %}
+                    {% set co2_hitze_sperre = true %}
+                    {% set co2_pct = 0 %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+              {% set cool_pct = 0 %}{% set cool_code = '' %}
+              {% if profil in ['abend', 'nacht'] and co2_eff <= 1000 %}
+                {% set bypass = is_state('binary_sensor.helios_bypass', 'on') %}
+                {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+                {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+                {% if bypass and out_raw not in ['unknown', 'unavailable', 'none', '']
+                   and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+                  {% if (in_raw | float(0) - out_raw | float(0)) >= 2 %}
+                    {% set cool_pct = 15 %}{% set cool_code = 'nacht_kuehlung' %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+              {% set ziel = [radon_pct, co2_pct, cool_pct] | max | int %}
+              {% if radon_pct == ziel and radon_pct > 0 %}{{ radon_code }}
+              {% elif co2_pct == ziel and co2_pct > 0 %}{{ co2_code }}
+              {% elif co2_hitze_sperre %}co2_hitze_sperre
+              {% elif cool_pct == ziel and cool_pct > 0 %}{{ cool_code }}
+              {% else %}aus{% endif %}
+            {% endif %}
+          profil: >
+            {% set h = now().hour %}
+            {% if h >= 7 and h < 22 %}tag
+            {% elif h >= 22 or h < 2 %}abend
+            {% elif h >= 2 and h < 5 %}nacht
+            {% else %}morgen{% endif %}
+          co2_schlafzimmer: >
+            {% set v = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') %}
+            {{ v if v not in ['unknown', 'unavailable', 'none', ''] else '—' }}
+          co2_effektiv: >
+            {% set ns = namespace(vals=[]) %}
+            {% for s in co2_sensors %}
+              {% set v = states(s) %}
+              {% if v not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.vals = ns.vals + [v | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {% set house_max = (ns.vals | max) if ns.vals | length > 0 else none %}
+            {% set bed_raw = states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') %}
+            {% set bed_co2 = bed_raw | float(0) if bed_raw not in ['unknown', 'unavailable', 'none', ''] else none %}
+            {% if house_max is not none and bed_co2 is not none %}{{ [house_max, bed_co2] | max | int }}
+            {% elif house_max is not none %}{{ house_max | int }}
+            {% elif bed_co2 is not none %}{{ bed_co2 | int }}
+            {% else %}—{% endif %}
+          aussen_temp: >
+            {% set v = states('sensor.helios_outside_air_temperature') %}
+            {{ v if v not in ['unknown', 'unavailable', 'none', ''] else '—' }}
+          innen_temp: >
+            {% set v = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+            {{ v if v not in ['unknown', 'unavailable', 'none', ''] else '—' }}
+          delta_temp: >
+            {% set out_raw = states('sensor.helios_outside_air_temperature') %}
+            {% set in_raw = states('sensor.db_04_e6_6d_44_0d_temperature') %}
+            {% if out_raw not in ['unknown', 'unavailable', 'none', '']
+               and in_raw not in ['unknown', 'unavailable', 'none', ''] %}
+              {{ (in_raw | float(0) - out_raw | float(0)) | round(1) }}
+            {% else %}—{% endif %}
+          bypass_aktiv: "{{ is_state('binary_sensor.helios_bypass', 'on') }}"
+  - sensor:
+      - name: Luftung Ziel Prozent
+        unique_id: luftung_ziel_prozent
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:fan-auto
+        state: "{{ state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) }}"
+      - name: Luftung Grund Stufe
+        unique_id: luftung_grund_stufe
+        state_class: measurement
+        icon: mdi:state-machine
+        state: >
+          {% set code = state_attr('sensor.luftung_status', 'grund_code') | default('aus') %}
+          {% set map = {
+            'co2_hitze_sperre': -3,
+            'notaus': -1,
+            'sensor_ausfall': -2,
+            'aus': 0,
+            'co2_leicht': 1,
+            'co2_erhoht': 2,
+            'co2_hoch': 3,
+            'co2_sehr_hoch': 4,
+            'nacht_kuehlung': 5,
+            'radon_warn': 6,
+            'radon_boost': 7
+          } %}
+          {{ map.get(code, 0) }}
+        attributes:
+          grund_code: "{{ state_attr('sensor.luftung_status', 'grund_code') | default('aus') }}"
+          grund_text: "{{ states('sensor.luftung_status') }}"
+          legende: >-
+            0=aus · 1=CO₂ leicht · 2=erhöht · 3=hoch · 4=sehr hoch ·
+            5=Nacht-Kühlung · 6=Radon · 7=Radon kritisch · -1=Not-Aus · -3=Sommer-Hitze-Sperre

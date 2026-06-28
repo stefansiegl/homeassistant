@@ -13,6 +13,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Konfigurations-Strategie**](./docs/konfigurations-strategie.md) – Was in YAML/Git liegt vs. was in der UI bleibt (inkl. Migrations-Backlog).
 - [**Dashboard Tablett (EG)**](./docs/dashboard-tablett.md) – Kiosk-Tablet: Touch-UI, Design-Prinzipien, Backlog.
 - [**Dashboard Übersicht**](./docs/dashboard-uebersicht.md) – Haupt-Dashboard: Lüftung, Klima, Haushalt, Backlog.
+- [**Dashboard Lüftung**](./docs/dashboard-luftung.md) – CO₂/Temperatur/Lüfter-Verlauf zur Wirkungskontrolle.
 - [**Haushalt: Waschmaschine**](./docs/haushalt-waschmaschine.md) – Leistungs-Schwellen, Neustart-Logik, Push bei fertig.
 - [**Haushalt: Trockner**](./docs/haushalt-trockner.md) – wie Waschmaschine, Fertig 3 Min / <6 W.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
@@ -25,7 +26,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [Räume & Bereiche](./docs/raeume-und-bereiche.md) – Aktuelle Areas aus Home Assistant als lesbare Referenz.
 - [Standards & UI](./docs/standards.md) – Glue-Method, Naming Conventions, KI-Regeln.
 - [Beleuchtung](./docs/lights.md) – Szenen, Gruppen, Controller, Inventar.
-- [Klima & Umwelt](./docs/climate.md) – Radon-Lüftung, Luftfeuchtigkeit (Platzhalter).
+- [Klima & Umwelt](./docs/climate.md) – Lüftung (CO₂, Nacht-Kühlung, Status-Sensor).
 - [Hardware-Inventar](./docs/hardware.md) – Liste aller verbauten Komponenten.
 - [Wallboxen](./docs/wallboxes.md) – Wallbox-Notizen.
 

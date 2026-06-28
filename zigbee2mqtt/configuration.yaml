@@ -122,6 +122,16 @@ devices:
     friendly_name: Schalter-1OG-Adrian-klein
   '0xa4c1387f93554263':
     friendly_name: Steckdose-Keller-Hebeanlage
+  '0x7c3e82d6b87e0000':
+    friendly_name: '0x7c3e82d6b87e0000'
+  '0xa4c138e4183f9860':
+    friendly_name: Basilikum
+  '0xa4c13874ae16dd72':
+    friendly_name: '0xa4c13874ae16dd72'
+  '0x7c3e823552400000':
+    friendly_name: '0x7c3e823552400000'
+  '0x7c3e82d6f8120000':
+    friendly_name: '0x7c3e82d6f8120000'
 groups:
   '1':
     friendly_name: Schlafzimmer

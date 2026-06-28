@@ -17,6 +17,10 @@ input_boolean:
     name: Garten Tropf automatisch
     icon: mdi:water-pump
     initial: false
+  garten_rasen_automatisch:
+    name: Garten Rasen morgens automatisch
+    icon: mdi:sprinkler
+    initial: true
 input_number:
   ziel_luftfeuchtigkeit:
     name: Ziel Luftfeuchtigkeit
@@ -71,6 +75,15 @@ input_number:
     icon: mdi:radioactive
     unit_of_measurement: "Bq/m³"
     initial: 95
+  radon_boost_threshold_helper:
+    name: Radon Boost Schwellwert
+    min: 50
+    max: 300
+    step: 5
+    mode: slider
+    icon: mdi:radioactive
+    unit_of_measurement: "Bq/m³"
+    initial: 110
   intervall_befeuchter_reinigung:
     name: Intervall Befeuchter Reinigung
     min: 7
@@ -116,6 +129,15 @@ input_number:
     icon: mdi:timer-alert-outline
     unit_of_measurement: min
     initial: 30
+  watermeter_stabil_korrektur:
+    name: Wasser Stabil Korrektur
+    min: 0
+    max: 9999
+    step: 0.001
+    mode: box
+    icon: mdi:water-sync
+    unit_of_measurement: m³
+    initial: 0
   garten_schwellwert_hecke:
     name: Garten Schwellwert Hecke
     min: 10
@@ -276,13 +298,36 @@ template:
         unit_of_measurement: ppm
         state_class: measurement
         state: >
-          {% set values = [
-            states('sensor.aranet4_01_arbeitszimmer_carbon_dioxide') | float(0),
-            states('sensor.aranet4_02_kueche_carbon_dioxide') | float(0),
-            states('sensor.c9_46_fc_e8_90_d9_carbon_dioxide') | float(0),
-            states('sensor.db_04_e6_6d_44_0d_carbon_dioxide') | float(0)
+          {% set ns = namespace(values=[]) %}
+          {% for s in [
+            'sensor.aranet4_01_arbeitszimmer_carbon_dioxide',
+            'sensor.aranet4_02_kueche_carbon_dioxide',
+            'sensor.c9_46_fc_e8_90_d9_carbon_dioxide',
+            'sensor.db_04_e6_6d_44_0d_carbon_dioxide'
           ] %}
-          {{ values | max | round(2) }}
+            {% set v = states(s) %}
+            {% if v not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.values = ns.values + [v | float(0)] %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.values | length == 0 %}
+            unavailable
+          {% else %}
+            {{ ns.values | max | round(2) }}
+          {% endif %}
+        availability: >
+          {% set ns = namespace(ok=false) %}
+          {% for s in [
+            'sensor.aranet4_01_arbeitszimmer_carbon_dioxide',
+            'sensor.aranet4_02_kueche_carbon_dioxide',
+            'sensor.c9_46_fc_e8_90_d9_carbon_dioxide',
+            'sensor.db_04_e6_6d_44_0d_carbon_dioxide'
+          ] %}
+            {% if states(s) not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.ok = true %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.ok }}
   - binary_sensor:
       - name: Humidifier EG Empty
         unique_id: humidifier_eg_empty
