@@ -36,6 +36,11 @@ Diese Skill-Checkliste wird genutzt, um Änderungen systematisch abzusichern und
 - `docs/abgleich-checkliste.md` abarbeiten
 - Falls UI-only Schritte nötig waren: kurze Notiz ergänzen (was/wo/IDs)
 
+## 5) Periodischer Live-Check
+
+- Für vollständigen Docs↔Live-Abgleich: Skill **`ha-live-audit`** + `bin/audit-live.sh --resume`
+- Spec: `docs/live-audit.md`
+
 ## Beispiele
 
 - Nutzer: „Bitte mach den Abgleich und migrier das Tablett-Dashboard.“

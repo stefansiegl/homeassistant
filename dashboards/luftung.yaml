@@ -16,13 +16,13 @@ views:
       entity: sensor.luftung_status
       primary: '{{ states(''sensor.luftung_status'') }}'
       secondary: >-
-        Ziel {{ state_attr(''sensor.luftung_status'', ''ziel_prozent'') | default(''—'') }} %
-        · Profil {{ state_attr(''sensor.luftung_status'', ''profil'') | default(''—'') }}
-        · CO₂ eff. {{ state_attr(''sensor.luftung_status'', ''co2_effektiv'') | default(''—'') }} ppm
+        Ziel {{ states('sensor.luftung_ziel_prozent') | default('—', true) }} %
+        · Profil {{ state_attr('sensor.luftung_status', 'profil') | default('—', true) }}
+        · CO₂ eff. {{ state_attr('sensor.luftung_status', 'co2_effektiv') | default('—', true) }} ppm
       icon: mdi:fan-auto
       icon_color: >-
         {% if is_state('input_boolean.ventilation_kill_switch', 'on') %} red
-        {% elif state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) > 0 %} blue
+        {% elif states('sensor.luftung_ziel_prozent') | int(0) > 0 %} blue
         {% else %} grey {% endif %}
       layout: horizontal
       tap_action:

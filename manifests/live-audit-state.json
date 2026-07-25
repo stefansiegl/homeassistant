@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "cycle_started": "2026-06-28T20:46:56+00:00",
+  "cycle_complete": true,
+  "last_run": "2026-07-25T20:03:12+00:00",
+  "module_order": [
+    "core",
+    "haushalt",
+    "garten",
+    "climate",
+    "energie",
+    "monitoring",
+    "zaehler",
+    "dashboards",
+    "integrations",
+    "hardware",
+    "lights",
+    "sprache"
+  ],
+  "modules": {
+    "core": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:00:16+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220000+0200-core.json"
+    },
+    "haushalt": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:00:32+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220016+0200-haushalt.json"
+    },
+    "garten": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:00:48+00:00",
+      "tier_completed": 1,
+      "findings_count": 1,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220032+0200-garten.json"
+    },
+    "climate": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:01:04+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220048+0200-climate.json"
+    },
+    "energie": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:01:20+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220104+0200-energie.json"
+    },
+    "monitoring": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:01:36+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220120+0200-monitoring.json"
+    },
+    "zaehler": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:01:52+00:00",
+      "tier_completed": 1,
+      "findings_count": 2,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220136+0200-zaehler.json"
+    },
+    "dashboards": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:02:08+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220152+0200-dashboards.json"
+    },
+    "integrations": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:02:24+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220208+0200-integrations.json"
+    },
+    "hardware": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:02:40+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220224+0200-hardware.json"
+    },
+    "lights": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:02:56+00:00",
+      "tier_completed": 1,
+      "findings_count": 0,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220240+0200-lights.json"
+    },
+    "sprache": {
+      "status": "ok",
+      "last_run": "2026-07-25T20:03:12+00:00",
+      "tier_completed": 1,
+      "findings_count": 1,
+      "last_report": "/root/config/log/live-audit/2026-07-25T220256+0200-sprache.json"
+    }
+  }
+}

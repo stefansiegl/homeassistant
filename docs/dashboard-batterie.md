@@ -29,7 +29,7 @@ Orientierung: [`standards.md`](./standards.md), Referenz-Layout [`dashboards/ueb
 
 ## Filterregeln (Template)
 
-- `states.sensor` mit `attributes.device_class == 'battery'`
+- Alle Sensor-States (Jinja-Iterator) mit `attributes.device_class == 'battery'`
 - State numerisch 0–100, nicht `unavailable` / `unknown`
 - **Ausgeschlossen:** Entity-ID enthält `pixel_` oder `tablett_` (Handys/Tablets)
 - `binary_sensor` mit `device_class: battery` und `state: on` → zusätzlich in „Bald leer“

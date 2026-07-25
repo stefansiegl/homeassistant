@@ -333,7 +333,7 @@ licht_eg_szene_aktivieren:
       example: Gemütlich
       required: true
     szene_entity:
-      description: scene.entity_id
+      description: Entity-ID der Szene (Parameter szene_entity)
       example: scene.gemutlich
       required: true
     transition:
@@ -577,17 +577,91 @@ szene_adrian_gemutlich:
       target:
         entity_id: scene.adrian_gemutlich
 
+garten_tropf_limit_alarm:
+  alias: Tropf Limit / Alarm
+  description: Stoppt Tropf, schaltet Auto aus, Push (docs/garten-bewaesserung.md)
+  icon: mdi:alert
+  mode: single
+  sequence:
+    - action: script.turn_off
+      target:
+        entity_id: script.garten_tropf_bewaessern
+    - action: valve.close_valve
+      target:
+        entity_id: valve.ventil_garten_tropf_hecke_beet
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.garten_tropf_automatisch
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: "Tropf — bitte prüfen"
+        message: >-
+          Tropf-Tageslimit ({{ states('counter.garten_tropf_laeufe_heute') }}/{{ states('input_number.garten_tropf_max_laeufe_tag') | int(3) }})
+          oder Sicherheitsstopp. Auto aus. Beet/Hecke und Ventil checken.
+        data:
+          push:
+            sound: default
+            interruption-level: time-sensitive
+    - action: persistent_notification.create
+      data:
+        notification_id: garten_tropf_limit
+        title: Tropf — bitte prüfen
+        message: >-
+          Tageslimit oder Sicherheitsstopp. Schalter „Tropf automatisch“ wurde ausgeschaltet.
+          Läufe heute: {{ states('counter.garten_tropf_laeufe_heute') }}.
+
 garten_tropf_bewaessern:
   alias: Tropfschlauch an
-  description: Tropf-Ventil Zone C für konfigurierte Dauer (docs/garten-bewaesserung.md)
+  description: Tropf Zone C mit Dauer-Feld, Sperre und Tageslimit (docs/garten-bewaesserung.md)
   icon: mdi:water-pump
   mode: restart
+  fields:
+    dauer_minuten:
+      name: Dauer (Minuten)
+      description: Leer = Helper Morgen/Abend
+      example: 30
+      selector:
+        number:
+          min: 5
+          max: 120
+          step: 5
+          unit_of_measurement: min
   sequence:
+    - variables:
+        dauer: >-
+          {% if dauer_minuten is defined and dauer_minuten not in [none, '', 'none', 'None'] %}
+            {{ dauer_minuten | int(45) }}
+          {% else %}
+            {{ states('input_number.garten_tropf_dauer_minuten') | int(45) }}
+          {% endif %}
+        laeufe: "{{ states('counter.garten_tropf_laeufe_heute') | int(0) }}"
+        max_l: "{{ states('input_number.garten_tropf_max_laeufe_tag') | int(3) }}"
+    - if:
+      - condition: template
+        value_template: "{{ laeufe | int >= max_l | int }}"
+      then:
+      - action: script.garten_tropf_limit_alarm
+      - stop: Tageslimit erreicht
+    - if:
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.garten_tropf_letzte_bewaesserung') %}
+          {% if last in ['unknown', 'unavailable', 'none', ''] %}
+            false
+          {% else %}
+            {{ (as_timestamp(now()) - as_timestamp(last))
+               <= (states('input_number.garten_tropf_sperre_stunden') | float(4) * 3600) }}
+          {% endif %}
+      then:
+      - stop: Sperre aktiv — zu früh nach letztem Lauf
+    - action: counter.increment
+      target:
+        entity_id: counter.garten_tropf_laeufe_heute
     - action: valve.open_valve
       target:
         entity_id: valve.ventil_garten_tropf_hecke_beet
     - delay:
-        minutes: "{{ states('input_number.garten_tropf_dauer_minuten') | int(15) }}"
+        minutes: "{{ dauer | int(45) }}"
     - action: valve.close_valve
       target:
         entity_id: valve.ventil_garten_tropf_hecke_beet
@@ -639,6 +713,43 @@ garten_rasen_bewaessern:
            and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
     - action: script.garten_rasen_gross_bewaessern
     - action: script.garten_rasen_klein_bewaessern
+
+garten_morgen_bewaessern:
+  alias: Garten morgens (feuchtebasiert)
+  description: Zone A/B bei trockenem CH7, Tropf bei trockenem Beet/Hecke (docs/garten-bewaesserung.md)
+  icon: mdi:weather-sunset-up
+  mode: single
+  sequence:
+    - condition: template
+      value_template: >
+        {{ not is_state('script.garten_rasen_gross_bewaessern', 'on')
+           and not is_state('script.garten_rasen_klein_bewaessern', 'on')
+           and not is_state('script.garten_tropf_bewaessern', 'on')
+           and not is_state('valve.ventil_garten_rasen_gross', 'open')
+           and not is_state('valve.ventil_garten_rasen_klein', 'open')
+           and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
+    - if:
+      - condition: template
+        value_template: >
+          {% set h = states('sensor.gw1100a_soil_moisture_7') %}
+          {% set z = states('input_number.garten_schwellwert_himbeeren') | float(35) %}
+          {{ h not in ['unknown', 'unavailable', 'none', ''] and h | float(100) < z }}
+      then:
+      - action: script.garten_rasen_gross_bewaessern
+      - action: script.garten_rasen_klein_bewaessern
+    - if:
+      - condition: template
+        value_template: >
+          {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
+          {% set hecke = states('sensor.gw1100a_soil_moisture_6') %}
+          {% set zb = states('input_number.garten_schwellwert_beet') | float(35) %}
+          {% set zh = states('input_number.garten_schwellwert_hecke') | float(35) %}
+          {% set beet_trocken = beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb %}
+          {% set hecke_trocken = hecke not in ['unknown', 'unavailable', 'none', ''] and hecke | float(100) < zh %}
+          {{ beet_trocken or hecke_trocken }}
+      then:
+      - action: script.garten_tropf_bewaessern
+
 garten_rasen_gross_aus:
   alias: Rasensprenger aus
   description: Stoppt Viereckregner und schließt Ventil Zone A (Sprachsteuerung)
@@ -687,6 +798,8 @@ garten_bewaesserung_aus:
     - action: script.turn_off
       target:
         entity_id:
+          - script.garten_morgen_bewaessern
+          - script.garten_rasen_bewaessern
           - script.garten_rasen_gross_bewaessern
           - script.garten_rasen_klein_bewaessern
           - script.garten_tropf_bewaessern
@@ -851,7 +964,7 @@ haus_strom_info:
           {%- set bezug = states('sensor.mt691_total_in_stabil') | float(0) | round(0) -%}
           {%- set einspeis = states('sensor.mt691_total_out_stabil') | float(0) | round(0) -%}
           {%- set kosten = states('sensor.strom_bezug_stabil_kosten') | float(0) | round(2) -%}
-          {%- set verguetung = states('sensor.strom_einspeisung_stabil_verguetung') | float(0) | round(2) -%}
+          {%- set verguetung = states('sensor.strom_einspeisung_stabil_vergutung') | float(0) | round(2) -%}
           Aktuell werden {{ leistung }} Watt bezogen.
           Stromzähler: {{ bezug }} Kilowattstunden Bezug, {{ einspeis }} Kilowattstunden Einspeisung.
           Stromkosten bisher {{ '%.2f' | format(kosten) | replace('.', ',') }} Euro.

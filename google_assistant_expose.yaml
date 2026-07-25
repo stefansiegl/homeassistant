@@ -1,177 +1,63 @@
 # Google Assistant — freigegebene Entities (Nabu Casa)
 # Git-versioniert. Nach Änderung: ha core restart, dann „Hey Google, synchronisiere meine Geräte“.
 # Hinweis: Mit filter.include_entities steuert nur diese Liste die Freigabe (UI-Einträge sind ausgegraut).
+# Stand 2026-07: bereinigt gegen live Registry — alte light.0x… / Hue-Raum-Szenen entfernt.
 include_entities:
-  - light.0x00178801067e753a
-  - light.0x00178801096fbacf
-  - light.0x00178801096fc59b
-  - light.0x00178801096fd5d0
-  - light.0x001788010979cc56
-  - light.0x001788010979ed7a
-  - light.0x00178801097a02c0
-  - light.0x00178801097a2ad5
-  - light.0x00178801097fe7cb
-  - light.0x00178801097ff23b
-  - light.0x001788010e15ea0f
-  - light.0x001788010e15ea45
-  - light.0x001788010e15f48f
-  - light.0x001788010e15f492
-  - light.0xa4c13831a285830d
-  - light.0xa4c13871b797cdfa
+  # --- Lichtgruppen & Einzellichter (EG + 1.OG) ---
   - light.alle_lichter_erdgeschoss
   - light.alle_lichter_esszimmer
   - light.alle_lichter_wohnzimmer
-  - light.dach
-  - light.eg_wohnzimmer_hauptlampe
-  - light.garten
-  - light.hue_centris_ceiling_1
-  - light.hue_centris_ess_lang
-  - light.hue_centris_ess_spot_1
-  - light.hue_centris_ess_spot_2
-  - light.hue_centris_ess_spot_3
-  - light.hue_centris_ess_spot_4
-  - light.hue_centris_spot_1
-  - light.hue_centris_spot_2
-  - light.hue_centris_spot_3
-  - light.hue_infuse_ceiling_1
-  - light.hue_infuse_ceiling_1_2
-  - light.hue_infuse_ceiling_1_3
-  - light.hue_infuse_ceiling_1_4
-  - light.hue_iris_1
-  - light.hue_lightstrip_outdoor_1
-  - light.kuche
+  - light.licht_eg_kueche
   - light.licht_1og_adrian
   - light.licht_1og_david
-  - light.licht_eg_kueche
-  - light.obergeschoss
-  - light.schlafzimmer
-  - light.schrank
-  - light.tv_regal
-  - media_player.lg_webos_tv_oled65cs9la_cast
-  - media_player.nest_mini_esszimmer_raw
-  - media_player.nest_mini_legozimmer
-  - scene.adrian_energie_tanken
-  - scene.adrian_entspannen
-  - scene.adrian_konzentrieren
-  - scene.adrian_lesen
-  - scene.adrian_nachtlicht
-  - scene.david_energie_tanken
-  - scene.david_entspannen
-  - scene.david_konzentrieren
-  - scene.david_lesen
-  - scene.david_nachtlicht
-  - scene.erdgeschoss_energie_tanken
-  - scene.erdgeschoss_entspannen
-  - scene.erdgeschoss_fruhlingsbluten
-  - scene.erdgeschoss_gedimmt
-  - scene.erdgeschoss_gemutlich
-  - scene.erdgeschoss_hell
-  - scene.erdgeschoss_konzentrieren
-  - scene.erdgeschoss_lesen
-  - scene.erdgeschoss_nachtlicht
-  - scene.erdgeschoss_nordlichter
-  - scene.erdgeschoss_sonnenuntergang_savanne
-  - scene.erdgeschoss_szene_1
-  - scene.erdgeschoss_szene_2
-  - scene.erdgeschoss_tropendammerung
-  - scene.erdgeschoss_tv
-  - scene.esszimmer_energie_tanken
-  - scene.esszimmer_entspannen
-  - scene.esszimmer_fruhlingsbluten
-  - scene.esszimmer_funky
-  - scene.esszimmer_gedimmt
-  - scene.esszimmer_gemutlich
-  - scene.esszimmer_hell
-  - scene.esszimmer_konzentrieren
-  - scene.esszimmer_lesen
-  - scene.esszimmer_nachtlicht
-  - scene.esszimmer_nordlichter
-  - scene.esszimmer_sonnenuntergang_savanne
-  - scene.esszimmer_tropendammerung
-  - scene.garten_energie_tanken
-  - scene.garten_entspannen
-  - scene.garten_fruhlingsbluten
-  - scene.garten_gedimmt
-  - scene.garten_hell
-  - scene.garten_konzentrieren
-  - scene.garten_lesen
-  - scene.garten_nachtlicht
-  - scene.garten_nordlichter
-  - scene.garten_nordlichter_2
-  - scene.garten_palm_beach
-  - scene.garten_rubinrotes_leuchten
-  - scene.garten_sonnenuntergang_savanne
-  - scene.garten_sternenlicht
-  - scene.garten_tropendammerung
-  - scene.kuche_energie_tanken
-  - scene.kuche_entspannen
-  - scene.kuche_gemutlich
-  - scene.kuche_herzliche_umarmung
-  - scene.kuche_konzentrieren
-  - scene.kuche_lesen
-  - scene.kuche_nachtlicht
-  - scene.schlafzimmer_energie_tanken
-  - scene.schlafzimmer_entspannen
-  - scene.schlafzimmer_konzentrieren
-  - scene.schlafzimmer_lesen
-  - scene.schlafzimmer_nachtlicht
-  - scene.schlafzimmer_sanfte_hugel
-  - scene.wohnzimmer_abend
-  - scene.wohnzimmer_energie_tanken
-  - scene.wohnzimmer_entspannen
-  - scene.wohnzimmer_funky
-  - scene.wohnzimmer_gedimmt
-  - scene.wohnzimmer_gemutlich
-  - scene.wohnzimmer_hell
-  - scene.wohnzimmer_konzentrieren
-  - scene.wohnzimmer_lesen
-  - scene.wohnzimmer_nachtlicht
+  # --- Licht Scripts ---
+  - script.licht_aus_alle
+  - script.licht_aus_erdgeschoss
+  - script.licht_aus_wohnzimmer
+  - script.licht_aus_esszimmer
+  - script.licht_aus_kueche
+  - script.licht_ein_kueche
+  - script.licht_ein_esszimmer
+  - script.licht_ein_wohnzimmer
+  - script.licht_aus_adrian
+  - script.licht_ein_adrian
+  - script.licht_aus_david
+  - script.licht_ein_david
+  # --- EG-Szenen (Scripts setzen aktive_szene_eg) ---
+  - script.szene_eg_hell
+  - script.szene_eg_gemutlich
+  - script.szene_eg_brettspiele
+  - script.szene_eg_kathi_gemutlich
+  - script.szene_eg_kino
+  - script.szene_eg_sonnenuntergang
+  - script.szene_eg_kathi_ess
+  - script.szene_david_hell
+  - script.szene_david_gemutlich
+  - script.szene_adrian_hell
+  - script.szene_adrian_gemutlich
+  # --- Szenen direkt (optional zu Scripts) ---
+  - scene.hell
+  - scene.gemutlich
+  - scene.brettspiele
+  - scene.kathi_gemutlich
+  - scene.kino
+  - scene.sonnenuntergang
+  - scene.kathi_ess
+  - scene.david_hell
+  - scene.david_gemutlich
+  - scene.adrian_hell
+  - scene.adrian_gemutlich
+  # --- Garten Bewässerung ---
+  - script.garten_rasen_gross_bewaessern
+  - script.garten_rasen_klein_bewaessern
+  - script.garten_tropf_bewaessern
+  - script.garten_rasen_gross_aus
+  - script.garten_rasen_klein_aus
+  - script.garten_tropf_aus
   - script.garten_bewaesserung_aus
   - script.garten_bewaesserung_status
-  - script.garten_rasen_gross_aus
-  - script.garten_rasen_gross_bewaessern
-  - script.garten_rasen_klein_aus
-  - script.garten_rasen_klein_bewaessern
-  - script.garten_tropf_aus
-  - script.garten_tropf_bewaessern
-  - script.haus_energie_info
+  # --- Haus-Infos & Haustür ---
   - script.haus_muell_info
   - script.haus_strom_info
+  - script.haus_energie_info
   - script.haustuer_status
-  - script.licht_aus_adrian
-  - script.licht_aus_alle
-  - script.licht_aus_david
-  - script.licht_aus_wohnzimmer
-  - script.licht_ein_adrian
-  - script.licht_ein_david
-  - script.licht_ein_wohnzimmer
-  - switch.0x0017880108fb4e39
-  - switch.0x0017880108fc92c6
-  - switch.0xa4c1385c3fd5464e
-  - switch.0xa4c1385c3fd5464e_child_lock
-  - switch.0xa4c1387f93554263
-  - switch.0xa4c1387f93554263_child_lock
-  - switch.0xa4c1388700f38809
-  - switch.0xa4c1388700f38809_child_lock
-  - switch.0xa4c138a20acdb68d
-  - switch.0xa4c138a20acdb68d_child_lock
-  - switch.0xa4c138a2122fdf34
-  - switch.0xa4c138a2122fdf34_child_lock
-  - switch.0xa4c138a42a672882
-  - switch.0xa4c138a42a672882_child_lock
-  - switch.automation_hue_smart_button_1
-  - switch.automation_hue_smart_button_2
-  - switch.automation_hue_wall_switch_module_2
-  - switch.automation_hue_wall_switch_module_3
-  - switch.automation_hue_wall_switch_module_4
-  - switch.automation_hue_wall_switch_module_6
-  - switch.automation_hue_wall_switch_module_7
-  - switch.gardena_irrigation_valve_geoffnet
-  - switch.rclone_backup
-  - switch.strom_1og_legozimmer_staubsauger
-  - switch.strom_1og_legozimmer_staubsauger_child_lock
-  - switch.strom_2og_gang_internet
-  - switch.strom_2og_gang_internet_child_lock
-  - switch.strom_eg_diele
-  - switch.strom_eg_diele_child_lock
-  - switch.zigbee2mqtt_bridge_permit_join

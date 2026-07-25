@@ -2,8 +2,10 @@
 
 Zentrales System, um **technische Probleme im Haus** automatisch zu erkennen, auf dem **Küchen-Tablett nur bei Bedarf** anzuzeigen und per **Handy-Push** zu melden.
 
-**Phase 1 (Implementierung ausstehend):** Gas- und Wasserzähler (AI-on-the-Edge).  
-**Architektur gilt dauerhaft:** Neue Checks werden über `group.haus_warnungen_checks` erweitert.
+**Phase 1 (Gas/Wasser-Zähler):** umgesetzt seit 2026-06-07 — `binary_sensor.*_warnung`, Aggregat, Tablett, Push.  
+**Architektur gilt dauerhaft:** Neue Checks in der Template-Liste `sensor.haus_warnungen` (configuration.yaml) + [Registry-Tabelle](#registry-überwachte-checks) pflegen.
+
+> **HA 2026:** Old-style `group:` wird nicht mehr zuverlässig geladen. Statt einer separaten Gruppe `haus_warnungen_checks` nutzen wir eine explizite Entity-Liste im Template (zwei Stellen: `state` + `liste`).
 
 ## Ziel
 
@@ -26,8 +28,8 @@ flowchart TB
     GW[binary_sensor.gasmeter_warnung]
     WW[binary_sensor.watermeter_warnung]
   end
-  subgraph layer2 [Schicht 2 — Registry in HA]
-    GRP[group.haus_warnungen_checks]
+  subgraph layer2 [Schicht 2 — Registry in YAML]
+    GRP[Check-Entity-Liste im Template]
   end
   subgraph layer3 [Schicht 3 — Aggregat]
     SW[sensor.haus_warnungen]
@@ -48,7 +50,7 @@ flowchart TB
 | Schicht | Entity | Aufgabe |
 |---------|--------|---------|
 | 1 | `binary_sensor.*_warnung` | Eine Prüflogik pro Thema + Attribut `grund` |
-| 2 | `group.haus_warnungen_checks` | **Registry** — hier neue Checks eintragen |
+| 2 | Check-Entity-Liste in `configuration.yaml` | **Registry** — neue Checks in Template-Liste eintragen |
 | 3 | `sensor.haus_warnungen` | Anzahl + Attribut `liste` (Texte für UI/Push) |
 | 3 | `binary_sensor.haus_hat_warnungen` | `on` wenn Anzahl > 0 — nur Schalter, kein eigener Check |
 
@@ -58,15 +60,15 @@ Muster für die Liste: [`sensor.batterie_ubersicht`](../configuration.yaml) (Sta
 
 ## Erweiterungsregel (verbindlich)
 
-**Neuer Test = Eintrag in `group.haus_warnungen_checks`.**
+**Neuer Test = Eintrag in Template-Liste + Registry-Tabelle unten.**
 
-UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separaten Listen** in Dashboard oder Automation pflegen.
+UI (Tablett), Aggregat und Push-Automation lesen `sensor.haus_warnungen` — **keine separaten Listen** in Dashboard oder Automation pflegen.
 
 ### Checkliste: neuen Check hinzufügen
 
 1. **Diese Spec:** Zeile in [Registry](#registry-überwachte-checks) unten
 2. **YAML:** `binary_sensor.<name>_warnung` mit Logik + Attribut `grund`
-3. **YAML:** Entity in `group.haus_warnungen_checks` eintragen
+3. **YAML:** Entity in Template-Liste (`sensor.haus_warnungen`) eintragen
 4. **Abnahme:** Check künstlich triggern → Gruppe, Aggregat, Tablett, Push prüfen
 
 ---
@@ -77,8 +79,11 @@ UI (Tablett), Aggregat und Push-Automation lesen die Gruppe — **keine separate
 |----|--------------|---------|-----------|------|-----|
 | gasmeter | `binary_sensor.gasmeter_warnung` | `sensor.gasmeter_uptime`, `sensor.gasmeter_value`, `sensor.gasmeter_error`, `binary_sensor.gasmeter_problem` | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
 | watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_uptime`, `sensor.watermeter_value`, … | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
+| befeuchter | `binary_sensor.befeuchter_nicht_erreichbar` | `humidifier.deerma_*` | Saison aktiv **und** mindestens ein Befeuchter `unavailable`/`unknown` | ja | Tablett |
 
 **Gas und Wasser:** beide Checks dauerhaft aktiv (seit 2026-06-07 wieder für Wasser — zuvor temporär per Helper abgeschaltet).
+
+**Befeuchter:** nur in der Heizsaison (`input_boolean.befeuchter_saison_aktiv`) — siehe [`befeuchter-saison.md`](./befeuchter-saison.md).
 
 ### Fehlerarten pro Zähler (Schicht 1)
 
@@ -105,7 +110,7 @@ Stale hängt an der **Uhr**, nicht an MQTT-Events. Der Aggregat-Block (Schicht 3
 
 ---
 
-## Entities (neu, geplant)
+## Entities
 
 | Entity | Typ | Rolle |
 |--------|-----|--------|
@@ -113,8 +118,7 @@ Stale hängt an der **Uhr**, nicht an MQTT-Events. Der Aggregat-Block (Schicht 3
 | `input_number.zaehler_fehler_minuten` | helper | OCR/Problem erst warnen ab Dauer (30 min, 10–120) |
 | `binary_sensor.gasmeter_warnung` | template | Einzelcheck Gas |
 | `binary_sensor.watermeter_warnung` | template | Einzelcheck Wasser |
-| `group.haus_warnungen_checks` | group | Registry aller Check-Entities |
-| `sensor.haus_warnungen` | trigger template | Anzahl + Attribut `liste` |
+| `sensor.haus_warnungen` | trigger template | Anzahl + Attribut `liste` (enthält Check-Registry) |
 | `binary_sensor.haus_hat_warnungen` | template | abgeleitet aus Anzahl > 0 |
 | `notify.haus_warnungen` | notify group | Push — Start: `mobile_app_pixel_9_pro` |
 
@@ -190,7 +194,7 @@ Weitere Handys: nur in der Gruppe ergänzen, Automation unverändert lassen.
 | Datei | Inhalt |
 |-------|--------|
 | [`helpers.yaml`](../helpers.yaml) | `input_number.zaehler_stale_minuten` |
-| [`configuration.yaml`](../configuration.yaml) | Schicht 1–3 Templates, `group`, `notify` |
+| [`configuration.yaml`](../configuration.yaml) | Schicht 1–3 Templates, `notify` |
 | [`automations.yaml`](../automations.yaml) | `System: Haus-Warnungen benachrichtigen` |
 | [`dashboards/tablett.yaml`](../dashboards/tablett.yaml) | conditional Warn-Block |
 
@@ -213,7 +217,7 @@ Weitere Handys: nur in der Gruppe ergänzen, Automation unverändert lassen.
 
 ## Backlog
 
-- [ ] Weitere Checks in Registry + Gruppe (Nuki kritisch, Befeuchter leer, …)
+- [ ] Weitere Checks in Registry + Template-Liste (Nuki kritisch, Befeuchter leer, …)
 - [ ] Optional: gleiche Warn-Karte auf [`dashboard-uebersicht.md`](./dashboard-uebersicht.md)
 - [ ] Push „Problem behoben“
 - [ ] Bestehende Einzel-Push-Automationen schrittweise in Schicht 1 überführen (optional)

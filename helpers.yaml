@@ -4,6 +4,14 @@
 #
 # initial: Fallback beim ersten Anlegen / wenn kein restore_state existiert.
 
+counter:
+  garten_tropf_laeufe_heute:
+    name: Garten Tropf Läufe heute
+    icon: mdi:counter
+    initial: 0
+    step: 1
+    restore: true
+
 input_boolean:
   ventilation_kill_switch:
     name: Ventilation Kill Switch
@@ -16,11 +24,15 @@ input_boolean:
   garten_tropf_automatisch:
     name: Garten Tropf automatisch
     icon: mdi:water-pump
-    initial: false
+    initial: true
   garten_rasen_automatisch:
-    name: Garten Rasen morgens automatisch
+    name: Garten Rasen+Tropf morgens automatisch
     icon: mdi:sprinkler
     initial: true
+  befeuchter_saison_aktiv:
+    name: Befeuchter-Saison aktiv
+    icon: mdi:air-humidifier
+    initial: false
 input_number:
   ziel_luftfeuchtigkeit:
     name: Ziel Luftfeuchtigkeit
@@ -156,15 +168,42 @@ input_number:
     icon: mdi:water-percent
     unit_of_measurement: "%"
     initial: 35
+  garten_schwellwert_himbeeren:
+    name: Garten Schwellwert Himbeeren (Rasen-Proxy)
+    min: 10
+    max: 80
+    step: 1
+    mode: slider
+    icon: mdi:water-percent
+    unit_of_measurement: "%"
+    initial: 35
+  topf_schwellwert_elefantenfuss:
+    name: Topf Schwellwert Elefantenfuß
+    min: 5
+    max: 50
+    step: 1
+    mode: slider
+    icon: mdi:cactus
+    unit_of_measurement: "%"
+    initial: 20
   garten_tropf_dauer_minuten:
-    name: Garten Tropf Dauer
+    name: Garten Tropf Dauer (Morgen/Abend)
     min: 5
     max: 120
     step: 5
     mode: box
     icon: mdi:timer-outline
     unit_of_measurement: min
-    initial: 15
+    initial: 45
+  garten_tropf_dauer_tag_minuten:
+    name: Garten Tropf Dauer tagsüber
+    min: 5
+    max: 120
+    step: 5
+    mode: box
+    icon: mdi:timer-outline
+    unit_of_measurement: min
+    initial: 30
   garten_tropf_sperre_stunden:
     name: Garten Tropf Sperre
     min: 1
@@ -173,7 +212,15 @@ input_number:
     mode: box
     icon: mdi:timer-sand
     unit_of_measurement: h
-    initial: 6
+    initial: 4
+  garten_tropf_max_laeufe_tag:
+    name: Garten Tropf Max Läufe / Tag
+    min: 1
+    max: 10
+    step: 1
+    mode: box
+    icon: mdi:counter
+    initial: 3
   garten_rasen_dauer_minuten:
     name: Garten Rasen Dauer
     min: 5
@@ -341,3 +388,41 @@ template:
         unique_id: humidifier_2_og_empty
         device_class: problem
         state: "{{ is_state_attr('humidifier.deerma_jsq2w_b6e0_humidifier', 'water_shortage_fault', 'on') }}"
+      - name: Befeuchter nicht erreichbar
+        unique_id: befeuchter_nicht_erreichbar
+        device_class: connectivity
+        state: >
+          {% if not is_state('input_boolean.befeuchter_saison_aktiv', 'on') %}
+            false
+          {% else %}
+            {% set ns = namespace(found=false) %}
+            {% for eid in [
+              'humidifier.deerma_jsq2w_a365_humidifier',
+              'humidifier.deerma_jsq2w_7134_humidifier',
+              'humidifier.deerma_jsq2w_b6e0_humidifier',
+            ] %}
+              {% if states(eid) in ['unavailable', 'unknown'] %}
+                {% set ns.found = true %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.found }}
+          {% endif %}
+        attributes:
+          grund: >
+            {% if not is_state('input_boolean.befeuchter_saison_aktiv', 'on') %}
+              
+            {% else %}
+              {% set offline = namespace(names=[]) %}
+              {% for eid in [
+                'humidifier.deerma_jsq2w_a365_humidifier',
+                'humidifier.deerma_jsq2w_7134_humidifier',
+                'humidifier.deerma_jsq2w_b6e0_humidifier',
+              ] %}
+                {% if states(eid) in ['unavailable', 'unknown'] %}
+                  {% set offline.names = offline.names + [state_attr(eid, 'friendly_name') | default(eid)] %}
+                {% endif %}
+              {% endfor %}
+              {% if offline.names | length > 0 %}
+                Befeuchter offline: {{ offline.names | join(', ') }}
+              {% endif %}
+            {% endif %}

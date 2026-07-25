@@ -145,8 +145,8 @@ Templates in [`configuration.yaml`](../configuration.yaml):
 
 | Entity | Hinweis |
 |--------|---------|
-| `sensor.gasmeter_value_2`, `sensor.gasmeter_in_kwh2`, … | Zweitkanal / Experiment — Recorder excluded, nicht für Energie-Dashboard nutzen ohne Klärung |
-| `sensor.watermeter_value_2`, … | analog |
+| gasmeter_value_2, gasmeter_in_kwh2, … | **Entfernt** (Registry gelöscht, Stand 2026-06) — ehem. Zweitkanal/Experiment |
+| watermeter_value_2, … | analog |
 
 ---
 
@@ -229,7 +229,7 @@ Das Skript:
 
 **Präventiv geprüft** — aktuelle Werte (Mai/Juni 2026) sauber (~0,1–2 m³/Tag), Live-Zähler ~9983 m³.
 
-**Historisch:** OCR-Korruption ab 04/2024 (Rohwerte bis 77 260 m³); Ausreißer **18.01.2026** (~47 m³/Tag, Sprung 9352→9399). `sensor.gasmeter_value_2` ist **unvollständig** (nur bis 12/2024) — **nicht** als Reparatur-Quelle nutzen.
+**Historisch:** OCR-Korruption ab 04/2024 (Rohwerte bis 77 260 m³); Ausreißer **18.01.2026** (~47 m³/Tag, Sprung 9352→9399). Der ehem. Zweitkanal gasmeter_value_2 war **unvollständig** (nur bis 12/2024) — **nicht** als Reparatur-Quelle nutzen (Entity inzwischen aus Registry entfernt).
 
 **Reparatur (Betrieb):** Nur auf **unveränderten** Recorder-Daten (z. B. direkt nach DB-Restore):
 
@@ -243,7 +243,7 @@ Das Skript:
 - Sprung-Filter: max. **+3 m³/h**, max. **−0,2 m³/h**; nach **>48 h** ohne gültigen Wert bis **+30 m³** oder Wiederanbindung (Zähler-Sprung von OCR-Plateau auf echten Bereich >5000 m³)
 - OCR-Spikes: Sprünge **>10 m³** zwischen benachbarten Stunden werden verworfen
 - setzt `sum` neu; synchronisiert `sensor.gasmeter_value_cost` (× **1,32**)
-- **Kosten:** `cost.state`/`cost.sum` aus **`val.sum` × Preis** (Verbrauch `sum`, nicht Zählerstand `state`). Perioden im Dashboard = **Deltas** der `sum`-Spalte (~130–200 €/Monat); absoluter `cost.state` ist kumulativ seit 2024 (~12.000 €) — nicht als Monatskosten lesen.
+- **Kosten:** MariaDB-Spalten cost.state/cost.sum aus **val.sum × Preis** (Verbrauch sum, nicht Zählerstand state). Perioden im Dashboard = **Deltas** der sum-Spalte (~130–200 €/Monat); absoluter cost.state ist kumulativ seit 2024 (~12.000 €) — nicht als Monatskosten lesen.
 - **Fehlende Kosten-Zeilen:** `sensor.gasmeter_value_cost` wird erst ab **01/2026** von HA befüllt. Ohne Backfill: **m³ in 2025 sichtbar, Kosten 0 €**. `sync-gasmeter-cost.sh` legt fehlende Zeilen für alle `gasmeter_value`-Stunden an.
 - **`short_term`-sum:** muss dieselbe kumulative Basis wie **hourly** haben (Skript koppelt an hourly). Sonst leerer Mai im Dashboard oder **−9 m³** am 08.06., wenn HA `short_term` wieder überschreibt → Reparatur-Skript erneut ausführen
 
@@ -297,7 +297,7 @@ InfluxDB-`include` listet AIoT-Entities **nicht** — Langzeit speichert MariaDB
 - [x] **Wasser-SD:** 16 GB → 4 GB SanDisk getauscht
 - [ ] Energie-Dashboard-Vollständigkeit prüfen
 - [ ] Optional: Mushroom-Karten auf [`dashboard-uebersicht.md`](./dashboard-uebersicht.md)
-- [ ] Legacy-Entities `*_value_2` / `gasmeter_in_kwh2` klären oder entfernen
+- [x] Legacy-Entities *_value_2 / gasmeter_in_kwh2 aus Registry entfernt (2026-06)
 
 ---
 

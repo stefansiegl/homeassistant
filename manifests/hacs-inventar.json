@@ -1,12 +1,12 @@
 {
-  "snapshot_date": "2026-05-31",
+  "snapshot_date": "2026-07-05",
   "source": "hacs.repositories + lovelace_resources + core.config_entries",
   "hacs_installed": [
     {
       "category": "integration",
       "repository": "RogerSelwyn/MS365-ToDo",
       "domain": "ms365_todo",
-      "version": "v1.11.0"
+      "version": "v1.11.1"
     },
     {
       "category": "integration",
@@ -24,13 +24,13 @@
       "category": "integration",
       "repository": "bramstroker/homeassistant-powercalc",
       "domain": "powercalc",
-      "version": "v1.20.14"
+      "version": "v1.21.2"
     },
     {
       "category": "integration",
       "repository": "custom-components/ble_monitor",
       "domain": "ble_monitor",
-      "version": "13.12.0"
+      "version": "13.14.0"
     },
     {
       "category": "integration",
@@ -42,7 +42,7 @@
       "category": "integration",
       "repository": "ekutner/home-connect-hass",
       "domain": "home_connect_alt",
-      "version": "1.4.1"
+      "version": "1.4.2"
     },
     {
       "category": "integration",
@@ -66,7 +66,7 @@
       "category": "integration",
       "repository": "mampfes/hacs_waste_collection_schedule",
       "domain": "waste_collection_schedule",
-      "version": "v2.25.0"
+      "version": "v2.29.0"
     },
     {
       "category": "integration",
@@ -78,13 +78,13 @@
       "category": "integration",
       "repository": "py-smart-gardena/hass-gardena-smart-system",
       "domain": "gardena_smart_system",
-      "version": "3.0.6"
+      "version": "3.1.3"
     },
     {
       "category": "plugin",
       "repository": "NemesisRE/kiosk-mode",
       "domain": null,
-      "version": "v13.1.0"
+      "version": "v14.0.1"
     },
     {
       "category": "plugin",

@@ -2,13 +2,13 @@
 
 Dieses Dokument ist eine **lesbare Kopie** der aktuell in Home Assistant konfigurierten **Bereiche (Areas)**.
 
-- **Quelle:** `/.storage/core.area_registry` (read-only, nicht in Git)
+- **Quelle:** HA Area Registry unter /.storage/core.area_registry (read-only, nicht in Git)
 - **Zweck:** Haus-Struktur als Referenz für Specs, Dashboards und Automationen
 - **Hinweis:** Area-IDs können “historisch” sein; die **Anzeigenamen** sind entscheidend.
 
 ---
 
-## Übersicht (aus `core.area_registry`)
+## Übersicht (Area Registry)
 
 ### Keller
 

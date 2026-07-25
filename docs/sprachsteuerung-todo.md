@@ -69,7 +69,7 @@ Drei Automationen in `automations.yaml`:
 - `todo_sprache_kathi_mitnehmen`
 - `todo_sprache_allgemein`
 
-Service: `todo.add_item` → `ms365_todo`.
+Service-Aufruf **todo.add_item** (HA-Service, kein Entity) → Integration `ms365_todo`.
 
 ## Testen
 

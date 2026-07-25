@@ -176,7 +176,7 @@ Diagnose-Entities `sensor.gw1100a_soil_ad_*` sind standardmäßig deaktiviert �
 | HA-Gerät (Pairing #) | MAC | Zone | Bewässerung | HA `entity_id` (Ventil) |
 |----------------------|-----|------|-------------|---------------------------|
 | #1 | `CC:B5:4C:AC:75:7B` | A | Viereckregner OS 140 | `valve.ventil_garten_rasen_gross` |
-| #2 | `CC:B5:4C:4B:DC:87` | C | Tropf Hecke/Beet *(Leck derzeit — erst reparieren)* | `valve.ventil_garten_tropf_hecke_beet` |
+| #2 | `CC:B5:4C:4B:DC:87` | C | Tropf Hecke/Beet *(Leck repariert 2026-07-25)* | `valve.ventil_garten_tropf_hecke_beet` |
 | #3 | `CC:B5:4C:AC:72:EE` | B | 2× Versenkregner SD80 | `valve.ventil_garten_rasen_klein` |
 
 Gehäuse am Ventil mit Zone **A / B / C** beschriften (nicht Pairing-# — #2 ist Tropf, nicht „zweiter Regner“).
@@ -185,7 +185,7 @@ Gehäuse am Ventil mit Zone **A / B / C** beschriften (nicht Pairing-# — #2 is
 
 1. Alle Ventile: Batterie raus → Factory Reset ([HA-Doku](https://www.home-assistant.io/integrations/gardena_bluetooth/): Man.-Taste + Batterie ~10 s)
 2. Nur **Ventil 1** in HA unter **Einstellungen → Geräte & Dienste → Gardena Bluetooth** hinzufügen
-3. In HA **30 s** `valve.open` → beobachten welcher Regner/Tropf läuft
+3. In HA **30 s** Service `valve.open_valve` → beobachten welcher Regner/Tropf läuft
 4. Gerät umbenennen (Friendly Name laut Tabelle), Area **Garten**
 5. Batterie raus am getesteten Ventil; **Ventil 2** pairen → wiederholen
 6. Ventil 3 analog; Tabelle oben vervollständigen; Gehäuse beschriften
@@ -245,20 +245,22 @@ Aktuell keine Outdoor-Geräte in Z2M — **Reichweite planen:**
 3. HA: passende **Area** (nicht Garten)
 4. **Keine** Anbindung an Garten-Automationen in V1 — nur Dashboard/Anzeige optional später
 
-### Erwartete Entities Garten (Z2M → HA)
+### Erwartete Entities Garten (Z2M → HA, **optional — nicht gepairt**)
 
-| Z2M friendly_name | HA entity_id (typisch) |
-|-------------------|------------------------|
-| `Feuchte-Garten-Hecke` | `sensor.feuchte_garten_hecke_soil_moisture`, `_temperature`, `_battery` |
-| `Feuchte-Garten-Beet` | `sensor.feuchte_garten_beet_soil_moisture`, `_temperature`, `_battery` |
+**Produktiv:** Froggit/Ecowitt `sensor.gw1100a_soil_moisture_5` (Beet) und `_6` (Hecke). Die Zigbee-Tuya-Sensoren sind Backlog.
+
+| Z2M friendly_name | HA entity_id (nach Pairing, Beispiel-Muster) |
+|-------------------|---------------------------------------------|
+| Feuchte-Garten-Hecke | sensor.&lt;slug&gt;_soil_moisture, _temperature, _battery |
+| Feuchte-Garten-Beet | sensor.&lt;slug&gt;_soil_moisture, _temperature, _battery |
 
 Abweichende IDs nach Pairing in dieser Tabelle nachtragen.
 
-### Erwartete Entities innen (ThirdReality, Beispiel)
+### Erwartete Entities innen (ThirdReality, Beispiel, **optional**)
 
-| Z2M friendly_name (Beispiel) | HA entity_id (typisch) |
-|------------------------------|------------------------|
-| `Feuchte-EG-Wohnzimmer-Pflanze` | `sensor.feuchte_eg_wohnzimmer_pflanze_soil_moisture`, … |
+| Z2M friendly_name (Beispiel) | HA entity_id (nach Pairing, Beispiel-Muster) |
+|------------------------------|---------------------------------------------|
+| Feuchte-EG-Wohnzimmer-Pflanze | sensor.&lt;slug&gt;_soil_moisture, … |
 
 Namen beim Pairing festlegen; **keine feste YAML-Abhängigkeit** in V1.
 
@@ -269,7 +271,7 @@ Namen beim Pairing festlegen; **keine feste YAML-Abhängigkeit** in V1.
 - Modell: **Bewässerungsventil 9 V Bluetooth (1285-20)**
 - Firmware: **≥ 1.7.23.29** (Update ggf. einmalig über Gardena Bluetooth App vor Factory Reset)
 - Integration: **Gardena Bluetooth** (Core, nicht HACS)
-- Entity-Typ: **`valve`** (`valve.open` / `valve.close`)
+- Entity-Typ: **`valve`** — Services `valve.open_valve` / `valve.close_valve` (Skripte im Repo)
 
 ### BLE-Infrastruktur
 
@@ -296,7 +298,7 @@ So sind die **3× Gardena 1285-20** zuverlässig in Home Assistant gelandet. Rei
 | BLE-Reichweite Garten | ESPHome **Atom EG-Fenster**, **Active Scanning** (YAML + HA-UI) |
 | Integration in HA | **`custom_components/gardena_bluetooth/`** — Anzeige **„Gardena Bluetooth (Proxy Fix)“** (Workaround bis Core-Patch merged) |
 | Diagnose am Ventil | **nRF Connect** auf dem Handy (Nordic Semiconductor, nicht „NFC“) |
-| Steuerung | `valve.open` / `valve.close` — Skripte und Dashboard im Repo |
+| Steuerung | Service `valve.open_valve` / `valve.close_valve` — Skripte und Dashboard im Repo |
 | Gardena-App danach | **Nicht parallel** — sonst sperrt die App HA aus dem BT-Pairing |
 
 #### Einmalige Vorbereitung
@@ -316,7 +318,7 @@ So sind die **3× Gardena 1285-20** zuverlässig in Home Assistant gelandet. Rei
    - Gerät erscheint (Name/MAC, Service `98BD…`) → Ventil sendet; weiter mit HA.
    - Nichts sichtbar → Reset-Fenster abgelaufen, Batterie prüfen, Wähler **AUTO** (nicht OFF), Steuerteil auf Ventil.
 4. **In HA hinzufügen:** **Einstellungen → Geräte & Dienste → Gardena Bluetooth (Proxy Fix) → Gerät hinzufügen** — **nur ein Ventil** gleichzeitig.
-5. **Zone zuordnen:** `valve.open` **30 s** → beobachten welcher Regner/Tropf läuft → Friendly Name + Area **Garten** (Tabelle [Ventil-Mapping](#ventil-mapping-stand-2026-06-14)).
+5. **Zone zuordnen:** Service `valve.open_valve` **30 s** → beobachten welcher Regner/Tropf läuft → Friendly Name + Area **Garten** (Tabelle [Ventil-Mapping](#ventil-mapping-stand-2026-06-14)).
 6. **Batterie raus** am getesteten Ventil → nächstes Ventil ab Schritt 1.
 
 Ventile **nicht parallel** in der Gardena-App behalten — App kann HA aus dem BT-Pairing sperren.
@@ -343,7 +345,7 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 
 - Steuerung läuft über den **ESPHome BT-Proxy** und HA, nicht über sichtbares „BT-Pairing“ am Gerät.
 - **Nicht** erneut Factory Reset nur wegen fehlender LED — sonst Mapping und HA-Einträge verlieren.
-- Kurztest: `valve.open` / Dashboard — Ventil reagiert → alles in Ordnung.
+- Kurztest: Service `valve.open_valve` / Dashboard — Ventil reagiert → alles in Ordnung.
 
 #### Ventil in HA „an“, aber physisch nichts passiert
 
@@ -353,7 +355,7 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 | **`manuelle_bewasserungszeit`** | Muss **> 0** sein (Ventil-Entity in HA) — bei 0 öffnet nichts |
 | **Wähler am Ventil** | **AUTO**, nicht OFF |
 | **9-V-Alkaliblock** | Frisch, Steuerteil korrekt auf Ventil |
-| **Zone C Tropf** | Leitung derzeit undicht — Reparatur vor sinnvollem Test |
+| **Zone C Tropf** | Seit 2026-07-25 wieder freigegeben (Leck repariert) |
 
 #### Wenn gar nichts geht
 
@@ -366,7 +368,7 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 |---------------|-----------|------------------|
 | `Ventil-Garten-Rasen-Gross` | `valve.ventil_garten_rasen_gross` | Icon `mdi:sprinkler` *(Produktfoto OS 140 optional nach `/config/www/images/garden/`)* |
 | `Ventil-Garten-Rasen-Klein` | `valve.ventil_garten_rasen_klein` | `/local/images/garden/regner-sd80.webp` |
-| `Ventil-Garten-Tropf-Hecke-Beet` | `valve.ventil_garten_tropf_hecke_beet` | Icon `mdi:pipe-leak` *(Leck-Hinweis)* |
+| `Ventil-Garten-Tropf-Hecke-Beet` | `valve.ventil_garten_tropf_hecke_beet` | Icon `mdi:water` |
 
 ---
 
@@ -374,9 +376,9 @@ Nach erfolgreichem HA-Pairing leuchten die Ventile **dauerhaft ohne blaue Verbin
 
 | Datei | Inhalt |
 |-------|--------|
-| `helpers.yaml` | Schwellwerte, Dauer, Sperrzeit, **Max-Laufzeit Sicherheit** (`input_number.garten_max_laufzeit_stunden`, Standard 1 h), `input_boolean.garten_tropf_automatisch` |
-| `scripts.yaml` | Start: `garten_*_bewaessern` · Stop: `garten_*_aus`, `garten_bewaesserung_aus` · Status: `garten_bewaesserung_status` (TTS) |
-| `automations.yaml` | `garten_tropf_automatisch`, `garten_sicherheit_max_laufzeit` |
+| `helpers.yaml` | Schwellwerte, Tropf-Dauer Morgen/Tag, Sperre, Max-Läufe/Tag, `counter.garten_tropf_laeufe_heute`, Auto-Schalter |
+| `scripts.yaml` | `garten_tropf_bewaessern` (Limits), `garten_tropf_limit_alarm`, `garten_morgen_bewaessern`, … |
+| `automations.yaml` | `garten_rasen_morgens`, `garten_tropf_automatisch` (Tag+Abend), `garten_tropf_zaehler_reset`, Max-Laufzeit |
 | `dashboards/uebersicht.yaml` | Karten Garten (Feuchte, Ventile, Auto-Schalter) |
 | `dashboards/garten.yaml` | **Eigenes Dashboard** Bewässerung + 8× Feuchte mit Pflanzenbildern — [`dashboard-garten.md`](./dashboard-garten.md) |
 | `docs/sprachsteuerung-garten.md` | Google Assistant / Assist — An/Aus + Aliase |
@@ -391,18 +393,56 @@ Skripte und Automationen nutzen `valve.open_valve` / `valve.close_valve` (nicht 
 ### Sicherheit Max-Laufzeit (V1)
 
 - Helper: `input_number.garten_max_laufzeit_stunden` (Standard **1 h**, konfigurierbar)
-- Automation `garten_sicherheit_max_laufzeit`: prüft alle **5 Min** und bei Ventil-Öffnung, ob ein Außen-Ventil länger als die Max-Laufzeit **offen** ist → `valve.close` + Hinweis-Benachrichtigung
+- Automation `garten_sicherheit_max_laufzeit`: prüft alle **5 Min** und bei Ventil-Öffnung, ob ein Außen-Ventil länger als die Max-Laufzeit **offen** ist → `valve.close_valve` + Hinweis-Benachrichtigung
 - Gilt für alle drei Ventile: Rasen groß/klein, Tropf Hecke/Beet
 
-### Logik Tropf-Automation (V1)
+### Logik Morgen (04:00) — feuchtebasiert
 
-- Trigger: **2× täglich** um **04:00** und **21:00** (Hitze — kein 2-h-Intervall, kein Feuchte-State-Trigger)
-- Bedingungen: `input_boolean.garten_tropf_automatisch` an; **Beet** (`sensor.gw1100a_soil_moisture_5`, CH5) unter `input_number.garten_schwellwert_beet`; Sperrzeit (`input_number.garten_tropf_sperre_stunden`) seit letztem Lauf
-- Aktion: `script.garten_tropf_bewaessern` (Ventil öffnen → Wartezeit → schließen → Zeitstempel)
+Schalter: `input_boolean.garten_rasen_automatisch` (**an** = Morgenprogramm aktiv).
 
-> **Hinweis Leck:** Tropfschlauch Zone C ist derzeit **undicht** — Automation bleibt aktiv, sinnvoller Test erst nach Reparatur. Schalter `garten_tropf_automatisch` standardmäßig **aus**.
+Automation `garten_rasen_morgens` → `script.garten_morgen_bewaessern` — **jede Zone nur bei Bedarf** (Sensor unter Schwellwert; Sensor fehlt/unavailable → Zone überspringen):
 
-Schwellwerte Start: **35 %** — nach Beobachtung anpassen.
+| Schritt | Zone | Sensor | Schwellwert-Helper | Dauer |
+|---------|------|--------|--------------------|-------|
+| 1 | A Viereckregner | CH7 Himbeeren (`sensor.gw1100a_soil_moisture_7`) | `input_number.garten_schwellwert_himbeeren` | `garten_rasen_dauer_minuten` |
+| 2 | B Versenkregner | wie Zone A (kein eigener Rasen-Sensor) | gleicher Schwellwert | gleiche Dauer |
+| 3 | C Tropf | CH5 Beet **oder** CH6 Hecke unter Schwellwert | `garten_schwellwert_beet` / `_hecke` | `garten_tropf_dauer_minuten` (**45 Min**) |
+
+Nacheinander (kein Parallelbetrieb). Ist alles feucht genug → Skript endet ohne Ventilöffnung.
+
+**Hinweis Rasen:** Es gibt keinen Sensor direkt im Rasen — CH7 (Himbeeren, vom großen Regner mit erreicht) ist der Proxy für Zone A/B. Nach Kalibrierung Schwellwert anpassen.
+
+### Logik Tropf (Zone C) — jederzeit bei Trockenheit, mit Limits
+
+Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tropf aktiv).
+
+| Auslöser | Wann | Dauer |
+|----------|------|-------|
+| Morgenprogramm | 04:00, wenn Beet/Hecke trocken (über `garten_rasen_automatisch`) | `garten_tropf_dauer_minuten` (**45 Min**) |
+| Tagsüber Feuchte | CH5 oder CH6 unter Schwellwert für **15 Min**, nur **08:00–20:00** | `garten_tropf_dauer_tag_minuten` (**30 Min**) |
+| Abends | 21:00, wenn Beet/Hecke trocken | wie Morgen (45 Min) |
+
+**Sicherheit / Limits (verhindert Dauerlauf und zu häufiges Gießen):**
+
+| Limit | Helper / Mechanik | Reaktion |
+|-------|-------------------|----------|
+| Max. offen | `garten_max_laufzeit_stunden` (1 h) | Ventil zu + Benachrichtigung |
+| Mindestabstand | `garten_tropf_sperre_stunden` (**4 h**) | neuer Lauf wird übersprungen |
+| Max. Läufe / Tag | `garten_tropf_max_laeufe_tag` (**3**) + `counter.garten_tropf_laeufe_heute` | **kein** neuer Lauf; Auto-Schalter **aus**; Push + persistente Meldung → manuell nachschauen |
+| Zähler-Reset | Mitternacht | `counter.reset` |
+
+Skript `garten_tropf_bewaessern` prüft Tageslimit vor dem Öffnen; optional `dauer_minuten` als Feld (Tagsüber 30).
+
+### Topf-Anzeige (Dashboard, keine Auto-Bewässerung)
+
+| Pflanze | CH | Orange (giessen?) unter |
+|---------|----|-------------------------|
+| Glücksfeder, Strahlenaralie, Glücksbambus | 1,3,4,8 | **35 %** fest |
+| **Elefantenfuß** (trockenheitsliebend) | 2 | `input_number.topf_schwellwert_elefantenfuss` (**20 %**) |
+
+> **Stand 2026-07-25:** Morgen feuchtebasiert; Tropf tagsüber 30 Min bei Trockenheit; Tageslimit 3 + Sperre 4 h + Max-offen 1 h.
+
+Garten-Schwellwerte Start: Beet/Hecke/Himbeeren **35 %** — nach Beobachtung kalibrieren.
 
 ---
 

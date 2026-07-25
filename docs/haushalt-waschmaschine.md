@@ -5,8 +5,8 @@ Leistungsbasierte Erkennung über `sensor.shellyplug_6_waschmaschine_power` (She
 ## Ziel
 
 - Dashboard zeigt **standby / läuft / fertig** zuverlässig
-- Push (`notify.mobile_app_pixel_9_pro`) bei **läuft → fertig**
-- Optional TTS über `media_player.benachrichtung_lautsprecher` (nur zu kinderfreundlichen Zeiten)
+- Push (`notify.pixel_9_pro`) bei **läuft → fertig**
+- Optional TTS über `media_player.benachrichtigung_lautsprecher` (Nest Mini Esszimmer — siehe [`benachrichtigung-lautsprecher.md`](benachrichtigung-lautsprecher.md))
 
 ## Schwellen (V10, 2026-06-07)
 
@@ -41,3 +41,19 @@ Ohne den `läuft`-Zweig blieb der Helper nach Neustart auf `standby`, obwohl die
 1. Waschgang starten → Helper `läuft`
 2. Nach Programmende (5 Min < 6 W) → `fertig` + Push
 3. Nach Neustart während hoher Leistung → Helper wieder `läuft`
+
+## Offen: Home Connect
+
+**Status (28.06.2026):** Core-Integration `home_connect` eingerichtet (Siemens WM4WH640), OAuth in HA ok — aber **keine nutzbaren Live-Daten**. Während mehrerer Waschgänge am 28.06. blieb `binary_sensor.waschmaschine_konnektivitat` durchgehend `off`, Fortschritt/Endzeit `unavailable`. Es fehlt ein Betriebszustand-Sensor (`OperationState`); vermutlich meldet die Maschine sich in der Cloud nicht als verbunden.
+
+**Produktiv:** Shelly-Leistungserkennung (oben) — unverändert.
+
+### Neu verbinden (Checkliste, manuell)
+
+1. **Home-Connect-App:** Gerät online? Fortschritt sichtbar während Waschgang?
+2. **Maschine:** Wi-Fi / Home Connect in den Geräteeinstellungen prüfen oder neu einrichten.
+3. **HA:** `Einstellungen → Geräte & Dienste → Home Connect` — ggf. Eintrag entfernen und neu hinzufügen (OAuth), **während die Maschine eingeschaltet/läuft**.
+4. **Abnahme HC:** `binary_sensor.waschmaschine_konnektivitat` → `on`; Betriebszustand-Sensor erscheint; Fortschritt/Endzeit aktualisieren sich beim Waschgang.
+5. **Optional später:** Status-Automation von Shelly auf HC umstellen (erst wenn Schritt 4 stabil über mehrere Waschgänge).
+
+**Nicht parallel:** `home_connect_alt` (HACS) ist installiert, aber ohne Config Entry — bei Neuversuch zuerst Core-Integration reparieren.

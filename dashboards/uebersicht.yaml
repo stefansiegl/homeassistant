@@ -24,12 +24,12 @@ views:
       entity: sensor.luftung_status
       primary: '{{ states(''sensor.luftung_status'') }}'
       secondary: >-
-        Ziel {{ state_attr(''sensor.luftung_status'', ''ziel_prozent'') | default(''—'') }} %
-        · {{ state_attr(''sensor.luftung_status'', ''profil'') | default(''—'') }}
+        Ziel {{ states('sensor.luftung_ziel_prozent') | default('—', true) }} %
+        · {{ state_attr('sensor.luftung_status', 'profil') | default('—', true) }}
       icon: mdi:fan-auto
       icon_color: >-
         {% if is_state('input_boolean.ventilation_kill_switch', 'on') %} red
-        {% elif state_attr('sensor.luftung_status', 'ziel_prozent') | int(0) > 0 %} blue
+        {% elif states('sensor.luftung_ziel_prozent') | int(0) > 0 %} blue
         {% else %} grey {% endif %}
       layout: horizontal
       tap_action:
@@ -113,18 +113,28 @@ views:
         layout: vertical
         card_mod:
           style: 'ha-card { border: none; background: none; box-shadow: none; }'
-      - type: custom:mushroom-template-card
-        icon: mdi:air-humidifier
-        icon_color: green
-        layout: vertical
-        card_mod:
-          style: 'ha-card { border: none; background: none; box-shadow: none; }'
-      - type: custom:mushroom-template-card
-        icon: mdi:water-alert
-        icon_color: red
-        layout: vertical
-        card_mod:
-          style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          icon: mdi:air-humidifier
+          icon_color: green
+          layout: vertical
+          card_mod:
+            style: 'ha-card { border: none; background: none; box-shadow: none; }'
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          icon: mdi:water-alert
+          icon_color: red
+          layout: vertical
+          card_mod:
+            style: 'ha-card { border: none; background: none; box-shadow: none; }'
       card_mod:
         style: 'ha-card { margin-bottom: -15px; }'
     - type: grid
@@ -153,16 +163,26 @@ views:
         primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
         icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
         layout: vertical
-      - type: custom:mushroom-template-card
-        entity: humidifier.deerma_jsq2w_a365_humidifier
-        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
-        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
-        layout: vertical
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.deerma_jsq2w_a365_water_shortage_fault
-        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
-        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
-        layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: humidifier.deerma_jsq2w_a365_humidifier
+          icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+          icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+          layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: binary_sensor.deerma_jsq2w_a365_water_shortage_fault
+          icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+          icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+          layout: vertical
     - type: grid
       columns: 6
       square: false
@@ -189,16 +209,26 @@ views:
         primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
         icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
         layout: vertical
-      - type: custom:mushroom-template-card
-        entity: humidifier.deerma_jsq2w_7134_humidifier
-        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
-        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
-        layout: vertical
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.deerma_jsq2w_7134_water_shortage_fault
-        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
-        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
-        layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: humidifier.deerma_jsq2w_7134_humidifier
+          icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+          icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+          layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: binary_sensor.deerma_jsq2w_7134_water_shortage_fault
+          icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+          icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+          layout: vertical
     - type: grid
       columns: 6
       square: false
@@ -225,16 +255,26 @@ views:
         primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
         icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
         layout: vertical
-      - type: custom:mushroom-template-card
-        entity: humidifier.deerma_jsq2w_b6e0_humidifier
-        icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
-        icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
-        layout: vertical
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.deerma_jsq2w_b6e0_water_shortage_fault
-        icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
-        icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
-        layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: humidifier.deerma_jsq2w_b6e0_humidifier
+          icon: '{{ ''mdi:air-humidifier'' if is_state(entity, ''on'') else ''mdi:air-humidifier-off'' }}'
+          icon_color: '{{ ''blue'' if is_state(entity, ''on'') else ''disabled'' }}'
+          layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          entity: binary_sensor.deerma_jsq2w_b6e0_water_shortage_fault
+          icon: '{{ ''mdi:water-alert'' if is_state(entity, ''on'') else ''mdi:check-circle-outline'' }}'
+          icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+          layout: vertical
     - type: grid
       columns: 6
       square: false
@@ -261,16 +301,26 @@ views:
         primary: '{{ states(entity) if states(entity) != ''unavailable'' else ''--'' }}'
         icon_color: '{% set co2 = states(entity)|int(0) %} {% if co2 > 1000 %} red {% elif co2 > 800 %} orange  {% elif co2 == 0 %} grey {% else %} green {% endif %}'
         layout: vertical
-      - type: custom:mushroom-template-card
-        primary: '-'
-        icon: mdi:minus
-        icon_color: disabled
-        layout: vertical
-      - type: custom:mushroom-template-card
-        primary: '-'
-        icon: mdi:minus
-        icon_color: disabled
-        layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          primary: '-'
+          icon: mdi:minus
+          icon_color: disabled
+          layout: vertical
+      - type: conditional
+        conditions:
+          - entity: input_boolean.befeuchter_saison_aktiv
+            state: 'on'
+        card:
+          type: custom:mushroom-template-card
+          primary: '-'
+          icon: mdi:minus
+          icon_color: disabled
+          layout: vertical
   - type: horizontal-stack
     cards:
     - type: custom:mushroom-template-card
@@ -396,17 +446,22 @@ views:
   - type: vertical-stack
     title: Haus-Wartung
     cards:
-    - type: custom:mushroom-template-card
-      primary: Befeuchter Reinigung
-      secondary: 'Zuletzt: {{ states(''input_datetime.letzte_reinigung_befeuchter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter'')) + (states(''input_number.intervall_befeuchter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
-      icon: mdi:air-humidifier
-      layout: horizontal
-      icon_color: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'') | int(60) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))) / 86400 %} {% if tage >= limit %} red {% else %} blue {% endif %}'
-      tap_action:
-        action: perform-action
-        perform_action: script.wartung_befeuchter_reinigung_vermerken
-        confirmation:
-          text: Hast du die Befeuchter heute wirklich gereinigt?
+    - type: conditional
+      conditions:
+        - entity: input_boolean.befeuchter_saison_aktiv
+          state: 'on'
+      card:
+        type: custom:mushroom-template-card
+        primary: Befeuchter Reinigung
+        secondary: 'Zuletzt: {{ states(''input_datetime.letzte_reinigung_befeuchter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter'')) + (states(''input_number.intervall_befeuchter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
+        icon: mdi:air-humidifier
+        layout: horizontal
+        icon_color: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'') | int(60) %} {% set tage = (as_timestamp(now()) - as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))) / 86400 %} {% if tage >= limit %} red {% else %} blue {% endif %}'
+        tap_action:
+          action: perform-action
+          perform_action: script.wartung_befeuchter_reinigung_vermerken
+          confirmation:
+            text: Hast du die Befeuchter heute wirklich gereinigt?
     - type: custom:mushroom-template-card
       primary: Lüfterfilter-Wartung
       secondary: 'Zuletzt: {{ states(''input_datetime.letzte_wartung_luefterfilter'') }} | Nächste: {{ (as_timestamp(states(''input_datetime.letzte_wartung_luefterfilter'')) + (states(''input_number.intervall_luefterfilter_reinigung'') | int * 86400)) | timestamp_custom(''%Y-%m-%d'') }}'
@@ -499,33 +554,31 @@ views:
         double_tap_action:
           action: none
         name: Tropf Hecke/Beet
-        icon: mdi:pipe-leak
+        icon: mdi:water
         layout: vertical
-        secondary_info: last-changed
+        secondary_info: state
         tap_action:
           action: perform-action
           perform_action: script.garten_tropf_bewaessern
           confirmation:
-            text: Tropf Hecke/Beet bewässern? (Leitung derzeit undicht)
+            text: Tropf Hecke/Beet bewässern?
     - type: custom:mushroom-entity-card
       entity: input_boolean.garten_rasen_automatisch
-      name: Rasen morgens automatisch
+      name: Rasen + Tropf 4 Uhr
       layout: horizontal
       icon: mdi:sprinkler
       icon_color: '{% if is_state(entity, ''on'') %} blue {% else %} grey {% endif %}'
     - type: custom:mushroom-entity-card
       entity: input_boolean.garten_tropf_automatisch
-      name: Tropf automatisch
+      name: Tropf Auto (Tag+Abend)
       layout: horizontal
       icon: mdi:water-sync
       icon_color: '{% if is_state(entity, ''on'') %} blue {% else %} grey {% endif %}'
     - type: markdown
       content: >
-        **Rasen morgens** täglich **4:00** — erst Viereckregner, dann Versenkregner
-        (Dauer je Zone: Helfer „Garten Rasen Dauer“, Standard 20 min). Kein Tropf. Nach der Ansaat wieder **aus**.
+        **Rasen+Tropf morgens** täglich **4:00** — feuchtebasiert (Himbeeren → Regner,
+        Beet/Hecke → Tropf 45 Min).
 
-        **Tropf automatisch** startet `Ventil-Garten-Tropf-Hecke-Beet`, wenn **Beet** (CH5) unter dem
-        Schwellwert ist — **2× täglich** um **4:00** und **21:00**, mindestens **6 h** Abstand zum letzten Lauf.
-        Standard: **aus** (Tropfschlauch-Leck derzeit **nicht repariert** — Automation bleibt aktiv, sinnvoller
-        Test erst nach Reparatur).
+        **Tropf tagsüber/abends** (Schalter): bei Trockenheit tags **30 Min** (08–20),
+        abends 21:00. Max 3×/Tag, 4 h Abstand, max 1 h offen — sonst Push + Auto aus.
   badges: []

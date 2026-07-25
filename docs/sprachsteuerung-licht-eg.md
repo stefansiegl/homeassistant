@@ -71,13 +71,19 @@ Beispiel-Phrasen mit **Scripts** (empfohlen EG):
 - „Hey Google, **starte Szene Brettspiele**“
 - „Hey Google, **starte Szene Adrian Hell**“
 
+## Freigabe (Git, nicht UI)
+
+Liste: [`google_assistant_expose.yaml`](../google_assistant_expose.yaml) — eingebunden als `cloud.google_actions.filter.include_entities`.  
+Enthält nur Entities aus der live Registry (keine historischen `light.0x…`- oder Hue-Raum-Szenen-IDs).  
+Nach Änderung: Core-Neustart + „Hey Google, synchronisiere meine Geräte“.
+
 ## Einrichtung in Home Assistant (UI, einmalig)
 
 1. **YAML laden:** Skripte neu laden (Entwicklerwerkzeuge → YAML).
-2. **Freigeben:** Einstellungen → **Sprachassistenten** → **Google Assistant** → Tab **Freilegen**
+2. **Freigabe prüfen:** Einstellungen → **Sprachassistenten** → **Google Assistant** → Tab **Freilegen** (Liste aus YAML, UI ausgegraut)
    - Lichtgruppen + Küchenlicht + Licht-Scripts (s.o.)
    - **Szene-Scripts** (Tabelle oben) — empfohlen für EG
-   - Optional: `scene.*` direkt (bereits meist freigegeben)
+   - Optional: `scene.*` direkt (in expose-Liste)
    - Assist: dieselben Entities optional mitfreigeben
 3. **Google Home:** App → Geräte synchronisieren (HA Cloud neu verknüpfen falls nötig).
 4. **Optional — Räume:** Einstellungen → Bereiche → Entity dem passenden Bereich zuordnen → bessere Raum-Phrasen („im Wohnzimmer“).

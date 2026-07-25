@@ -121,6 +121,10 @@ Attribute: `ziel_prozent`, `profil`, `co2_schlafzimmer`, `co2_effektiv`, `aussen
 - **Winter (Bypass aus):** Keine Nacht-Kühlung, nur CO₂/Radon
 - **Manuell am Helios:** Nächster Automations-Lauf (≤5 min) setzt Sollwert wieder
 
+## Befeuchter (Deerma)
+
+Luftbefeuchtung über drei Deerma JSQ2W — **saisonal** (Sommer abgebaut). Steuerung, Automationen, Dashboard und Warnungen: [`befeuchter-saison.md`](./befeuchter-saison.md).
+
 ## UI
 
 - **Steuerung:** Dashboard **Übersicht** → Lüftungszentrale (`sensor.luftung_status`, Not-Aus)

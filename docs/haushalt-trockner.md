@@ -5,8 +5,8 @@ Leistungsbasierte Erkennung über `sensor.shellyplug_4_trockner_power` (Shelly P
 ## Ziel
 
 - Dashboard zeigt **standby / läuft / fertig** zuverlässig
-- Push (`notify.mobile_app_pixel_9_pro`) bei **läuft → fertig**
-- Optional TTS über `media_player.benachrichtigung_lautsprecher` (nur zu kinderfreundlichen Zeiten)
+- Push (`notify.pixel_9_pro`) bei **läuft → fertig**
+- Optional TTS über `media_player.benachrichtigung_lautsprecher` (Nest Mini Esszimmer — siehe [`benachrichtigung-lautsprecher.md`](benachrichtigung-lautsprecher.md))
 
 ## Schwellen (V10, 2026-06-08)
 

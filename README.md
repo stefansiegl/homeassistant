@@ -17,7 +17,8 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [**Haushalt: Waschmaschine**](./docs/haushalt-waschmaschine.md) – Leistungs-Schwellen, Neustart-Logik, Push bei fertig.
 - [**Haushalt: Trockner**](./docs/haushalt-trockner.md) – wie Waschmaschine, Fertig 3 Min / <6 W.
 - [Abgleich-Checkliste](./docs/abgleich-checkliste.md) – Was wir bei Änderungen prüfen, damit Repo und HA konsistent bleiben.
-- [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über `group.haus_warnungen_checks`.
+- [**Live-Audit**](./docs/live-audit.md) – Periodischer Repo↔Live-Abgleich (modular, `/loop`-fähig).
+- [**Haus-Warnungen**](./docs/haus-warnungen.md) – Zentrales Monitoring (Tablett + Push), erweiterbar über Check-Entity-Liste in `sensor.haus_warnungen`.
 - [Integrationen & Add-ons](./docs/integrationen-und-addons.md) – Welche Integrationen/Add-ons im Einsatz sind und wie sie grob konfiguriert werden.
 - [**Garten-Bewässerung**](./docs/garten-bewaesserung.md) – Zigbee-Bodenfeuchte, Gardena BT-Ventile, Automationen.
 - [**Sprachsteuerung Garten**](./docs/sprachsteuerung-garten.md) – Google Assistant: Rasensprenger, Versenkregner/Kreisregner, Tropf, Status.
@@ -38,6 +39,7 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 - [ ] Humidity-Modus für die Lüftungsanlage (Radon-Logik erweitern).
 - [ ] Kiosk-Mode für das Tablet (Default Dashboard Layout).
 - [ ] Terrasse: Rolladen-Steuerung bei Hitze automatisieren.
+- [ ] **Waschmaschine Home Connect neu verbinden** — Integration eingerichtet (22.06.), liefert keine Live-Daten (`Konnektivität` dauerhaft `off`); Shelly-Logik läuft weiter. Siehe [`docs/haushalt-waschmaschine.md`](./docs/haushalt-waschmaschine.md#offen-home-connect).
 
 ## 📋 Backlog (vorbereitet, später)
 
@@ -54,7 +56,9 @@ Bevor Code-Änderungen (`.yaml`) vorgenommen werden, muss immer zuerst das entsp
 - `home-assistant-docs.mdc` (Struktur von Feature-Specs in `docs/`)
 - `abgleich-checkliste.mdc` (Erinnerung an die Abgleich-Checks)
 
-### Projekt-Skill (liegt in `.cursor/skills/ha-abgleich/`)
-- Skill-Datei: `.cursor/skills/ha-abgleich/SKILL.md`
-- Name: `ha-abgleich`
-- Zweck: systematischer Abgleich Repo ↔ Home Assistant inkl. Doku- und Inventar-Sync
+### Projekt-Skills (liegen in `.cursor/skills/`)
+
+| Skill | Datei | Zweck |
+|-------|-------|-------|
+| `ha-abgleich` | `.cursor/skills/ha-abgleich/SKILL.md` | Checkliste bei Implementierung / Migration |
+| `ha-live-audit` | `.cursor/skills/ha-live-audit/SKILL.md` | Periodischer Docs↔Live-Abgleich (`bin/audit-live.sh`, `/loop`) |

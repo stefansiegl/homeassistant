@@ -31,7 +31,7 @@ homeassistant:
       device_class: monetary
       state_class: total
 
-    sensor.strom_einspeisung_stabil_verguetung:
+    sensor.strom_einspeisung_stabil_vergutung:
       device_class: monetary
       state_class: total
 
@@ -66,16 +66,6 @@ homeassistant:
       device_class: power
       state_class: measurement
       unit_of_measurement: "W"
-
-    # Müllabfuhr Icons (Bilder-Pfade für Dashboard)
-    sensor.waste_rest_display:
-      entity_picture: /local/images/waste/waste-schwarz.png
-    sensor.waste_gelb_display:
-      entity_picture: /local/images/waste/waste-gelb.png
-    sensor.waste_papier_display:
-      entity_picture: /local/images/waste/waste-blau.png
-    sensor.waste_bio_display:
-      entity_picture: /local/images/waste/waste-gruen.png
 
     # Garten-Bewässerung (docs/garten-bewaesserung.md)
     valve.ventil_garten_rasen_klein:
@@ -138,10 +128,6 @@ recorder:
       - sensor.gasmeter_rate_per_digitalization_round
       - sensor.gasmeter_timestamp
       - sensor.gasmeter_json
-      - sensor.gasmeter_value_2
-      - sensor.gasmeter_error_2
-      - sensor.gasmeter_uptime_2
-      - sensor.gasmeter_in_kwh2
       - sensor.gasmeter_value
       - sensor.gasmeter_value_cost
       - sensor.gasmeter_value_stabil_cost
@@ -172,9 +158,6 @@ recorder:
       - sensor.watermeter_timestamp
       - sensor.watermeter_json
       - sensor.watermeter_value
-      - sensor.watermeter_value_2
-      - sensor.watermeter_error_2
-      - sensor.watermeter_uptime_2
 
 # ---------------------------------------------------------
 # LOGBOOK (Verlaufseinträge filtern)
@@ -212,13 +195,6 @@ influxdb:
 # ---------------------------------------------------------
 # MODERN TEMPLATES (Sensoren & Mülllogik)
 # ---------------------------------------------------------
-
-group:
-  haus_warnungen_checks:
-    name: Haus Warnungen Checks
-    entities:
-      - binary_sensor.gasmeter_warnung
-      - binary_sensor.watermeter_warnung
 
 template:
   # Wasserzähler: OCR-Ausreißer filtern (siehe docs/ai-on-the-edge.md)
@@ -818,46 +794,6 @@ template:
         unit_of_measurement: "l"
         availability: "{{ states('sensor.watermeter_value_stabil') not in ['unknown', 'unavailable', 'none'] }}"
 
-      - name: "Waste Rest Display"
-        unique_id: waste_rest_display_modern
-        state: >
-          {% set days = state_attr('sensor.waste_rest_days', 'daysTo') %}
-          {% if days == None %} Unbekannt
-          {% elif days == 0 %} Heute
-          {% elif days == 1 %} Morgen
-          {% else %} In {{ days }} Tagen
-          {% endif %}
-
-      - name: "Waste Gelb Display"
-        unique_id: waste_gelb_display_modern
-        state: >
-          {% set days = state_attr('sensor.waste_gelb_days', 'daysTo') %}
-          {% if days == None %} Unbekannt
-          {% elif days == 0 %} Heute
-          {% elif days == 1 %} Morgen
-          {% else %} In {{ days }} Tagen
-          {% endif %}
-
-      - name: "Waste Bio Display"
-        unique_id: waste_bio_display_modern
-        state: >
-          {% set days = state_attr('sensor.waste_bio_days', 'daysTo') %}
-          {% if days == None %} Unbekannt
-          {% elif days == 0 %} Heute
-          {% elif days == 1 %} Morgen
-          {% else %} In {{ days }} Tagen
-          {% endif %}
-
-      - name: "Waste Papier Display"
-        unique_id: waste_papier_display_modern
-        state: >
-          {% set days = state_attr('sensor.waste_papier_days', 'daysTo') %}
-          {% if days == None %} Unbekannt
-          {% elif days == 0 %} Heute
-          {% elif days == 1 %} Morgen
-          {% else %} In {{ days }} Tagen
-          {% endif %}
-
   # Batterie-Dashboard: Trigger-Template (siehe docs/dashboard-batterie.md)
   - trigger:
       - trigger: homeassistant
@@ -1110,6 +1046,8 @@ template:
         entity_id:
           - binary_sensor.gasmeter_warnung
           - binary_sensor.watermeter_warnung
+          - binary_sensor.befeuchter_nicht_erreichbar
+          - input_boolean.befeuchter_saison_aktiv
           - input_number.zaehler_stale_minuten
           - input_number.zaehler_fehler_minuten
     sensor:
@@ -1117,19 +1055,29 @@ template:
         unique_id: haus_warnungen
         icon: mdi:home-alert
         state: >
+          {% set checks = [
+            'binary_sensor.gasmeter_warnung',
+            'binary_sensor.watermeter_warnung',
+            'binary_sensor.befeuchter_nicht_erreichbar',
+          ] %}
           {% set ns = namespace(n=0) %}
-          {% for e in expand('group.haus_warnungen_checks') %}
-            {% if e.state == 'on' %}
+          {% for eid in checks %}
+            {% if states(eid) == 'on' %}
               {% set ns.n = ns.n + 1 %}
             {% endif %}
           {% endfor %}
           {{ ns.n }}
         attributes:
           liste: >
+            {% set checks = [
+              'binary_sensor.gasmeter_warnung',
+              'binary_sensor.watermeter_warnung',
+              'binary_sensor.befeuchter_nicht_erreichbar',
+            ] %}
             {% set out = namespace(text='') %}
-            {% for e in expand('group.haus_warnungen_checks') %}
-              {% if e.state == 'on' %}
-                {% set line = e.attributes.grund | default(e.name) | trim %}
+            {% for eid in checks %}
+              {% if states(eid) == 'on' %}
+                {% set line = state_attr(eid, 'grund') | default(state_attr(eid, 'friendly_name')) | trim %}
                 {% if line %}
                   {% set out.text = out.text ~ line ~ '\n' %}
                 {% endif %}
@@ -1433,10 +1381,3 @@ powercalc:
 
 logger:
   default: info
-  logs:
-    # Temporär für Gardena-BT-Pairing (docs/garten-bewaesserung.md) — danach wieder entfernen
-    homeassistant.components.bluetooth: debug
-    homeassistant.components.gardena_bluetooth: debug
-    custom_components.gardena_bluetooth: debug
-    gardena_bluetooth.client: debug
-    habluetooth: debug

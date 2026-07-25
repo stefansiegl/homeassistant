@@ -1,0 +1,166 @@
+# Live-Audit Modul-Definitionen — siehe docs/live-audit.md
+# Laufzeit-Quelle: manifests/live-audit-modules.json (dieses YAML spiegelnd pflegen)
+version: 1
+
+modules:
+  core:
+    title: Kern & Standards
+    specs:
+      - docs/standards.md
+      - docs/konfigurations-strategie.md
+    yaml_paths:
+      - configuration.yaml
+      - automations.yaml
+      - helpers.yaml
+    tier2_script: null
+    known_issues: []
+
+  haushalt:
+    title: Haushalt (Waschmaschine, Trockner, …)
+    specs:
+      - docs/haushalt-waschmaschine.md
+      - docs/haushalt-trockner.md
+      - docs/haushalt-spuelmaschine.md
+      - docs/haushalt-hebeanlage.md
+    yaml_paths:
+      - helpers.yaml
+      - automations.yaml
+    tier2_script: null
+    known_issues:
+      - entity: binary_sensor.waschmaschine_konnektivitat
+        code: ENTITY_UNAVAILABLE
+        severity: warn
+        note: "Home Connect offen — siehe docs/haushalt-waschmaschine.md#offen-home-connect"
+
+  garten:
+    title: Garten & Bewässerung
+    specs:
+      - docs/garten-bewaesserung.md
+      - docs/dashboard-garten.md
+    yaml_paths:
+      - automations.yaml
+      - dashboards/garten.yaml
+    tier2_script: null
+    known_issues: []
+
+  climate:
+    title: Klima & Lüftung
+    specs:
+      - docs/climate.md
+      - docs/dashboard-luftung.md
+    yaml_paths:
+      - luftung_templates.yaml
+      - automations.yaml
+      - dashboards/luftung.yaml
+    tier2_script: null
+    known_issues: []
+
+  energie:
+    title: Energie & Statistik
+    specs:
+      - docs/energie-statistik-praevention.md
+      - docs/energie-statistik-wartung.md
+      - docs/energie-dashboard-erweiterung.md
+    yaml_paths:
+      - configuration.yaml
+    tier2_script: bin/check-energie-statistik.sh
+    known_issues: []
+
+  monitoring:
+    title: Haus-Warnungen
+    specs:
+      - docs/haus-warnungen.md
+    yaml_paths:
+      - configuration.yaml
+      - automations.yaml
+    tier2_script: null
+    known_issues: []
+
+  zaehler:
+    title: Zähler (AI-on-the-Edge)
+    specs:
+      - docs/ai-on-the-edge.md
+    yaml_paths:
+      - configuration.yaml
+      - scripts.yaml
+    tier2_script: null
+    known_issues:
+      - entity: sensor.gasmeter_ip
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: AI-on-the-Edge Diagnose-Sensor — oft unknown, aus Recorder exclude
+      - entity: scene.kathi_ess
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: Scene-State oft unknown bis erste Aktivierung — scripts.yaml Kollateral, nicht Zähler
+
+  dashboards:
+    title: Dashboards (Lovelace YAML)
+    specs:
+      - docs/dashboard-uebersicht.md
+      - docs/dashboard-tablett.md
+      - docs/dashboard-luftung.md
+      - docs/dashboard-garten.md
+      - docs/dashboard-zaehlerstaende.md
+      - docs/dashboard-batterie.md
+    yaml_paths:
+      - dashboards/*.yaml
+    tier2_script: null
+    known_issues: []
+
+  integrations:
+    title: Integrationen & HACS
+    specs:
+      - docs/integrationen-und-addons.md
+      - docs/hacs-inventar.md
+    yaml_paths: []
+    tier2_script: bin/export-hacs-inventar.sh
+    known_issues: []
+
+  hardware:
+    title: Hardware & Räume
+    specs:
+      - docs/hardware.md
+      - docs/raeume-und-bereiche.md
+    yaml_paths: []
+    tier2_script: null
+    known_issues: []
+
+  lights:
+    title: Beleuchtung
+    specs:
+      - docs/lights.md
+    yaml_paths:
+      - scenes.yaml
+      - configuration.yaml
+    tier2_script: null
+    known_issues:
+      - entity: binary_sensor.watermeter_problem
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: Scope-Leak configuration.yaml (Wasser-Stabil/Warnungen) — Modul zaehler; MQTT offline erwartet
+      - entity: sensor.watermeter_error
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: Scope-Leak configuration.yaml — Modul zaehler; AI-on-the-Edge Diagnose, oft offline
+      - entity: sensor.watermeter_uptime
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: Scope-Leak configuration.yaml — Modul zaehler; MQTT-Lebenszeichen offline
+      - entity: sensor.watermeter_value
+        code: ENTITY_UNAVAILABLE
+        severity: info
+        note: Scope-Leak configuration.yaml — Modul zaehler; OCR-Rohwert offline, stabil separat
+
+  sprache:
+    title: Sprachsteuerung
+    specs:
+      - docs/sprachsteuerung-garten.md
+      - docs/sprachsteuerung-licht-eg.md
+      - docs/sprachsteuerung-haus-info.md
+      - docs/sprachsteuerung-haustuer.md
+      - docs/sprachsteuerung-todo.md
+    yaml_paths:
+      - google_assistant_expose.yaml
+    tier2_script: null
+    known_issues: []

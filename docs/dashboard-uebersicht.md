@@ -11,18 +11,18 @@ Zentrales Dashboard für Lüftung, Raumklima, Haushalt, Müll und Wartung. Mushr
 ## Inhalts-Blöcke (Reihenfolge)
 
 1. **Lüftungszentrale** — Helios-Stufe, Max-CO₂, Effizienz, Sommer/Winter-Bypass, Kill-Switch
-2. **Raumklima** — 4 Zeilen: EG Küche, 1. OG, 2. OG Büro, 2. OG Schlafen (Temp, Feuchte, CO₂, Befeuchter, Wasser leer)
+2. **Raumklima** — 4 Zeilen: EG Küche, 1. OG, 2. OG Büro, 2. OG Schlafen (Temp, Feuchte, CO₂; **Befeuchter + Wasser leer nur bei** `input_boolean.befeuchter_saison_aktiv` = on — siehe [`befeuchter-saison.md`](./befeuchter-saison.md))
 3. **Haushalt** — Waschmaschine, Trockner, Spülmaschine, Hebeanlage (Status-Helper + Leistung)
 4. **Radon Debug** — `sensor.radon_meter_radon` (entities-Karte)
 5. **Radon Logik** — `input_boolean.radon_logic_enabled`
 6. **Abfallentsorgung** — Übersicht + 4 Müll-Sensoren
 7. **Zigbee2MQTT** — `switch.zigbee2mqtt_bridge_permit_join`
-8. **Haus-Wartung** — je eine kompakte Mushroom-Karte (Tap → Bestätigung → `script.wartung_*`)
+8. **Haus-Wartung** — Lüfterfilter immer; **Befeuchter Reinigung** nur bei aktiver Befeuchter-Saison (conditional)
 9. **Garten** — Kurzblock auf Übersicht; **eigenes Dashboard** [`dashboard-garten.md`](./dashboard-garten.md) mit allen 8 Feuchtesensoren + Bildern
 
 ## Abhängigkeiten
 
-- HACS: **Mushroom**, **card-mod** (18× `card_mod.style`)
+- HACS: **Mushroom**, **card-mod** (18× card_mod style-Blöcke)
 - Ressourcen: `configuration.yaml` → `lovelace.resources` (Mushroom, card-mod)
 
 ## Entity-Audit (Stand Migration)
@@ -50,4 +50,4 @@ Referenzierte Entities (Auszug): Helios, Aranet/ESPHome-Räume, Deerma-Befeuchte
 
 ## Hinweise
 
-- Garten-Ventil-Karten und Haus-Wartung nutzen `tap_action: perform-action` (kein `call-service`; keine Jinja-Templates in `confirmation.text`).
+- Garten-Ventil-Karten und Haus-Wartung nutzen `tap_action: perform-action` (kein `call-service`; keine Jinja-Templates im confirmation-Text des Bestätigungsdialogs).

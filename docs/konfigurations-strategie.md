@@ -151,7 +151,7 @@ Diese Schritte machst **du in Home Assistant** (oder über Add-on-UIs). Die KI d
 Abgleich mit dem, was noch in `.storage` steckt:
 
 - [x] **Helpers** (`input_*`) → `helpers.yaml` (Package); UI-Helfer gelöscht, `.storage/input_*` geleert, Neustart ohne Warnungen
-- [x] **Skripte** → `scripts.yaml` geprüft; keine UI-Skripte mehr (ehem. `script.gemini_test` entfernt)
+- [x] **Skripte** → `scripts.yaml` geprüft; keine UI-Skripte mehr (ehem. script.gemini_test entfernt)
 - [x] **Dashboards** → [`adrian-licht.yaml`](dashboards/adrian-licht.yaml), [`tablett.yaml`](dashboards/tablett.yaml), [`uebersicht.yaml`](dashboards/uebersicht.yaml), [`batterie.yaml`](dashboards/batterie.yaml) in YAML (Specs: [`docs/dashboard-tablett.md`](docs/dashboard-tablett.md), [`docs/dashboard-uebersicht.md`](docs/dashboard-uebersicht.md), [`docs/dashboard-batterie.md`](docs/dashboard-batterie.md)); Wasser-Dashboard entfernt
 - [x] **Lovelace-Ressourcen** → HACS-Karten in **`.storage/lovelace_resources`** (Pflicht bei `lovelace.mode: storage`); Spiegel/Liste zusätzlich in `configuration.yaml` → `lovelace.resources` für Git-Doku — YAML allein reicht in Storage-Mode **nicht**
 - [ ] README-Links zu fehlenden Docs (`appliances.md`, `lighting.md` vs. `lights.md`) bereinigen

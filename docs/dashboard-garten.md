@@ -17,7 +17,7 @@ Spec Bewässerung: [`garten-bewaesserung.md`](./garten-bewaesserung.md)
 1. **Gateway** — Innen-Temp/Feuchte am DP1500 (`sensor.gw1100a_indoor_*`)
 2. **Topfpflanzen** — CH1–CH4, CH8 (2× Adrian nebeneinander)
 3. **Garten** — CH5 Beet, CH6 Hecke, CH7 Himbeeren (mit Schwellwert Hecke/Beet)
-4. **Bewässerung** — 3 Ventile, Rasen/Tropf-Auto, Helfer (Dauer, Schwellwerte, Sperrzeit)
+4. **Bewässerung** — 3 Ventile (Rasen groß/klein, Tropf Hecke/Beet — Zone C freigegeben), Rasen/Tropf-Auto, Helfer (Dauer, Schwellwerte, Sperrzeit)
 
 ## Pflanzenbilder
 
@@ -39,8 +39,9 @@ Pfad: **`/config/www/images/garden/plants/`** → in HA: `/local/images/garden/p
 
 | Bereich | Orange (trocken) | Grün (ok) |
 |---------|------------------|-----------|
-| Garten Beet/Hecke | unter `input_number.garten_schwellwert_*` | darüber |
-| Topfpflanzen | unter **35 %** | ≥ 35 % (Orientierung, kein Helper) |
+| Garten Beet/Hecke/Himbeeren | unter `input_number.garten_schwellwert_*` | darüber |
+| Topf Elefantenfuß | unter `input_number.topf_schwellwert_elefantenfuss` (**20 %**) | darüber |
+| Andere Topfpflanzen | unter **35 %** | ≥ 35 % |
 
 ## Abhängigkeiten
 

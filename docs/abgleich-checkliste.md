@@ -4,6 +4,8 @@ Diese Checkliste beschreibt, **was bei Änderungen** im Repo geprüft/abgegliche
 
 Sie ist bewusst pragmatisch: lieber wenige, wiederholbare Checks als ein großer Prozess.
 
+**Periodischer Gegencheck (alles auf einmal):** Skill `ha-live-audit` + [`live-audit.md`](./live-audit.md) — `bin/audit-live-nightly.sh` (Cron 22:00) oder manuell `bin/audit-live.sh --module <id>`.
+
 ---
 
 ## Wenn wir neue Features implementieren (nach Spec)

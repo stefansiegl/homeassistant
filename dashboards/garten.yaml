@@ -79,14 +79,16 @@ views:
         primary: Elefantenfuß
         secondary: >-
           Wohnzimmer · {% set s = states('sensor.gw1100a_soil_moisture_2') %}
-          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+          {% set z = states('input_number.topf_schwellwert_elefantenfuss') | int(20) %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} % (Ziel {{ z }} %){% endif %}
         picture: /local/images/garden/plants/elefantenfuss.jpg
         layout: horizontal
         icon: mdi:water-percent
         icon_color: >-
           {% set s = states('sensor.gw1100a_soil_moisture_2') %}
+          {% set z = states('input_number.topf_schwellwert_elefantenfuss') | float(20) %}
           {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
-          {% elif s | float(100) < 35 %} orange
+          {% elif s | float(100) < z %} orange
           {% else %} green {% endif %}
         tap_action:
           action: more-info
@@ -125,7 +127,7 @@ views:
 
     - type: custom:mushroom-title-card
       title: Garten
-      subtitle: Außen · Schwellwert Hecke/Beet einstellbar
+      subtitle: Außen · Schwellwerte Beet/Hecke/Himbeeren einstellbar
 
     - type: grid
       columns: 3
@@ -172,14 +174,15 @@ views:
         primary: Himbeeren
         secondary: >-
           {% set s = states('sensor.gw1100a_soil_moisture_7') %}
-          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} %{% endif %}
+          {% set z = states('input_number.garten_schwellwert_himbeeren') | int(35) %}
+          {% if s in ['unknown', 'unavailable', 'none', ''] %}—{% else %}{{ s | round(0) }} % (Ziel {{ z }} %){% endif %}
         picture: /local/images/garden/plants/himbeeren.jpg
         layout: vertical
         icon: mdi:water-percent
         icon_color: >-
           {% set s = states('sensor.gw1100a_soil_moisture_7') %}
           {% if s in ['unknown', 'unavailable', 'none', ''] %} grey
-          {% elif s | float(100) < 35 %} orange
+          {% elif s | float(100) < states('input_number.garten_schwellwert_himbeeren') | float(35) %} orange
           {% else %} green {% endif %}
         tap_action:
           action: more-info
@@ -216,24 +219,25 @@ views:
       - type: custom:mushroom-entity-card
         entity: valve.ventil_garten_tropf_hecke_beet
         name: Tropf Beet
-        icon: mdi:pipe-leak
+        icon: mdi:water
         layout: vertical
+        secondary_info: state
         tap_action:
           action: perform-action
           perform_action: script.garten_tropf_bewaessern
           confirmation:
-            text: Tropfschlauch starten? (Leck prüfen)
+            text: Tropfschlauch starten?
 
     - type: horizontal-stack
       cards:
       - type: custom:mushroom-entity-card
         entity: input_boolean.garten_rasen_automatisch
-        name: Rasen 4 Uhr
+        name: Rasen+Tropf 4 Uhr
         layout: horizontal
         icon: mdi:sprinkler
       - type: custom:mushroom-entity-card
         entity: input_boolean.garten_tropf_automatisch
-        name: Tropf 4+21 Uhr
+        name: Tropf Tag+Abend
         layout: horizontal
         icon: mdi:water-sync
 
@@ -255,15 +259,24 @@ views:
       entities:
       - entity: input_number.garten_schwellwert_beet
       - entity: input_number.garten_schwellwert_hecke
+      - entity: input_number.garten_schwellwert_himbeeren
+      - entity: input_number.topf_schwellwert_elefantenfuss
       - entity: input_number.garten_tropf_dauer_minuten
+      - entity: input_number.garten_tropf_dauer_tag_minuten
       - entity: input_number.garten_tropf_sperre_stunden
+      - entity: input_number.garten_tropf_max_laeufe_tag
+      - entity: counter.garten_tropf_laeufe_heute
       - entity: input_number.garten_rasen_dauer_minuten
       - entity: input_datetime.garten_tropf_letzte_bewaesserung
 
     - type: markdown
       content: >
-        **Tropf automatisch:** nur **Beet (CH5)**, 2× täglich **4:00** und **21:00**.
-        Standard **aus** — Tropfschlauch-Leck erst reparieren.
+        **Morgen 4:00** (Schalter Rasen+Tropf): nur bei Bedarf —
+        Regner wenn Himbeeren (CH7) trocken, Tropf 45 Min wenn Beet/Hecke trocken.
+
+        **Tropf tagsüber + abends** (Schalter Tropf): bei Trockenheit 08–20 Uhr **30 Min**,
+        abends 21:00 **45 Min**. Limits: max **3 Läufe/Tag**, Sperre **4 h**, max offen **1 h** —
+        bei Limit Auto aus + Push.
 
         **Bilder:** Eigene Fotos nach `/config/www/images/garden/plants/` (gleicher Dateiname).
         Siehe `docs/dashboard-garten.md` im Repo.

@@ -134,11 +134,14 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
     - Geräte-spezifische Profile teils in `.storage/powercalc_profiles/` (nicht in Git).
 
 - **Viessmann / ViCare**
-  - Zweck: Heizung / Klima.
+  - Zweck: Heizung / Klima (Vitovalor PT2, Gerät **E3 Vitovalor PT2 0419**, Bereich Keller Heizung).
   - Einrichtung:
     - Integration via UI (OAuth gegen Viessmann).
-  - Wichtige Entitäten:
-    - `climate.e3_vitovalor_pt2_0419` etc. (siehe Google-Doc-Hardware-Inventar).
+  - Wichtige Entitäten (Stand 06/2026 — ViCare benennt Climate-Entities generisch):
+    - `climate.vicare_heating` — Heizung ein/aus, Solltemperatur
+    - `sensor.vicare_energy_consumption_this_month` — Stromverbrauch Anlage (Energie-Dashboard, siehe [`energie-dashboard-erweiterung.md`](./energie-dashboard-erweiterung.md))
+    - `binary_sensor.vicare_burner_active`, `binary_sensor.vicare_circulation_pump_active` — Betriebszustände
+    - Gerätespezifische Number/Button-Entities behalten Präfix `e3_vitovalor_pt2_0419_*` (z. B. WW-Temperatur, Einmalige Ladung)
 
 - **Electricity Maps**
   - Zweck: CO₂-Intensität des Stromnetzes.
@@ -178,6 +181,13 @@ Hinweis: „Update verfügbar“/„gestoppt“ ist eine Momentaufnahme. Für di
   - **YAML:** Helfer/Automationen/Skripte in `helpers.yaml`, `automations.yaml`, `scripts.yaml`; Dashboard-Block in `dashboards/uebersicht.yaml`
 
 *(Weitere Integrationen wie Xiaomi Miot Auto für Staubsauger etc. können wir ergänzen, sobald wir sie aktiv anfassen.)*
+
+### Bewusst deaktiviert / Backlog (UI)
+
+| Integration | Config Entry | Status | Notiz |
+|-------------|--------------|--------|-------|
+| **EPSON ET-2750** | `ipp` | ⏸ deaktiviert | Drucker selten genutzt; bei Bedarf in HA wieder aktivieren |
+| **BLE Monitor** (HACS) | `ble_monitor` | ⏸ deaktiviert | Ersetzt durch native BLE-Proxies + Gardena-Bluetooth-Custom; siehe [`hacs-inventar.md`](./hacs-inventar.md) |
 
 ---
 

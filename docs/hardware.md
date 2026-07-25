@@ -30,7 +30,7 @@ Die Schalter sind leider noch nicht gut genug, manchmal muss man mehrfach drück
 | Bodenfeuchte Hecke/Beet (Zigbee, alt.) | Tuya SGS01Z / TS0601 | Zigbee2MQTT | 📦 optional parallel |
 | Ventil Rasen gross | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone A, `valve.ventil_garten_rasen_gross` |
 | Ventil Rasen klein | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone B, `valve.ventil_garten_rasen_klein` |
-| Ventil Tropf Hecke/Beet | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone C, `valve.ventil_garten_tropf_hecke_beet` *(Leck offen)* |
+| Ventil Tropf Hecke/Beet | Gardena 1285-20 BT | `gardena_bluetooth` (Proxy Fix) | ✅ Zone C, `valve.ventil_garten_tropf_hecke_beet` *(Leck repariert 2026-07-25)* |
 | BT-Proxy EG Garten | M5 Atom Lite | ESPHome `atom-bluetooth-proxy-eg-garten.yaml` | ✅ **active scanning**, am EG-Fenster |
 | BT-Proxy 1.OG / 2.OG | M5 Atom Lite | ESPHome | ✅ passiv |
 

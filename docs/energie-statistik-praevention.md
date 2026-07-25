@@ -97,14 +97,16 @@ Falsche Kombinationen erzeugen die bisherigen Bugs: HA-Auto-`_*_cost` (Neustart-
 Kosten_neu = Kosten_alt + (Zählerstand_neu − Zählerstand_alt) × Preis_jetzt
 ```
 
-`this.state` und `last_reading` überleben **Core-Neustart** (Restore State). Recorder schreibt stündlich in MariaDB.
+Template-Variable **this.state** und **last_reading** überleben **Core-Neustart** (Restore State). Recorder schreibt stündlich in MariaDB.
 
 | Medium | Entity | Trigger |
 |--------|--------|---------|
 | Gas | `sensor.gasmeter_stabil_kosten` | `gasmeter_value_stabil` |
 | Wasser | `sensor.watermeter_stabil_kosten` | `watermeter_value_stabil` |
 | Strom Bezug | `sensor.strom_bezug_stabil_kosten` | `mt691_total_in_stabil` |
-| Einspeisung | `sensor.strom_einspeisung_stabil_verguetung` | `mt691_total_out_stabil` |
+| Einspeisung | `sensor.strom_einspeisung_stabil_vergutung` | `mt691_total_out_stabil` |
+
+> **Hinweis:** HA-Slug `…_vergutung` (ohne ü); `unique_id` in `configuration.yaml` kann `…_verguetung` heißen — beides ok.
 
 Energie-Dashboard: `stat_cost` / `stat_compensation` → diese Entities (`.storage/energy`).
 

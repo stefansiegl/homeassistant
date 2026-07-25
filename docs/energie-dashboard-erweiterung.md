@@ -24,7 +24,7 @@ Stand: 2026-06-09 · Bezug: [`energie-statistik-wartung.md`](./energie-statistik
 | **SK 18** | FBH-Pumpen (fest verdrahtet) | — | — | ❌ ungemessen |
 | **SK 20/21** | Vitovalor + Nebenverbrauch | ViCare API | `sensor.vicare_energy_consumption_this_month` | ✅ (nur Anlage) |
 | **SK 20/21** | Hebeanlage (Schuko) | Nous A1Z | `sensor.steckdose_keller_hebeanlage_energy` | ✅ seit 09.06.2026 |
-| **SK 20/21** | Grünbeck Enthärtung (Schuko) | Nous A1Z (2. Steckdose) | `sensor.steckdose_keller_gruenbeck_energy` (nach Pairing) | ⏳ Nutzer |
+| **SK 20/21** | Grünbeck Enthärtung (Schuko) | Nous A1Z (2. Steckdose) | steckdose_keller_gruenbeck_energy (nach Pairing) | ⏳ Nutzer |
 | **Steckdosen** | Küche, Multimedia, Technikraum, Haushalt | Nous A1Z / Shelly Plug | siehe `.storage/energy` | ✅ |
 | **Licht** | Hue + Powercalc | Domain-Group | `sensor.all_light_energy` | ✅ geschätzt |
 | **Garage** | leer | — | — | — |
@@ -218,7 +218,7 @@ powercalc:
             power: 90   # Fallback: Steuerung, BZ-Hilfsverbrauch, Standby
 ```
 
-**Option C — Hybrid:** Option A fürs Dashboard; Option B optional für `sensor.vitovalor_pt2_power` (Anzeige / Abgleich mit ViCare-Monatswert).
+**Option C — Hybrid:** Option A fürs Dashboard; Option B optional für Powercalc-Sensor vitovalor_pt2_power (Anzeige / Abgleich mit ViCare-Monatswert).
 
 **Kalibrierung:** Monatswert ViCare vs. Powercalc-Energie vergleichen; `fixed`/`calibrate` nachziehen. Noch besser: **Shelly EM am Heizungs-FI** (Vitovalor + ggf. Pumpe — dann ggf. getrennte Kreise prüfen).
 
@@ -303,7 +303,7 @@ Details + Sicherheit: Einkaufsplan Strom-Hardware (Montage-Abschnitt).
 1. Steckdose zwischen Wanddose und Grünbeck-Stecker (wie Hebeanlage).
 2. Z2M pairen → Friendly Name **`Steckdose-Keller-Gruenbeck`**.
 3. `power_outage_memory` → **on**.
-4. Energie-Dashboard: `sensor.steckdose_keller_gruenbeck_energy` + `_power` hinzufügen (UI oder `.storage/energy`).
+4. Energie-Dashboard: steckdose_keller_gruenbeck_energy + _power hinzufügen (UI oder `.storage/energy`).
 
 ---
 
@@ -322,7 +322,7 @@ Details + Sicherheit: Einkaufsplan Strom-Hardware (Montage-Abschnitt).
 
 1. Entwicklerwerkzeuge → `sensor.steckdose_keller_hebeanlage_power` / `_energy` (Hebeanlage).
 2. Energie-Dashboard: Hebeanlage, Vitovalor (`_this_month`), Helios sichtbar; „nicht zugeordnet“ beobachten.
-3. Nach Grünbeck-Pairing: `sensor.steckdose_keller_gruenbeck_energy` ergänzen.
+3. Nach Grünbeck-Pairing: steckdose_keller_gruenbeck_energy ergänzen.
 
 ---
 

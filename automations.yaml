@@ -31,12 +31,12 @@
         '
   - action: media_player.volume_set
     target:
-      entity_id: media_player.benachrichtung_lautsprecher
+      entity_id: media_player.benachrichtigung_lautsprecher
     data:
       volume_level: 0.4
   - action: tts.google_translate_say
     target:
-      entity_id: media_player.benachrichtung_lautsprecher
+      entity_id: media_player.benachrichtigung_lautsprecher
     data:
       message: 'Morgen: {{ tonnen_liste }}.'
       language: de
@@ -181,12 +181,12 @@
     then:
     - action: media_player.volume_set
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         volume_level: 0.4
     - action: tts.google_translate_say
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         message: Waschmaschine ist fertig.
         language: de
@@ -317,12 +317,12 @@
     then:
     - action: media_player.volume_set
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         volume_level: 0.4
     - action: tts.google_translate_say
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         message: Trockner ist fertig.
         language: de
@@ -394,6 +394,10 @@
 - id: climate_humidification_delta_v2_2
   alias: 'Klima: Intelligente Befeuchtung (Delta-Steuerung)'
   description: Regelt 3 Befeuchter. Nachtruhe 22-08 Uhr. Buzzer via Switch-Alarm deaktiviert.
+  conditions:
+  - condition: state
+    entity_id: input_boolean.befeuchter_saison_aktiv
+    state: 'on'
   triggers:
   - trigger: time_pattern
     minutes: /30
@@ -503,6 +507,10 @@
 - id: humidifiers_water_shortage_notify
   alias: 'Klima: Warnung Wassertank leer'
   description: Sendet Push-Nachricht, wenn ein Befeuchter Wassermangel meldet.
+  conditions:
+  - condition: state
+    entity_id: input_boolean.befeuchter_saison_aktiv
+    state: 'on'
   triggers:
   - trigger: state
     entity_id:
@@ -530,6 +538,9 @@
     at: '10:00:00'
   actions:
   - if:
+    - condition: state
+      entity_id: input_boolean.befeuchter_saison_aktiv
+      state: 'on'
     - condition: template
       value_template: '{% set limit = states(''input_number.intervall_befeuchter_reinigung'')
         | int(60) %} {% set letzte = as_timestamp(states(''input_datetime.letzte_reinigung_befeuchter''))
@@ -657,13 +668,18 @@
   mode: single
 - id: '1770730843209'
   alias: 'Haushalt: Spülmaschine Status-Management'
-  description: Überwachung der Spülmaschine an Shelly Phase B
+  description: 'Phase B = Herd + Spülmaschine. Start nur bei dauerhaft >200W; Abbruch bei langem Standby (~20W) ohne Gang.'
   triggers:
   - trigger: numeric_state
     entity_id: sensor.spuelmaschine_shellypro3em_leistung
-    above: 50
-    for: 00:02:00
+    above: 200
+    for: 00:05:00
     id: trigger_start
+  - trigger: numeric_state
+    entity_id: sensor.spuelmaschine_shellypro3em_leistung
+    below: 45
+    for: 00:12:00
+    id: trigger_abort
   - trigger: numeric_state
     entity_id: sensor.spuelmaschine_shellypro3em_leistung
     below: 6
@@ -704,6 +720,18 @@
           entity_id: input_select.spuelmaschine_status_helper
         data:
           option: läuft
+    - conditions:
+      - condition: trigger
+        id: trigger_abort
+      - condition: state
+        entity_id: input_select.spuelmaschine_status_helper
+        state: läuft
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.spuelmaschine_status_helper
+        data:
+          option: standby
     - conditions:
       - condition: trigger
         id: trigger_fertig
@@ -771,12 +799,12 @@
     then:
     - action: media_player.volume_set
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         volume_level: 0.4
     - action: tts.google_translate_say
       target:
-        entity_id: media_player.benachrichtung_lautsprecher
+        entity_id: media_player.benachrichtigung_lautsprecher
       data:
         message: Geschirr ist fertig.
         language: de
@@ -1546,35 +1574,82 @@
   mode: single
 - id: garten_tropf_automatisch
   alias: 'Garten: Tropf automatisch'
-  description: Bewässert Beet bei Trockenheit 2× täglich (docs/garten-bewaesserung.md)
+  description: Abend 21:00 + tagsüber Feuchte 08–20 Uhr, mit Limits (docs/garten-bewaesserung.md)
   triggers:
   - trigger: time
-    at: '04:00:00'
-  - trigger: time
     at: '21:00:00'
+    id: abend
+  - trigger: numeric_state
+    entity_id: sensor.gw1100a_soil_moisture_5
+    below: input_number.garten_schwellwert_beet
+    for: 00:15:00
+    id: beet_trocken
+  - trigger: numeric_state
+    entity_id: sensor.gw1100a_soil_moisture_6
+    below: input_number.garten_schwellwert_hecke
+    for: 00:15:00
+    id: hecke_trocken
   conditions:
   - condition: state
     entity_id: input_boolean.garten_tropf_automatisch
     state: 'on'
   - condition: template
     value_template: >
-      {% set sb = states('input_number.garten_schwellwert_beet') | float(35) %}
-      {% set b = states('sensor.gw1100a_soil_moisture_5') %}
-      {{ b not in ['unknown', 'unavailable', 'none', ''] and b | float(100) < sb }}
-  - condition: template
-    value_template: >
-      {% set last = states('input_datetime.garten_tropf_letzte_bewaesserung') %}
-      {% if last in ['unknown', 'unavailable', 'none', ''] %}
+      {% if trigger.id == 'abend' %}
         true
       {% else %}
-        {{ (as_timestamp(now()) - as_timestamp(last)) > (states('input_number.garten_tropf_sperre_stunden') | float(6) * 3600) }}
+        {{ now().hour >= 8 and now().hour < 20 }}
       {% endif %}
+  - condition: template
+    value_template: >
+      {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
+      {% set hecke = states('sensor.gw1100a_soil_moisture_6') %}
+      {% set zb = states('input_number.garten_schwellwert_beet') | float(35) %}
+      {% set zh = states('input_number.garten_schwellwert_hecke') | float(35) %}
+      {% set beet_trocken = beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb %}
+      {% set hecke_trocken = hecke not in ['unknown', 'unavailable', 'none', ''] and hecke | float(100) < zh %}
+      {{ beet_trocken or hecke_trocken }}
+  - condition: template
+    value_template: >
+      {{ not is_state('script.garten_tropf_bewaessern', 'on')
+         and not is_state('script.garten_morgen_bewaessern', 'on')
+         and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open')
+         and not is_state('valve.ventil_garten_rasen_gross', 'open')
+         and not is_state('valve.ventil_garten_rasen_klein', 'open') }}
   actions:
-  - action: script.garten_tropf_bewaessern
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: >
+          {{ states('counter.garten_tropf_laeufe_heute') | int(0)
+             >= states('input_number.garten_tropf_max_laeufe_tag') | int(3) }}
+      sequence:
+      - action: script.garten_tropf_limit_alarm
+    default:
+    - if:
+      - condition: trigger
+        id: abend
+      then:
+      - action: script.garten_tropf_bewaessern
+      else:
+      - action: script.garten_tropf_bewaessern
+        data:
+          dauer_minuten: "{{ states('input_number.garten_tropf_dauer_tag_minuten') | int(30) }}"
+  mode: single
+- id: garten_tropf_zaehler_reset
+  alias: 'Garten: Tropf Zähler Mitternacht'
+  description: Setzt counter.garten_tropf_laeufe_heute auf 0
+  triggers:
+  - trigger: time
+    at: '00:05:00'
+  actions:
+  - action: counter.reset
+    target:
+      entity_id: counter.garten_tropf_laeufe_heute
   mode: single
 - id: garten_rasen_morgens
-  alias: 'Garten: Rasen morgens'
-  description: Täglich 4 Uhr Viereckregner dann Versenkregner (Ansaat / feuchte Haltephase)
+  alias: 'Garten: Bewässerung morgens'
+  description: Täglich 4 Uhr feuchtebasiert A/B/Tropf (docs/garten-bewaesserung.md)
   triggers:
   - trigger: time
     at: '04:00:00'
@@ -1587,11 +1662,12 @@
       {{ not is_state('script.garten_rasen_gross_bewaessern', 'on')
          and not is_state('script.garten_rasen_klein_bewaessern', 'on')
          and not is_state('script.garten_tropf_bewaessern', 'on')
+         and not is_state('script.garten_morgen_bewaessern', 'on')
          and not is_state('valve.ventil_garten_rasen_gross', 'open')
          and not is_state('valve.ventil_garten_rasen_klein', 'open')
          and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
   actions:
-  - action: script.garten_rasen_bewaessern
+  - action: script.garten_morgen_bewaessern
   mode: single
 - id: garten_sicherheit_max_laufzeit
   alias: 'Garten: Sicherheit Max-Laufzeit'
@@ -1630,6 +1706,16 @@
             message: >
               {{ state_attr(repeat.item, 'friendly_name') or repeat.item }}
               wurde nach {{ states('input_number.garten_max_laufzeit_stunden') }} h automatisch geschlossen.
+        - if:
+          - condition: template
+            value_template: "{{ repeat.item == 'valve.ventil_garten_tropf_hecke_beet' }}"
+          then:
+          - action: notify.mobile_app_pixel_9_pro
+            data:
+              title: Tropf — Max-Laufzeit
+              message: >-
+                Tropfventil länger als {{ states('input_number.garten_max_laufzeit_stunden') }} h offen —
+                zwangsweise geschlossen. Bitte prüfen.
   mode: single
 
 # --- Sprachsteuerung: MS To Do Listen (Assist) ---
