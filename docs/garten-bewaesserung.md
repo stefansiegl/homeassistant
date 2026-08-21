@@ -396,21 +396,22 @@ Skripte und Automationen nutzen `valve.open_valve` / `valve.close_valve` (nicht 
 - Automation `garten_sicherheit_max_laufzeit`: prüft alle **5 Min** und bei Ventil-Öffnung, ob ein Außen-Ventil länger als die Max-Laufzeit **offen** ist → `valve.close_valve` + Hinweis-Benachrichtigung
 - Gilt für alle drei Ventile: Rasen groß/klein, Tropf Hecke/Beet
 
-### Logik Morgen (04:00) — feuchtebasiert
+### Logik Morgen (04:00)
 
 Schalter: `input_boolean.garten_rasen_automatisch` (**an** = Morgenprogramm aktiv).
 
-Automation `garten_rasen_morgens` → `script.garten_morgen_bewaessern` — **jede Zone nur bei Bedarf** (Sensor unter Schwellwert; Sensor fehlt/unavailable → Zone überspringen):
+Automation `garten_rasen_morgens` → `script.garten_morgen_bewaessern`:
 
-| Schritt | Zone | Sensor | Schwellwert-Helper | Dauer |
-|---------|------|--------|--------------------|-------|
-| 1 | A Viereckregner | CH7 Himbeeren (`sensor.gw1100a_soil_moisture_7`) | `input_number.garten_schwellwert_himbeeren` | `garten_rasen_dauer_minuten` |
-| 2 | B Versenkregner | wie Zone A (kein eigener Rasen-Sensor) | gleicher Schwellwert | gleiche Dauer |
-| 3 | C Tropf | CH5 Beet **oder** CH6 Hecke unter Schwellwert | `garten_schwellwert_beet` / `_hecke` | `garten_tropf_dauer_minuten` (**45 Min**) |
+| Schritt | Zone | Bedingung | Dauer |
+|---------|------|-----------|-------|
+| 1–2 | A + B Regner | **immer**, wenn Schalter an (zeitgesteuert) | `garten_rasen_dauer_minuten` |
+| 3 | C Tropf | Beet **oder** Hecke unter Schwellwert | `garten_tropf_dauer_minuten` (**45 Min**) |
 
-Nacheinander (kein Parallelbetrieb). Ist alles feucht genug → Skript endet ohne Ventilöffnung.
+Nacheinander (kein Parallelbetrieb).
 
-**Hinweis Rasen:** Es gibt keinen Sensor direkt im Rasen — CH7 (Himbeeren, vom großen Regner mit erreicht) ist der Proxy für Zone A/B. Nach Kalibrierung Schwellwert anpassen.
+**Warum Regner ohne Feuchte-Gate:** CH7 (Himbeeren) wird auch vom **Tropf** mitgefeuchtet und lag wochenlang bei ~50–65 % — dadurch liefen die Regner **nie** (Stand Aug 2026). Es gibt keinen Sensor direkt im Rasen. `input_number.garten_schwellwert_himbeeren` bleibt für Dashboard-Anzeige (orange/grün), steuert die Regner nicht mehr.
+
+**Hinweis:** Bei Dauerregen Regner-Schalter manuell aus oder später Wetter-Integration (Backlog).
 
 ### Logik Tropf (Zone C) — jederzeit bei Trockenheit, mit Limits
 
@@ -419,7 +420,7 @@ Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tr
 | Auslöser | Wann | Dauer |
 |----------|------|-------|
 | Morgenprogramm | 04:00, wenn Beet/Hecke trocken (über `garten_rasen_automatisch`) | `garten_tropf_dauer_minuten` (**45 Min**) |
-| Tagsüber Feuchte | CH5 oder CH6 unter Schwellwert für **15 Min**, nur **08:00–20:00** | `garten_tropf_dauer_tag_minuten` (**30 Min**) |
+| Tagsüber Feuchte | CH5/CH6 unter Schwellwert **10 Min**, oder **alle 30 Min** Poll **07:00–21:00** | `garten_tropf_dauer_tag_minuten` (**35 Min**, Hitze) |
 | Abends | 21:00, wenn Beet/Hecke trocken | wie Morgen (45 Min) |
 
 **Sicherheit / Limits (verhindert Dauerlauf und zu häufiges Gießen):**
@@ -427,11 +428,11 @@ Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tr
 | Limit | Helper / Mechanik | Reaktion |
 |-------|-------------------|----------|
 | Max. offen | `garten_max_laufzeit_stunden` (1 h) | Ventil zu + Benachrichtigung |
-| Mindestabstand | `garten_tropf_sperre_stunden` (**4 h**) | neuer Lauf wird übersprungen |
-| Max. Läufe / Tag | `garten_tropf_max_laeufe_tag` (**3**) + `counter.garten_tropf_laeufe_heute` | **kein** neuer Lauf; Auto-Schalter **aus**; Push + persistente Meldung → manuell nachschauen |
+| Mindestabstand | `garten_tropf_sperre_stunden` (**3 h**, Hitze) | neuer Lauf wird übersprungen |
+| Max. Läufe / Tag | `garten_tropf_max_laeufe_tag` (**5**, Hitze) + `counter.garten_tropf_laeufe_heute` | **kein** neuer Lauf; Auto-Schalter **aus**; Push → nachschauen |
 | Zähler-Reset | Mitternacht | `counter.reset` |
 
-Skript `garten_tropf_bewaessern` prüft Tageslimit vor dem Öffnen; optional `dauer_minuten` als Feld (Tagsüber 30).
+**Hitze-Profil (Stand 2026-08-03):** Beet-Schwellwert **42 %** (Zielband ~42–48 % nach den beobachteten Peaks). Skript `script.garten_hitzeprofil` setzt die Werte und startet Tropf sofort, wenn Beet darunter liegt.
 
 ### Topf-Anzeige (Dashboard, keine Auto-Bewässerung)
 
@@ -440,9 +441,9 @@ Skript `garten_tropf_bewaessern` prüft Tageslimit vor dem Öffnen; optional `da
 | Glücksfeder, Strahlenaralie, Glücksbambus | 1,3,4,8 | **35 %** fest |
 | **Elefantenfuß** (trockenheitsliebend) | 2 | `input_number.topf_schwellwert_elefantenfuss` (**20 %**) |
 
-> **Stand 2026-07-25:** Morgen feuchtebasiert; Tropf tagsüber 30 Min bei Trockenheit; Tageslimit 3 + Sperre 4 h + Max-offen 1 h.
+> **Stand 2026-08-03 (Hitze):** Beet **42 %**, Tag-Dauer **35 Min**, Sperre **3 h**, max **5** Läufe/Tag, Poll alle 30 Min. `script.garten_hitzeprofil` zum Aktivieren.
 
-Garten-Schwellwerte Start: Beet/Hecke/Himbeeren **35 %** — nach Beobachtung kalibrieren.
+Garten-Schwellwerte: Beet **42 %**, Hecke/Himbeeren **35 %** — nach Hitzeperiode ggf. zurücksetzen.
 
 ---
 

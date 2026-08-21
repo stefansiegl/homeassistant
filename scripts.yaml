@@ -577,6 +577,56 @@ szene_adrian_gemutlich:
       target:
         entity_id: scene.adrian_gemutlich
 
+garten_hitzeprofil:
+  alias: Garten Hitze-Profil
+  description: Beet-Ziel 42 %, mehr Tropf-Läufe, kürzere Sperre — für heiße Tage (docs/garten-bewaesserung.md)
+  icon: mdi:weather-sunny-alert
+  mode: single
+  sequence:
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.garten_schwellwert_beet
+      data:
+        value: 42
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.garten_tropf_sperre_stunden
+      data:
+        value: 3
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.garten_tropf_max_laeufe_tag
+      data:
+        value: 5
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.garten_tropf_dauer_tag_minuten
+      data:
+        value: 35
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.garten_tropf_automatisch
+    - if:
+      - condition: template
+        value_template: >
+          {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
+          {% set zb = states('input_number.garten_schwellwert_beet') | float(42) %}
+          {{ beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb
+             and not is_state('script.garten_tropf_bewaessern', 'on')
+             and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
+      then:
+      - action: script.garten_tropf_bewaessern
+        data:
+          dauer_minuten: "{{ states('input_number.garten_tropf_dauer_tag_minuten') | int(35) }}"
+    - action: notify.mobile_app_pixel_9_pro
+      data:
+        title: Garten Hitze-Profil
+        message: >-
+          Beet-Schwellwert 42 %, max 5 Tropf-Läufe/Tag, Sperre 3 h, Tag-Dauer 35 Min.
+          {% if is_state('script.garten_tropf_bewaessern', 'on') or is_state('valve.ventil_garten_tropf_hecke_beet', 'open') %}
+          Tropf läuft jetzt nach.
+          {% endif %}
+
 garten_tropf_limit_alarm:
   alias: Tropf Limit / Alarm
   description: Stoppt Tropf, schaltet Auto aus, Push (docs/garten-bewaesserung.md)
@@ -635,7 +685,7 @@ garten_tropf_bewaessern:
             {{ states('input_number.garten_tropf_dauer_minuten') | int(45) }}
           {% endif %}
         laeufe: "{{ states('counter.garten_tropf_laeufe_heute') | int(0) }}"
-        max_l: "{{ states('input_number.garten_tropf_max_laeufe_tag') | int(3) }}"
+        max_l: "{{ states('input_number.garten_tropf_max_laeufe_tag') | int(5) }}"
     - if:
       - condition: template
         value_template: "{{ laeufe | int >= max_l | int }}"
@@ -715,8 +765,8 @@ garten_rasen_bewaessern:
     - action: script.garten_rasen_klein_bewaessern
 
 garten_morgen_bewaessern:
-  alias: Garten morgens (feuchtebasiert)
-  description: Zone A/B bei trockenem CH7, Tropf bei trockenem Beet/Hecke (docs/garten-bewaesserung.md)
+  alias: Garten morgens (Regner + Tropf bei Bedarf)
+  description: Zone A/B immer zeitgesteuert; Tropf bei trockenem Beet/Hecke (docs/garten-bewaesserung.md)
   icon: mdi:weather-sunset-up
   mode: single
   sequence:
@@ -728,21 +778,14 @@ garten_morgen_bewaessern:
            and not is_state('valve.ventil_garten_rasen_gross', 'open')
            and not is_state('valve.ventil_garten_rasen_klein', 'open')
            and not is_state('valve.ventil_garten_tropf_hecke_beet', 'open') }}
-    - if:
-      - condition: template
-        value_template: >
-          {% set h = states('sensor.gw1100a_soil_moisture_7') %}
-          {% set z = states('input_number.garten_schwellwert_himbeeren') | float(35) %}
-          {{ h not in ['unknown', 'unavailable', 'none', ''] and h | float(100) < z }}
-      then:
-      - action: script.garten_rasen_gross_bewaessern
-      - action: script.garten_rasen_klein_bewaessern
+    - action: script.garten_rasen_gross_bewaessern
+    - action: script.garten_rasen_klein_bewaessern
     - if:
       - condition: template
         value_template: >
           {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
           {% set hecke = states('sensor.gw1100a_soil_moisture_6') %}
-          {% set zb = states('input_number.garten_schwellwert_beet') | float(35) %}
+          {% set zb = states('input_number.garten_schwellwert_beet') | float(42) %}
           {% set zh = states('input_number.garten_schwellwert_hecke') | float(35) %}
           {% set beet_trocken = beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb %}
           {% set hecke_trocken = hecke not in ['unknown', 'unavailable', 'none', ''] and hecke | float(100) < zh %}

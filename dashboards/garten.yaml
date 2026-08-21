@@ -242,6 +242,18 @@ views:
         icon: mdi:water-sync
 
     - type: custom:mushroom-template-card
+      primary: Hitze-Profil aktivieren
+      secondary: Beet 42 % · max 5×/Tag · Sperre 3 h
+      icon: mdi:weather-sunny-alert
+      icon_color: orange
+      layout: horizontal
+      tap_action:
+        action: perform-action
+        perform_action: script.garten_hitzeprofil
+        confirmation:
+          text: Hitze-Profil setzen und bei Bedarf Tropf starten?
+
+    - type: custom:mushroom-template-card
       primary: Bewässerung stoppen
       secondary: Alle Ventile + laufende Skripte
       icon: mdi:stop-circle-outline
@@ -271,12 +283,9 @@ views:
 
     - type: markdown
       content: >
-        **Morgen 4:00** (Schalter Rasen+Tropf): nur bei Bedarf —
-        Regner wenn Himbeeren (CH7) trocken, Tropf 45 Min wenn Beet/Hecke trocken.
-
-        **Tropf tagsüber + abends** (Schalter Tropf): bei Trockenheit 08–20 Uhr **30 Min**,
-        abends 21:00 **45 Min**. Limits: max **3 Läufe/Tag**, Sperre **4 h**, max offen **1 h** —
-        bei Limit Auto aus + Push.
+        **Morgen 4:00** (Schalter Rasen+Tropf): Regner A+B **immer** (zeitgesteuert),
+        Tropf 45 Min nur wenn Beet/Hecke trocken. Hitze: Beet-Ziel **42 %**, max **5**/Tag,
+        Sperre **3 h**. Button „Hitze-Profil“ setzt die Werte.
 
         **Bilder:** Eigene Fotos nach `/config/www/images/garden/plants/` (gleicher Dateiname).
         Siehe `docs/dashboard-garten.md` im Repo.
