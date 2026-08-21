@@ -20,7 +20,7 @@ Entsprechend **an** mit „… an“ / „… einschalten“.
 
 | Entity | Anzeigename (friendly_name) | Raum-Hinweis Google |
 |--------|----------------------------|---------------------|
-| `light.alle_lichter_erdgeschoss` | Alle Lichter Erdgeschoss | Raum: **Erdgeschoss** (in HA-UI optional) |
+| `light.alle_lichter_erdgeschoss` | Alle Lichter Erdgeschoss | Raum: **Erdgeschoss** (in HA-UI gesetzt) |
 | `light.alle_lichter_wohnzimmer` | Alle Lichter Wohnzimmer | Raum: **Wohnzimmer (EG)** |
 | `light.alle_lichter_esszimmer` | Alle Lichter Esszimmer | Raum: **Esszimmer (EG)** |
 | `light.licht_eg_kueche` | Licht Küche | Raum: **Küche (EG)** |
