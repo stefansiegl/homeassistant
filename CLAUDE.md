@@ -31,13 +31,29 @@ bei Widerspruch gilt nach Abstimmung mit dem Nutzer diese Datei bzw.
 Inventar-Docs (`docs/hardware.md`, `docs/lights.md`, …) → bestehende YAML.
 Bei Widerspruch **nicht raten** — Nutzer fragen oder Spec anpassen.
 
-## HA-Neustart nach YAML-Änderungen
+## HA-Neustart nach YAML-Änderungen (Safety-Workflow, verbindlich)
 
 Nach Änderungen an `configuration.yaml` (Template, Powercalc, Gruppen),
-`helpers.yaml` oder `automations.yaml`, die laufendes Verhalten betreffen:
-**`ha core restart` selbst ausführen**, auf HA-Start warten, dann
-Logs/States prüfen und Ergebnis mitteilen — nicht nur "bitte neu laden"
-schreiben. Ausnahme: reine Doc- oder Dashboard-YAML-Änderungen, wenn ein
+`helpers.yaml`, `automations.yaml` oder `scripts.yaml`, die laufendes
+Verhalten betreffen, **immer diese Reihenfolge**:
+
+1. **`ha core check`** — Config validieren, bevor irgendetwas angewendet wird.
+2. **Committen** — die geprüften Änderungen als eigenen Commit, das ist der
+   Rollback-Punkt (kein Restart auf ungetesteten/unkommitteten Stand).
+3. **`ha core restart` selbst ausführen**, auf HA-Start warten.
+4. **Prüfen:** `ha core logs` (neue `ERROR`/`WARNING`, speziell zu den
+   geänderten Automationen/Skripten/Entities — bekannte, unabhängige
+   Fehler wie das HACS-Repo-ID-Problem oder ESP32-BLE-Reconnects ignorieren)
+   sowie `ha resolution info --raw-json` (`issues`/`unhealthy` auf neue
+   Einträge, nicht nur den Dauer-Hinweis "kein aktuelles Backup").
+5. **Bei Fehlschlag:** Rollback per `git revert <commit>` (kein
+   `reset --hard`, keine Historie überschreiben) + erneut `ha core restart`,
+   dann wieder Logs/Issues prüfen. Kein Rollback ohne den Nutzer über den
+   Fehler zu informieren.
+6. **Ergebnis dem Nutzer mitteilen** — nicht nur "bitte neu laden/neustarten"
+   schreiben, sondern was geprüft wurde und ob es sauber war.
+
+Ausnahme: reine Doc- oder Dashboard-YAML-Änderungen, wenn ein
 Browser-Reload reicht.
 
 ## Diagnose
