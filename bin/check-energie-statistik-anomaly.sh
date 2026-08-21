@@ -6,6 +6,14 @@ set -eu
 
 DB_HOST="${DB_HOST:-core-mariadb}"
 DB_USER="${DB_USER:-homeassistant}"
+if [ -z "${DB_PASS:-}" ]; then
+  DB_PASS="$(python3 -c "
+import re
+text = open('/config/secrets.yaml').read()
+m = re.search(r'^maria_db_recorder_db_url:\s*mysql://[^:]+:([^@]+)@', text, re.M)
+print(m.group(1) if m else '')
+" 2>/dev/null || true)"
+fi
 DB_PASS="${DB_PASS:?DB_PASS required}"
 DB_NAME="${DB_NAME:-homeassistant}"
 MODE="${1:-}"
