@@ -1,6 +1,6 @@
 ---
 name: ha-abgleich
-description: Checkliste für konsistente Änderungen im Home-Assistant-Repo (Docs-first, YAML vs UI, Räume, Integrationen, Dashboards). Verwenden, wenn der Nutzer „Abgleich“, „Checkliste“, „konsistent halten“, „Migration“ oder „Review“ erwähnt.
+description: Checkliste für konsistente Änderungen im Home-Assistant-Repo (Docs-first, YAML vs UI, Räume, Integrationen, Dashboards). Verwenden, wenn der Nutzer „Abgleich", „Checkliste", „konsistent halten", „Migration" oder „Review" erwähnt.
 disable-model-invocation: true
 ---
 
@@ -20,7 +20,7 @@ Diese Skill-Checkliste wird genutzt, um Änderungen systematisch abzusichern und
 
 - Änderungen auf den Spec-Scope begrenzen (keine Neben-Refactors)
 - Secrets: nur `!secret`, nichts hardcoden
-- **`secrets.yaml` geändert:** Nutzer an **Google-Drive-Kopie** erinnern (siehe `collaboration.mdc`)
+- **`secrets.yaml` geändert:** Nutzer an **Google-Drive-Kopie** erinnern (siehe `CLAUDE.md`)
 - Neue/änderte Entities:
   - Naming nach Standard
   - Inventar-Dateien aktualisieren (Lichter/HW)
@@ -43,6 +43,5 @@ Diese Skill-Checkliste wird genutzt, um Änderungen systematisch abzusichern und
 
 ## Beispiele
 
-- Nutzer: „Bitte mach den Abgleich und migrier das Tablett-Dashboard.“
+- Nutzer: „Bitte mach den Abgleich und migrier das Tablett-Dashboard."
   - Aktion: Skill laden → Dashboard-Migration gemäß `konfigurations-strategie.md` → danach Doku-Update + YAML-Check.
-

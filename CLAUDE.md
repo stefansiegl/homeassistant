@@ -2,9 +2,10 @@
 
 Home-Assistant-Konfiguration als "Design as Code". Diese Datei ist die
 **self-contained** Quelle für KI-Arbeitsregeln (versioniert in Git, kein
-Cross-Session-Memory außerhalb des Repos). Cursor liest inhaltlich dieselben
-Regeln aus `.cursor/rules/*.mdc` — bei Widerspruch gilt nach Abstimmung mit
-dem Nutzer diese Datei bzw. [`docs/standards.md`](./docs/standards.md).
+Cross-Session-Memory außerhalb des Repos). Ergänzende Skills liegen unter
+[`.claude/skills/`](./.claude/skills/) (`ha-abgleich`, `ha-live-audit`) —
+bei Widerspruch gilt nach Abstimmung mit dem Nutzer diese Datei bzw.
+[`docs/standards.md`](./docs/standards.md).
 
 ## Sprache
 

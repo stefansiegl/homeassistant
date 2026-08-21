@@ -48,17 +48,14 @@ Detaillierte Spezifikationen und Anleitungen befinden sich im Ordner `/docs`:
 ## 🛠 Arbeiten mit der KI
 Bevor Code-Änderungen (`.yaml`) vorgenommen werden, muss immer zuerst das entsprechende Design-Dokument in `/docs` angelegt, geprüft oder aktualisiert werden. Code ohne Dokumentations-Update gilt als technischer Fehler.
 
-## Cursor Skills & Rules (damit du sie merkst)
+## Claude Code: Regeln & Skills (damit du sie merkst)
 
-### Projekt-Rules (liegen in `.cursor/rules/`)
-- `collaboration.mdc` (Docs-first Workflow, Sprache, Scope, Nicht anfassen)
-- `home-assistant-yaml.mdc` (Hinweise beim Ändern von `**/*.yaml`)
-- `home-assistant-docs.mdc` (Struktur von Feature-Specs in `docs/`)
-- `abgleich-checkliste.mdc` (Erinnerung an die Abgleich-Checks)
+### Projekt-Regeln
+- [`CLAUDE.md`](./CLAUDE.md) (Docs-first Workflow, Sprache, Scope, Nicht anfassen, YAML-Standards, Energie-Statistik-Wartung — wird automatisch geladen)
 
-### Projekt-Skills (liegen in `.cursor/skills/`)
+### Projekt-Skills (liegen in `.claude/skills/`)
 
 | Skill | Datei | Zweck |
 |-------|-------|-------|
-| `ha-abgleich` | `.cursor/skills/ha-abgleich/SKILL.md` | Checkliste bei Implementierung / Migration |
-| `ha-live-audit` | `.cursor/skills/ha-live-audit/SKILL.md` | Periodischer Docs↔Live-Abgleich (`bin/audit-live.sh`, `/loop`) |
+| `ha-abgleich` | `.claude/skills/ha-abgleich/SKILL.md` | Checkliste bei Implementierung / Migration |
+| `ha-live-audit` | `.claude/skills/ha-live-audit/SKILL.md` | Periodischer Docs↔Live-Abgleich (`bin/audit-live.sh`, `/loop`) |

@@ -1,6 +1,6 @@
 # Standards & KI-Regeln
 
-Zentrale Konventionen für „Das gesunde Haus“. Cursor lädt ergänzend `.cursor/rules/` — bei Widerspruch gilt dieses Dokument nach Abstimmung mit dem Nutzer.
+Zentrale Konventionen für „Das gesunde Haus“. Claude Code lädt ergänzend [`CLAUDE.md`](../CLAUDE.md) und Skills unter [`.claude/skills/`](../.claude/skills/) — bei Widerspruch gilt dieses Dokument nach Abstimmung mit dem Nutzer.
 
 ## Vision
 

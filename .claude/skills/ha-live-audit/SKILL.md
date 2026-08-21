@@ -1,6 +1,6 @@
 ---
 name: ha-live-audit
-description: Modularer Live-Abgleich Repo-Dokumentation und YAML gegen die laufende Home-Assistant-Instanz. Verwenden bei „Live-Audit“, „System-Abgleich“, „Docs vs HA“, audit-live --resume oder /loop ha-live-audit.
+description: Modularer Live-Abgleich Repo-Dokumentation und YAML gegen die laufende Home-Assistant-Instanz. Verwenden bei „Live-Audit", „System-Abgleich", „Docs vs HA", audit-live --resume oder /loop ha-live-audit.
 disable-model-invocation: true
 ---
 
@@ -17,7 +17,7 @@ Spec: [`docs/live-audit.md`](../../../docs/live-audit.md)
 | Feature implementieren, PR, Migration | `ha-abgleich` |
 | Periodischer Docs↔Live-Check, Probleme finden | **`ha-live-audit`** |
 | 1 Modul pro Tag automatisch | `/loop 1d ha-live-audit --resume` |
-| **Alle 12 Module täglich abends** | Cron `bin/audit-live-nightly.sh` + Cursor Automation (siehe Spec) |
+| **Alle 12 Module täglich abends** | Cron `bin/audit-live-nightly.sh` + geplanter Claude-Task (siehe Spec) |
 
 ## Session-Budget
 
@@ -49,12 +49,12 @@ Spec: [`docs/live-audit.md`](../../../docs/live-audit.md)
 
 Pro Tick: 1 Modul (`--resume`) → Report → Summary → Doc-Fixes. Nach 12 Modulen: `--reset-cycle`.
 
-Loop-Skill: [`loop`](../../../.cursor/skills-cursor/loop/SKILL.md)
+Nutzt den eingebauten `loop`-Skill von Claude Code (`/loop <intervall> <prompt>`) — kein eigener Loop-Skill im Repo nötig.
 
-## Nightly (Cron + Cursor Automation)
+## Nightly (Cron + geplanter Task)
 
 1. **Cron 22:00:** `bin/audit-live-nightly.sh` → `log/live-audit/nightly-latest.md`
-2. **Cursor Automation** (eigener Thread): Skill laden → Summary lesen → bei fail/warn Doc-Fixes; kein YAML ohne Auftrag
+2. **Geplanter Claude-Task** (eigene Session): Skill laden → Summary lesen → bei fail/warn Doc-Fixes; kein YAML ohne Auftrag
 3. Install: `bin/install-audit-nightly-cron.sh` (einmalig)
 
 Spec: [`docs/live-audit.md`](../../../docs/live-audit.md) → Automatisierung
@@ -71,11 +71,11 @@ Spec: [`docs/live-audit.md`](../../../docs/live-audit.md) → Automatisierung
 
 - **Service-Aufrufe** in YAML (`action:`, `service:`) — Extractor filtert, Rest manuell ignorieren
 - **Config-Pfade** (`homeassistant.customize`, `lovelace.resources`) — keine Entities
-- **Notify-Service-Namen** vs. echte Entity-IDs (z. B. Doc sagt `notify.mobile_app_pixel_9_pro`, Live: `notify.pixel_9_pro`) → **Doc-Fix**
+- **Notify-Service-Namen** vs. echte Entity-IDs (z. B. Doc sagt `notify.mobile_app_pixel_9_pro`, Live: `notify.pixel_9_pro`) → **Doc-Fix**
 
 ### Bekannte Issues
 
-In [`manifests/live-audit-modules.json`](../../../manifests/live-audit-modules.json) → `known_issues` (z. B. Home Connect Waschmaschine = `warn`).
+In [`manifests/live-audit-modules.json`](../../../manifests/live-audit-modules.json) → `known_issues` (z. B. Home Connect Waschmaschine = `warn`).
 
 ## Nach dem Modul
 
@@ -89,7 +89,7 @@ Modul-Details: [`modules-reference.md`](modules-reference.md)
 
 ## Beispiele
 
-**Nutzer:** „Mach einen Live-Audit.“
+**Nutzer:** „Mach einen Live-Audit."
 
 → `bin/audit-live.sh --resume` → Report `haushalt` → Summary → Doc-Fix wenn notify-Entity falsch benannt
 
