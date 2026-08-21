@@ -420,7 +420,7 @@ Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tr
 | Auslöser | Wann | Dauer |
 |----------|------|-------|
 | Morgenprogramm | 04:00, wenn Beet/Hecke trocken (über `garten_rasen_automatisch`) | `garten_tropf_dauer_minuten` (**45 Min**) |
-| Tagsüber Feuchte | CH5/CH6 unter Schwellwert **10 Min**, oder **alle 30 Min** Poll **07:00–21:00** | `garten_tropf_dauer_tag_minuten` (**35 Min**, Hitze) |
+| Tagsüber Feuchte | CH5 oder CH6 unter Schwellwert für **15 Min**, nur **08:00–20:00** | `garten_tropf_dauer_tag_minuten` (**30 Min**) |
 | Abends | 21:00, wenn Beet/Hecke trocken | wie Morgen (45 Min) |
 
 **Sicherheit / Limits (verhindert Dauerlauf und zu häufiges Gießen):**
@@ -428,11 +428,11 @@ Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tr
 | Limit | Helper / Mechanik | Reaktion |
 |-------|-------------------|----------|
 | Max. offen | `garten_max_laufzeit_stunden` (1 h) | Ventil zu + Benachrichtigung |
-| Mindestabstand | `garten_tropf_sperre_stunden` (**3 h**, Hitze) | neuer Lauf wird übersprungen |
-| Max. Läufe / Tag | `garten_tropf_max_laeufe_tag` (**5**, Hitze) + `counter.garten_tropf_laeufe_heute` | **kein** neuer Lauf; Auto-Schalter **aus**; Push → nachschauen |
+| Mindestabstand | `garten_tropf_sperre_stunden` (**4 h**) | neuer Lauf wird übersprungen |
+| Max. Läufe / Tag | `garten_tropf_max_laeufe_tag` (**3**) + `counter.garten_tropf_laeufe_heute` | **kein** neuer Lauf; Auto-Schalter **aus**; Push + persistente Meldung → manuell nachschauen |
 | Zähler-Reset | Mitternacht | `counter.reset` |
 
-**Hitze-Profil (Stand 2026-08-03):** Beet-Schwellwert **42 %** (Zielband ~42–48 % nach den beobachteten Peaks). Skript `script.garten_hitzeprofil` setzt die Werte und startet Tropf sofort, wenn Beet darunter liegt.
+**Hitze-Profil (bei Bedarf, opt-in):** Skript `script.garten_hitzeprofil` (Dashboard-Button) setzt Beet-Schwellwert auf **42 %**, Sperre **3 h**, max **5** Läufe/Tag, Tag-Dauer **35 Min** und startet Tropf sofort, wenn Beet darunter liegt. **Achtung:** Die Helper sind YAML-`initial`-basiert — bei jedem `ha core restart` fallen sie automatisch auf die Baseline oben zurück, auch mitten in einer Hitzeperiode. Bei mehrtägiger Hitze das Skript nach jedem Neustart erneut auslösen, oder (Backlog) auf eine Automation umstellen, die z. B. anhand einer Wetter-/Temperatur-Entity selbst aktiviert/deaktiviert. Deckt aktuell nur die vier Helper-Werte ab, nicht das Zeitfenster/Poll-Intervall der Automation.
 
 ### Topf-Anzeige (Dashboard, keine Auto-Bewässerung)
 
@@ -441,9 +441,9 @@ Schalter: `input_boolean.garten_tropf_automatisch` (**an** = Tages- und Abend-Tr
 | Glücksfeder, Strahlenaralie, Glücksbambus | 1,3,4,8 | **35 %** fest |
 | **Elefantenfuß** (trockenheitsliebend) | 2 | `input_number.topf_schwellwert_elefantenfuss` (**20 %**) |
 
-> **Stand 2026-08-03 (Hitze):** Beet **42 %**, Tag-Dauer **35 Min**, Sperre **3 h**, max **5** Läufe/Tag, Poll alle 30 Min. `script.garten_hitzeprofil` zum Aktivieren.
+> **Stand 2026-08-21:** Baseline — Tropf tagsüber 30 Min bei Trockenheit (08–20 Uhr); Tageslimit 3 + Sperre 4 h + Max-offen 1 h. Hitze-Profil war 2026-08-03 bis 2026-08-21 aktiv scharfgeschaltet gewesen (als YAML-`initial`, nicht nur per Skript) — auf Baseline zurückgesetzt, da nicht mehr nötig; künftig nur noch per `script.garten_hitzeprofil`-Button aktivieren.
 
-Garten-Schwellwerte: Beet **42 %**, Hecke/Himbeeren **35 %** — nach Hitzeperiode ggf. zurücksetzen.
+Garten-Schwellwerte: Beet/Hecke/Himbeeren **35 %** — nach Beobachtung kalibrieren.
 
 ---
 

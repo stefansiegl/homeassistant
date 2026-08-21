@@ -167,7 +167,7 @@ input_number:
     mode: slider
     icon: mdi:water-percent
     unit_of_measurement: "%"
-    initial: 42
+    initial: 35
   garten_schwellwert_himbeeren:
     name: Garten Schwellwert Himbeeren (nur Anzeige)
     min: 10
@@ -203,7 +203,7 @@ input_number:
     mode: box
     icon: mdi:timer-outline
     unit_of_measurement: min
-    initial: 35
+    initial: 30
   garten_tropf_sperre_stunden:
     name: Garten Tropf Sperre
     min: 1
@@ -212,7 +212,7 @@ input_number:
     mode: box
     icon: mdi:timer-sand
     unit_of_measurement: h
-    initial: 3
+    initial: 4
   garten_tropf_max_laeufe_tag:
     name: Garten Tropf Max Läufe / Tag
     min: 1
@@ -220,7 +220,7 @@ input_number:
     step: 1
     mode: box
     icon: mdi:counter
-    initial: 5
+    initial: 3
   garten_rasen_dauer_minuten:
     name: Garten Rasen Dauer
     min: 5

@@ -1574,23 +1574,20 @@
   mode: single
 - id: garten_tropf_automatisch
   alias: 'Garten: Tropf automatisch'
-  description: Abend + tagsüber Feuchte inkl. 30-Min-Poll (Hitze), mit Limits (docs/garten-bewaesserung.md)
+  description: Abend 21:00 + tagsüber Feuchte 08–20 Uhr, mit Limits (docs/garten-bewaesserung.md)
   triggers:
   - trigger: time
     at: '21:00:00'
     id: abend
-  - trigger: time_pattern
-    minutes: /30
-    id: poll
   - trigger: numeric_state
     entity_id: sensor.gw1100a_soil_moisture_5
     below: input_number.garten_schwellwert_beet
-    for: 00:10:00
+    for: 00:15:00
     id: beet_trocken
   - trigger: numeric_state
     entity_id: sensor.gw1100a_soil_moisture_6
     below: input_number.garten_schwellwert_hecke
-    for: 00:10:00
+    for: 00:15:00
     id: hecke_trocken
   conditions:
   - condition: state
@@ -1601,13 +1598,13 @@
       {% if trigger.id == 'abend' %}
         true
       {% else %}
-        {{ now().hour >= 7 and now().hour < 21 }}
+        {{ now().hour >= 8 and now().hour < 20 }}
       {% endif %}
   - condition: template
     value_template: >
       {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
       {% set hecke = states('sensor.gw1100a_soil_moisture_6') %}
-      {% set zb = states('input_number.garten_schwellwert_beet') | float(42) %}
+      {% set zb = states('input_number.garten_schwellwert_beet') | float(35) %}
       {% set zh = states('input_number.garten_schwellwert_hecke') | float(35) %}
       {% set beet_trocken = beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb %}
       {% set hecke_trocken = hecke not in ['unknown', 'unavailable', 'none', ''] and hecke | float(100) < zh %}
@@ -1625,7 +1622,7 @@
       - condition: template
         value_template: >
           {{ states('counter.garten_tropf_laeufe_heute') | int(0)
-             >= states('input_number.garten_tropf_max_laeufe_tag') | int(5) }}
+             >= states('input_number.garten_tropf_max_laeufe_tag') | int(3) }}
       sequence:
       - action: script.garten_tropf_limit_alarm
     default:
@@ -1637,7 +1634,7 @@
       else:
       - action: script.garten_tropf_bewaessern
         data:
-          dauer_minuten: "{{ states('input_number.garten_tropf_dauer_tag_minuten') | int(35) }}"
+          dauer_minuten: "{{ states('input_number.garten_tropf_dauer_tag_minuten') | int(30) }}"
   mode: single
 - id: garten_tropf_zaehler_reset
   alias: 'Garten: Tropf Zähler Mitternacht'

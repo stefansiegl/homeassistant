@@ -579,6 +579,6 @@ views:
         **Rasen+Tropf morgens** täglich **4:00** — Regner A+B zeitgesteuert,
         Tropf nur wenn Beet/Hecke trocken (45 Min).
 
-        **Tropf tagsüber/abends** (Schalter): bei Trockenheit tags **35 Min** (07–21, Poll 30 Min),
-        abends 21:00. Hitze: Beet **42 %**, max 5×/Tag, Sperre 3 h — sonst Push + Auto aus.
+        **Tropf tagsüber/abends** (Schalter): bei Trockenheit tags **30 Min** (08–20),
+        abends 21:00. Max 3×/Tag, 4 h Abstand, max 1 h offen — sonst Push + Auto aus.
   badges: []

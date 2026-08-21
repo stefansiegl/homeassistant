@@ -284,8 +284,11 @@ views:
     - type: markdown
       content: >
         **Morgen 4:00** (Schalter Rasen+Tropf): Regner A+B **immer** (zeitgesteuert),
-        Tropf 45 Min nur wenn Beet/Hecke trocken. Hitze: Beet-Ziel **42 %**, max **5**/Tag,
-        Sperre **3 h**. Button „Hitze-Profil“ setzt die Werte.
+        Tropf 45 Min nur wenn Beet/Hecke trocken.
+
+        **Tropf tagsüber + abends** (Schalter Tropf): bei Trockenheit 08–20 Uhr **30 Min**,
+        abends 21:00 **45 Min**. Limits: max **3 Läufe/Tag**, Sperre **4 h**, max offen **1 h** —
+        bei Limit Auto aus + Push. Bei Hitze: Button „Hitze-Profil“ oben.
 
         **Bilder:** Eigene Fotos nach `/config/www/images/garden/plants/` (gleicher Dateiname).
         Siehe `docs/dashboard-garten.md` im Repo.

@@ -685,7 +685,7 @@ garten_tropf_bewaessern:
             {{ states('input_number.garten_tropf_dauer_minuten') | int(45) }}
           {% endif %}
         laeufe: "{{ states('counter.garten_tropf_laeufe_heute') | int(0) }}"
-        max_l: "{{ states('input_number.garten_tropf_max_laeufe_tag') | int(5) }}"
+        max_l: "{{ states('input_number.garten_tropf_max_laeufe_tag') | int(3) }}"
     - if:
       - condition: template
         value_template: "{{ laeufe | int >= max_l | int }}"
@@ -785,7 +785,7 @@ garten_morgen_bewaessern:
         value_template: >
           {% set beet = states('sensor.gw1100a_soil_moisture_5') %}
           {% set hecke = states('sensor.gw1100a_soil_moisture_6') %}
-          {% set zb = states('input_number.garten_schwellwert_beet') | float(42) %}
+          {% set zb = states('input_number.garten_schwellwert_beet') | float(35) %}
           {% set zh = states('input_number.garten_schwellwert_hecke') | float(35) %}
           {% set beet_trocken = beet not in ['unknown', 'unavailable', 'none', ''] and beet | float(100) < zb %}
           {% set hecke_trocken = hecke not in ['unknown', 'unavailable', 'none', ''] and hecke | float(100) < zh %}
