@@ -37,8 +37,24 @@ Stand der Datensicherung für „Das gesunde Haus“ — was wo liegt und was be
 
 - Lief historisch parallel; Uploads funktionierten.
 - Seit **Google-Drive-Integration** (06/2026) ist das **redundant**.
-- Empfehlung: Add-on **stoppen**, wenn die neue Integration stabil läuft (ein Ziel reicht).
+- **Gestoppt seit 2026-08-23** (`boot: auto` respektiert das, kommt beim Neustart nicht von selbst wieder).
 - Nicht beides langfristig pflegen, ohne Grund.
+
+## Vorfall 2026-08-23: Cloud/Drive-Uploads schlugen 2,5 Monate lang still fehl
+
+**Symptom:** `last_completed_automatic_backup` hing seit 2026-06-10 fest, obwohl täglich versucht wurde — nur die lokale Kopie kam an. Auffiel nur, weil wir zufällig ein Add-on-Update planten und `docs/backup-strategie.md` gegenlasen.
+
+**Root Cause (zwei Ebenen, nicht die vermutete Backup-Größe):**
+
+1. `homeassistant.components.backup`-Log zeigte: *"Backup agents \['google_drive...'\] are not available"* — die Integration wurde beim Backup-Start als nicht bereit aussortiert.
+2. Ursache: **OAuth-Client der Google-Cloud-Konsole stand auf „Test"** statt „In Produktion" — Test-Apps verlieren ihr Refresh-Token automatisch nach **7 Tagen**, unabhängig von Nutzung. Einmal im Juni verbunden, nach einer Woche lautlos invalide geworden.
+
+**Fix:**
+1. Google Cloud Console → OAuth-Zustimmungsbildschirm → **Branding**: alle Pflichtfelder ausfüllen (inkl. „Kontaktdaten des Entwicklers" ganz unten, leicht übersehen) — bei uns zusätzlich Platzhalter für Startseite/Datenschutz/Nutzungsbedingungen nötig, obwohl ohne `*` markiert (Google-Formular-Inkonsistenz zwischen Speichern und Veröffentlichen).
+2. Zielgruppe-Seite → **Veröffentlichungsstatus auf „In Produktion"** (kein Google-Review nötig bei nicht-sensiblem Scope `drive.file`).
+3. HA: Google-Drive-Integration **erneut authentifizieren**.
+
+**Lehre:** Größe (22,8 GB, wegen `include_all_addons: true` + Media) war eine Sackgasse — reduzierte Backup-Größe auf ~1-2 GB (gezielte App-Auswahl: MariaDB, Zigbee2MQTT, Grocy, ESPHome, Mosquitto; **ohne** InfluxDB [nur Grafana-Kopie der MariaDB-Daten] und Music Assistant [Cache, rebuildbar]), aber der eigentliche Fehler lag nie an der Größe. Erst der neue `binary_sensor.zigbee2mqtt_warnung`-Vorfall am selben Tag brachte uns dazu, die Backup-Konfiguration überhaupt zu prüfen — Ansporn für weitere Haus-Warnungen-Checks (siehe `docs/haus-warnungen.md`, Backlog).
 
 ## Rclone Backup (`19a172aa`)
 
