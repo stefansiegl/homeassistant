@@ -1036,6 +1036,48 @@ template:
               {% endif %}
             {% endif %}
 
+  # Haus-Warnungen Schicht 1: Zigbee2MQTT (siehe docs/haus-warnungen.md)
+  - trigger:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        minutes: "/5"
+      - trigger: state
+        entity_id:
+          - binary_sensor.zigbee2mqtt_bridge_connection_state
+          - sensor.ha_start_timestamp
+    binary_sensor:
+      - name: Zigbee2MQTT Warnung
+        unique_id: zigbee2mqtt_warnung
+        device_class: problem
+        icon: mdi:zigbee
+        state: >
+          {% set offline_min = 5 %}
+          {% set warn_min = 5 %}
+          {% set boot = states('sensor.ha_start_timestamp') | float(0) %}
+          {% set ha_age_min = (as_timestamp(now()) - boot) / 60 if boot > 0 else 0 %}
+          {% set st = states('binary_sensor.zigbee2mqtt_bridge_connection_state') %}
+          {% set lc = states.binary_sensor.zigbee2mqtt_bridge_connection_state.last_changed %}
+          {% if ha_age_min < offline_min %}
+            false
+          {% elif st == 'on' %}
+            false
+          {% elif lc is none %}
+            true
+          {% else %}
+            {{ (as_timestamp(now()) - as_timestamp(lc)) / 60 >= warn_min }}
+          {% endif %}
+        attributes:
+          grund: >
+            {% set st = states('binary_sensor.zigbee2mqtt_bridge_connection_state') %}
+            {% set lc = states.binary_sensor.zigbee2mqtt_bridge_connection_state.last_changed %}
+            {% if st != 'on' and lc is not none %}
+              {% set age = ((as_timestamp(now()) - as_timestamp(lc)) / 60) | int %}
+              {% if age >= 5 %}
+                Zigbee2MQTT: Bridge/Add-on nicht verbunden seit {{ age }} Min
+              {% endif %}
+            {% endif %}
+
   # Haus-Warnungen Schicht 3 (siehe docs/haus-warnungen.md)
   - trigger:
       - trigger: homeassistant
@@ -1047,6 +1089,7 @@ template:
           - binary_sensor.gasmeter_warnung
           - binary_sensor.watermeter_warnung
           - binary_sensor.befeuchter_nicht_erreichbar
+          - binary_sensor.zigbee2mqtt_warnung
           - input_boolean.befeuchter_saison_aktiv
           - input_number.zaehler_stale_minuten
           - input_number.zaehler_fehler_minuten
@@ -1059,6 +1102,7 @@ template:
             'binary_sensor.gasmeter_warnung',
             'binary_sensor.watermeter_warnung',
             'binary_sensor.befeuchter_nicht_erreichbar',
+            'binary_sensor.zigbee2mqtt_warnung',
           ] %}
           {% set ns = namespace(n=0) %}
           {% for eid in checks %}
@@ -1073,6 +1117,7 @@ template:
               'binary_sensor.gasmeter_warnung',
               'binary_sensor.watermeter_warnung',
               'binary_sensor.befeuchter_nicht_erreichbar',
+              'binary_sensor.zigbee2mqtt_warnung',
             ] %}
             {% set out = namespace(text='') %}
             {% for eid in checks %}

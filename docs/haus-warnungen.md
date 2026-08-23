@@ -80,10 +80,13 @@ UI (Tablett), Aggregat und Push-Automation lesen `sensor.haus_warnungen` — **k
 | gasmeter | `binary_sensor.gasmeter_warnung` | `sensor.gasmeter_uptime`, `sensor.gasmeter_value`, `sensor.gasmeter_error`, `binary_sensor.gasmeter_problem` | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
 | watermeter | `binary_sensor.watermeter_warnung` | `sensor.watermeter_uptime`, `sensor.watermeter_value`, … | kein MQTT-Lebenszeichen, Gerätefehler | ja | Tablett |
 | befeuchter | `binary_sensor.befeuchter_nicht_erreichbar` | `humidifier.deerma_*` | Saison aktiv **und** mindestens ein Befeuchter `unavailable`/`unknown` | ja | Tablett |
+| zigbee2mqtt | `binary_sensor.zigbee2mqtt_warnung` | `binary_sensor.zigbee2mqtt_bridge_connection_state` | Bridge/Add-on nicht verbunden ≥ 5 Min | ja | Tablett |
 
 **Gas und Wasser:** beide Checks dauerhaft aktiv (seit 2026-06-07 wieder für Wasser — zuvor temporär per Helper abgeschaltet).
 
 **Befeuchter:** nur in der Heizsaison (`input_boolean.befeuchter_saison_aktiv`) — siehe [`befeuchter-saison.md`](./befeuchter-saison.md).
+
+**Zigbee2MQTT (seit 2026-08-23):** Der Add-on crashte am 2026-08-23 nach einem kurzen Netzwerk-Aussetzer (Koordinator via TCP unerreichbar), crash-loopte und blieb 4 Std. im Fehlerzustand hängen — ohne Log-Aktivität, ohne Selbstheilung. `switch.zigbee2mqtt` und `binary_sensor.zigbee2mqtt_aktiv` reagierten während des ganzen Vorfalls **nicht** (kein Zustandswechsel in der Historie) und sind deshalb als Trigger ungeeignet. `binary_sensor.zigbee2mqtt_bridge_connection_state` ging exakt beim Absturz auf `off` und exakt bei der Reparatur auf `on` — zuverlässiges Signal, kein `input_number`-Schwellwert nötig (5 Min. fest im Template, analog Boot-Toleranz).
 
 ### Fehlerarten pro Zähler (Schicht 1)
 
@@ -118,6 +121,7 @@ Stale hängt an der **Uhr**, nicht an MQTT-Events. Der Aggregat-Block (Schicht 3
 | `input_number.zaehler_fehler_minuten` | helper | OCR/Problem erst warnen ab Dauer (30 min, 10–120) |
 | `binary_sensor.gasmeter_warnung` | template | Einzelcheck Gas |
 | `binary_sensor.watermeter_warnung` | template | Einzelcheck Wasser |
+| `binary_sensor.zigbee2mqtt_warnung` | template | Einzelcheck Zigbee2MQTT-Bridge |
 | `sensor.haus_warnungen` | trigger template | Anzahl + Attribut `liste` (enthält Check-Registry) |
 | `binary_sensor.haus_hat_warnungen` | template | abgeleitet aus Anzahl > 0 |
 | `notify.haus_warnungen` | notify group | Push — Start: `mobile_app_pixel_9_pro` |
